@@ -37,8 +37,7 @@ export const BEREICHE: Bereich[] = [
     phase: 3,
     nav: 'Ergebnisse',
     titel: () => 'Meine Ergebnisse',
-    beschreibung: (p) =>
-      istLeitung(p) ? 'Selbstbild, Fremdbild und deine Entwicklung über die Monate.' : 'Deine eigenen Antworten und dein Selbstbild über die Monate.',
+    beschreibung: () => 'Selbstbild, Fremdbild und deine Entwicklung über die Monate.',
   },
   {
     id: 'team',

@@ -144,12 +144,6 @@
   .au-kacheln {
     grid-template-columns: repeat(4, 1fr);
   }
-
-  /* ohne Fremdbild und Differenz (Mitarbeiter): nur zwei Kacheln, nicht über die ganze Breite gezogen */
-  .au-kacheln-zwei {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 560px;
-  }
 }
 
 .au-kachel {

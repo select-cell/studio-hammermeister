@@ -16,21 +16,21 @@ function TooltipInhalt({ active, payload }: TooltipProps) {
     <div className="au-tooltip">
       <strong>{monatName(d.monat)}</strong>
       <span style={{ color: FARBE.sb }}>Ø Selbstbild: {fmt(d.sb)}</span>
-      {d.fb !== null && <span style={{ color: FARBE.fb }}>Ø Fremdbild: {fmt(d.fb)}</span>}
+      <span style={{ color: FARBE.fb }}>Ø Fremdbild: {fmt(d.fb)}</span>
       {d.rituale !== null && <span style={{ color: 'var(--green)' }}>Ø Rituale: {fmt(d.rituale)}</span>}
     </div>
   )
 }
 
 /** Liniendiagramm über alle Monate: Ø Selbstbild, Ø Fremdbild und – falls vorhanden – Ø Rituale (§5.6). */
-export default function VerlaufDiagramm({ verlauf, mitFremdbild = true }: { verlauf: VerlaufPunkt[]; mitFremdbild?: boolean }) {
+export default function VerlaufDiagramm({ verlauf }: { verlauf: VerlaufPunkt[] }) {
   if (verlauf.length === 0) return <Leer text="Der Verlauf entsteht, sobald die erste Umfrage ausgewertet ist." />
   const mitRituale = verlauf.some((v) => v.rituale !== null)
   const punkt = { r: 4, strokeWidth: 2, fill: '#fff' }
 
   return (
     <>
-      <div className="au-diagramm" role="img" aria-label={mitFremdbild ? 'Verlauf von Selbstbild, Fremdbild und Rituale über alle Monate' : 'Verlauf von Selbstbild und Rituale über alle Monate'}>
+      <div className="au-diagramm" role="img" aria-label="Verlauf von Selbstbild, Fremdbild und Rituale über alle Monate">
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={verlauf} margin={{ top: 8, right: 16, left: -18, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke={FARBE.gitter} />
@@ -39,9 +39,7 @@ export default function VerlaufDiagramm({ verlauf, mitFremdbild = true }: { verl
             <Tooltip content={<TooltipInhalt />} />
             <Legend iconType="circle" itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
             <Line type="monotone" dataKey="sb" name="Ø Selbstbild" stroke={FARBE.sb} strokeWidth={2.5} dot={{ ...punkt, stroke: FARBE.sb }} connectNulls isAnimationActive={false} />
-            {mitFremdbild && (
-              <Line type="monotone" dataKey="fb" name="Ø Fremdbild" stroke={FARBE.fb} strokeWidth={2.5} dot={{ ...punkt, stroke: FARBE.fb }} connectNulls isAnimationActive={false} />
-            )}
+            <Line type="monotone" dataKey="fb" name="Ø Fremdbild" stroke={FARBE.fb} strokeWidth={2.5} dot={{ ...punkt, stroke: FARBE.fb }} connectNulls isAnimationActive={false} />
             {mitRituale && (
               <Line type="monotone" dataKey="rituale" name="Ø Rituale" stroke={FARBE.rituale} strokeWidth={2.5} dot={{ ...punkt, stroke: FARBE.rituale }} connectNulls isAnimationActive={false} />
             )}

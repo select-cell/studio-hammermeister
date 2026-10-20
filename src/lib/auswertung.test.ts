@@ -113,18 +113,6 @@ describe('Top und Flop', () => {
   it('ist bei leeren Daten leer', () => {
     expect(topFlop([], 4)).toEqual({ top: [], flop: [] })
   })
-  it('sortiert auf Wunsch nach dem Selbstbild (Mitarbeiter sehen kein Fremdbild)', () => {
-    const zeilen = [
-      { nr: 1, sb: 2, fb: null },
-      { nr: 2, sb: 5, fb: null },
-      { nr: 3, sb: 4, fb: null },
-      { nr: 4, sb: 1, fb: null },
-    ]
-    expect(topFlop(zeilen, 4)).toEqual({ top: [], flop: [] }) // ohne Fremdbild gibt es nach FB nichts zu sortieren
-    const { top, flop } = topFlop(zeilen, 2, (z) => z.sb)
-    expect(top.map((z) => z.nr)).toEqual([2, 3])
-    expect(flop.map((z) => z.nr)).toEqual([4, 1])
-  })
 })
 
 describe('Gruppieren und Sortieren', () => {

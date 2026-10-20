@@ -298,7 +298,7 @@ Alle mit `security definer`, `set search_path = public`. Jede prüft am Anfang d
 | `umfrage_inhalt()` | alle eingeloggten | aktive Verhalten inkl. Kriterien, Rituale inkl. Fragen, bewertbare Kollegen (alle aktiven Teamumfrage-Teilnehmer außer mir) |
 | `meine_offenen_monate()` | Teilnehmer | Monate ab `max(start_monat, aktiv_ab)` bis einschließlich laufendem Monat ohne Abgabe, jeweils mit Frist |
 | `umfrage_einreichen_v2(payload)` | Teilnehmer | speichert eine Abgabe (siehe unten), gibt `abgabe_id` zurück |
-| `meine_ergebnisse(von, bis)` | Teilnehmer | **Mitarbeiter: nur das eigene Selbstbild** (pro Monat × Verhalten, eigener Kommentar, Säulen-Schnitte, Rituale, Ausfülldauer; `nur_selbstbild = true`, Fremdbild/Differenz/fremde Kommentare leer). **Verantwortlicher und Admin:** pro Monat × Verhalten Selbstbild, Fremdbild-Schnitt, Anzahl Fremdbilder, Abweichung, Kommentare zum Fremdbild (Absender nach `absender_sichtbar_fuer`), Säulen- und Grundpfeiler-Schnitte |
+| `meine_ergebnisse(von, bis)` | Teilnehmer | pro Monat × Verhalten: Selbstbild, Fremdbild-Schnitt, Anzahl Fremdbilder, Abweichung; Säulen- und Grundpfeiler-Schnitte. **Kommentare zum Fremdbild nur für Verantwortliche und Admin** (Absender nach `absender_sichtbar_fuer`); bei Mitarbeitern leer, mit `ohne_fremdkommentare = true` |
 | `team_ergebnisse(von, bis)` | alle eingeloggten | pro Monat × Verhalten/Säule: Team-Schnitt Selbstbild, Team-Schnitt Fremdbild, Rituale-Schnitte, Entwicklung des Monats (nur Anzahl Nennungen pro Person) |
 | `person_ergebnisse(person_id, von, bis)` | verantwortlicher, admin | wie `meine_ergebnisse`, aber **mit** Absender je Fremdbild und Kommentar |
 | `abgabe_status(monat)` | verantwortlicher, admin | pro Teilnehmer: abgegeben ja/nein, Zeitpunkt |
@@ -354,17 +354,17 @@ Alle Bausteine beziehen sich auf einen **gewählten Monat** (Monatsauswahl oben 
 | Baustein | Inhalt | Teammitglied (`/app/ergebnisse`, `/app/team`) | Verantwortlicher / Admin |
 |---|---|---|---|
 | **Ansicht-Umschalter** | Tabs „Team“ + je Person; alle Bausteine darunter passen sich an | – | ✓ |
-| **Kennzahl-Kacheln** | Ø Selbstbild · Ø Fremdbild · Differenz mit Einordnung · Ø Ausfülldauer | ✓ eigene Werte nur Selbstbild und Ausfülldauer; Team-Kacheln nur mit Schnitten | ✓ Team oder Person |
+| **Kennzahl-Kacheln** | Ø Selbstbild · Ø Fremdbild · Differenz mit Einordnung · Ø Ausfülldauer | ✓ eigene Werte; Team-Kacheln nur mit Schnitten | ✓ Team oder Person |
 | **Rangliste** | Teammitglieder nach Ø Fremdbild, Platz 1–3 hervorgehoben, gewählte Person markiert | – | ✓ |
-| **Selbstbild vs. Fremdbild** | Gruppiertes Balkendiagramm (Kupfer = SB, Blau = FB); Team-Sicht: je Person, Personen-Sicht: je Säule | ✓ eigenes Selbstbild, je Säule | ✓ |
+| **Selbstbild vs. Fremdbild** | Gruppiertes Balkendiagramm (Kupfer = SB, Blau = FB); Team-Sicht: je Person, Personen-Sicht: je Säule | ✓ eigene, je Säule | ✓ |
 | **Differenz pro Person** | Balken SB − FB je Person, grün/rot nach Einordnung | – | ✓ (Team-Sicht) |
-| **Top 4 / Flop 4 Verhalten** | Höchste und niedrigste Verhalten nach Ø Fremdbild, mit Säule | ✓ eigene nach Selbstbild + Team | ✓ Team oder Person |
+| **Top 4 / Flop 4 Verhalten** | Höchste und niedrigste Verhalten nach Ø Fremdbild, mit Säule | ✓ eigene + Team | ✓ Team oder Person |
 | **Heatmap (Segmentanalyse)** | Matrix Verhalten × Person im Fremdbild, Farbe nach Score-Niveau, Zeilen nach Säule gruppiert | – | ✓ |
-| **Detailtabelle** | Tabs Selbstbild / Fremdbild / Rituale. Team-Sicht: Spalte je Person + Ø Team. Personen-Sicht: SB · FB · Differenz. Sortierung „Standard“ (nach Säulen gruppiert) / „Höchste“ / „Niedrigste“ (ohne Gruppierung) | ✓ Personen-Sicht (eigene: nur Selbstbild) | ✓ beide Sichten |
-| **Verlauf** | Liniendiagramm Ø SB, Ø FB, Ø Rituale über alle Monate | ✓ eigener (ohne Fremdbild-Linie) | ✓ je Person und Team |
-| **Monats-Detail** | Monats-Tabs; je Verhalten Score + Kommentar(e) | ✓ nur eigene Note und eigener Kommentar | ✓ mit Absender |
+| **Detailtabelle** | Tabs Selbstbild / Fremdbild / Rituale. Team-Sicht: Spalte je Person + Ø Team. Personen-Sicht: SB · FB · Differenz. Sortierung „Standard“ (nach Säulen gruppiert) / „Höchste“ / „Niedrigste“ (ohne Gruppierung) | ✓ Personen-Sicht (eigene) | ✓ beide Sichten |
+| **Verlauf** | Liniendiagramm Ø SB, Ø FB, Ø Rituale über alle Monate | ✓ eigener | ✓ je Person und Team |
+| **Monats-Detail** | Monats-Tabs; je Verhalten Score + Kommentar(e) | ✓ ohne die Kommentare der Kolleg:innen (nur der eigene Kommentar) | ✓ mit den Kommentaren der Kolleg:innen und Absender nach Regel |
 
-**Mitarbeiter sehen nur ihre eigenen Antworten** (Anpassung vom 20.10.2026, Migration 011): In „Meine Ergebnisse“ steht für sie kein Fremdbild, keine Differenz und kein Kommentar der Kolleg:innen. Das setzt die Datenbank durch (`meine_ergebnisse` liefert ihnen nur die Auswertung aus `art = 'selbstbild'`), nicht das Frontend. Verantwortliche und Admin sehen ihr volles Bild. Die Team-Seite zeigt allen weiter nur Team-Schnitte.
+**Mitarbeiter sehen die Kommentare der Kolleg:innen nicht** (Anpassung vom 20.10.2026, Migration 012): In „Meine Ergebnisse“ bleibt alles wie bisher; nur die Fremdbild-Kommentare der einzelnen Kolleg:innen fehlen, es steht der eigene Kommentar. Das setzt die Datenbank durch (`meine_ergebnisse` leert für Mitarbeiter `kommentare` und `fremdbilder`), nicht das Frontend. Verantwortliche und Admin sehen die Kommentare, auch bei sich selbst. Die Team-Seite bleibt unverändert.
 
 Datenbasis: Die Funktionen aus §5.3 liefern die Zahlen. Ergänzend:
 

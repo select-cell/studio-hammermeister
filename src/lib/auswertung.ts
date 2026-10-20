@@ -74,9 +74,9 @@ export interface VerlaufPunkt {
 /** Antwort von meine_ergebnisse() und person_ergebnisse(). */
 export interface PersonErgebnisse {
   person: { id: string; name: string }
-  /** Mitarbeiter bekommen von der Datenbank nur ihr Selbstbild: Fremdbild, Differenz und Kommentare der Kolleg:innen fehlen */
-  nur_selbstbild?: boolean
   absender_sichtbar: boolean
+  /** true: die Datenbank hat die Kommentare der Kolleg:innen weggelassen (Mitarbeiter, Migration 012) */
+  ohne_fremdkommentare?: boolean
   monate: string[]
   verlauf: VerlaufPunkt[]
   detail: Record<string, PersonMonat>
@@ -224,15 +224,11 @@ export const neuesterMonat = (monate: string[]): string | null => (monate.length
 // ── Top / Flop ─────────────────────────────────────────────────────────────
 
 /**
- * Die besten und die schwächsten Verhalten nach Fremdbild (oder nach `wert`). Zeilen ohne Wert zählen nicht.
+ * Die besten und die schwächsten Verhalten nach Fremdbild. Zeilen ohne Fremdbild zählen nicht.
  * Mit weniger als 2·n Verhalten wird die Liste geteilt, damit nichts doppelt vorkommt.
  */
-export function topFlop<T extends { nr: number }>(
-  zeilen: T[],
-  n = 4,
-  wert: (z: T) => number | null = (z) => (z as unknown as { fb: number | null }).fb,
-): { top: T[]; flop: T[] } {
-  const sortiert = zeilen.filter((z) => wert(z) !== null).sort((a, b) => (wert(b) as number) - (wert(a) as number) || a.nr - b.nr)
+export function topFlop<T extends { nr: number; fb: number | null }>(zeilen: T[], n = 4): { top: T[]; flop: T[] } {
+  const sortiert = zeilen.filter((z) => z.fb !== null).sort((a, b) => (b.fb as number) - (a.fb as number) || a.nr - b.nr)
   const k = Math.min(n, Math.floor(sortiert.length / 2))
   return { top: sortiert.slice(0, k), flop: sortiert.slice(sortiert.length - k).reverse() }
 }
