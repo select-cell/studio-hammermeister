@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hammermeister – Monatliche Umfrage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FAF8F3;--cream-mid:#F0EBE0;--cream-deep:#E2D9C8;
+  --accent:#C4845A;--accent-h:#A86840;
+  --text:#1A1208;--text2:#6B5B45;--muted:#9B8E7E;
+  --border:rgba(92,61,30,0.12);--border2:rgba(92,61,30,0.22);
+  --white:#FFFFFF;
+  --green:#3B6D11;--gbg:#EAF3DE;--green-v:#4CAF50;
+  --red:#A32D2D;--rbg:#FCEBEB;--red-v:#E24B4A;
+  --yel:#854F0B;--ybg:#FAEEDA;
+  --fb:#4A7FA5;--fbbg:rgba(74,127,165,0.08);
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;
+  --sh:0 2px 8px rgba(92,61,30,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* HEADER */
+.hdr{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200}
+.brand{display:flex;align-items:center;gap:10px}
+.bicon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.bicon svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bname{font-family:'DM Serif Display',serif;font-size:16px;color:var(--text)}
+.prog-wrap{display:flex;align-items:center;gap:8px}
+.prog-lbl{font-size:12px;color:var(--muted)}
+.prog-bar{width:100px;height:3px;background:var(--cream-deep);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease}
+
+.page{max-width:660px;margin:0 auto;padding:1.75rem 1.25rem 4rem}
+.screen{display:none}
+.screen.active{display:block;animation:fu .3s ease forwards}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── FRONTBLATT ── */
+.front-hero{background:linear-gradient(160deg,#1A1208 0%,#2E1A0A 60%,#3A2510 100%);border-radius:var(--r-xl);padding:2.5rem 2rem;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.front-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:rgba(196,132,90,0.06);pointer-events:none}
+.front-hero::after{content:'';position:absolute;bottom:-80px;left:-20px;width:280px;height:280px;border-radius:50%;background:rgba(196,132,90,0.04);pointer-events:none}
+.fh-inner{position:relative;z-index:1}
+.fh-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(196,132,90,0.18);border:1px solid rgba(196,132,90,0.28);border-radius:20px;padding:3px 12px;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
+.fh-question{font-family:'DM Serif Display',serif;font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:8px;letter-spacing:.02em}
+.fh-title{font-family:'DM Serif Display',serif;font-size:24px;color:white;line-height:1.3;font-style:italic}
+.fh-divider{width:40px;height:1px;background:rgba(196,132,90,0.4);margin:18px 0}
+
+.front-body{font-size:13.5px;color:var(--text2);line-height:1.75}
+.front-body p{margin-bottom:1rem}
+.front-body p:last-child{margin-bottom:0}
+.front-highlight{background:linear-gradient(135deg,rgba(196,132,90,0.06),rgba(196,132,90,0.03));border-left:3px solid var(--accent);border-radius:0 var(--r-md) var(--r-md) 0;padding:1rem 1.25rem;margin:1.25rem 0;font-size:13px;color:var(--text);line-height:1.65}
+.front-highlight strong{color:var(--accent)}
+
+/* WELCOME */
+.hero{background:linear-gradient(135deg,#1A1208,#3A2510);border-radius:var(--r-xl);padding:2.25rem 2rem;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(196,132,90,0.07);pointer-events:none}
+.hi{position:relative;z-index:1}
+.hi-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(196,132,90,0.18);border:1px solid rgba(196,132,90,0.28);border-radius:20px;padding:3px 11px;font-size:10px;color:rgba(255,255,255,0.65);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.hi-title{font-family:'DM Serif Display',serif;font-size:26px;color:white;line-height:1.15;margin-bottom:6px}
+.hi-sub{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem 1.5rem;margin-bottom:1rem;box-shadow:var(--sh)}
+.ct{font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);margin-bottom:1.1rem}
+
+/* PERSON GRID */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px}
+.pb{display:flex;flex-direction:column;align-items:center;gap:7px;padding:.9rem .6rem;border:1.5px solid var(--border2);border-radius:var(--r-md);background:var(--cream);cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif}
+.pb:hover{border-color:var(--accent);background:white;transform:translateY(-2px);box-shadow:var(--sh)}
+.pb.sel{border-color:var(--accent);background:white;box-shadow:0 0 0 3px rgba(196,132,90,0.14)}
+.pav{width:40px;height:40px;border-radius:50%;background:var(--cream-deep);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:var(--text2);transition:all .18s}
+.pb.sel .pav{background:var(--accent);color:white}
+.pnm{font-size:12px;font-weight:500;color:var(--text);text-align:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-md);padding:11px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .18s;border:none;justify-content:center}
+.btn-p{background:var(--accent);color:white}
+.btn-p:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:0 4px 12px rgba(196,132,90,0.3)}
+.btn-p:disabled{background:var(--cream-deep);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
+.btn-s:hover{background:var(--cream-mid);border-color:var(--accent)}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-full{width:100%;margin-top:.5rem}
+
+/* STEP 1 DEV */
+.dev-label{font-size:13px;color:var(--text2);margin-bottom:.6rem}
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:7px;margin-bottom:1.1rem}
+.dev-btn{display:flex;align-items:center;gap:8px;padding:.6rem .9rem;border:1.5px solid var(--border2);border-radius:var(--r-md);background:var(--cream);cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif}
+.dev-btn:hover{border-color:var(--accent);background:white}
+.dev-btn.sel{border-color:var(--accent);background:white;box-shadow:0 0 0 3px rgba(196,132,90,0.12)}
+.dev-av{width:28px;height:28px;border-radius:50%;background:var(--cream-deep);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:12px;color:var(--text2);flex-shrink:0}
+.dev-btn.sel .dev-av{background:var(--accent);color:white}
+.dev-nm{font-size:12px;font-weight:500;color:var(--text)}
+textarea.ta{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-md);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--cream);resize:vertical;outline:none;transition:border-color .2s;line-height:1.5}
+textarea.ta:focus{border-color:var(--accent);background:white}
+textarea.ta.err{border-color:var(--red-v)}
+
+/* VIDEO */
+.vwrap{background:#1A1208;border-radius:var(--r-lg);overflow:hidden;margin-bottom:1.1rem;position:relative;aspect-ratio:16/9}
+.vinner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A1208,#2A1A0A);position:relative}
+.vicon svg{width:44px;height:44px;stroke:rgba(255,255,255,0.13);fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.vtitle{font-family:'DM Serif Display',serif;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:8px 2rem 0;line-height:1.4}
+.vpbar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08)}
+.vpfill{height:100%;background:var(--accent);transition:width .9s linear;width:0%}
+.vtimer{position:absolute;bottom:8px;right:10px;font-size:10px;color:rgba(255,255,255,0.4)}
+.vwbadge{position:absolute;top:10px;right:10px;background:rgba(74,175,80,0.85);color:white;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:500;display:none;align-items:center;gap:4px}
+.vwbadge svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5}
+.voverlay{position:absolute;inset:0;background:rgba(0,0,0,0.38);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:opacity .25s}
+.voverlay.playing{background:rgba(0,0,0,0.06);cursor:default}
+.vplaybtn{width:56px;height:56px;border-radius:50%;background:rgba(196,132,90,0.88);display:flex;align-items:center;justify-content:center;transition:all .18s}
+.vplaybtn:hover{background:var(--accent);transform:scale(1.05)}
+.vplaybtn svg{width:20px;height:20px;fill:white;stroke:white;stroke-width:1}
+.vhint{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:.05em;text-transform:uppercase}
+
+/* ── KRITERIEN ── */
+.kriterien-wrap{margin-bottom:1.1rem}
+.kriterien-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
+.kriterien-grid{display:flex;flex-direction:column;gap:6px}
+.krit-item{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.krit-header{display:flex;align-items:center;gap:10px;padding:.65rem 1rem;cursor:pointer;background:var(--white);transition:background .15s;user-select:none}
+.krit-header:hover{background:var(--cream-mid)}
+.krit-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:13px;font-weight:400;flex-shrink:0}
+.kb-1{background:#FCEBEB;color:#A32D2D}
+.kb-2{background:#FAEEDA;color:#854F0B}
+.kb-3{background:#FFF8EE;color:#7A5C10}
+.kb-4{background:#EAF3DE;color:#3B6D11}
+.kb-5{background:linear-gradient(135deg,#FFF8EE,#FDF0DC);color:#7A5C10;border:1px solid #D4A850}
+.krit-label{font-size:13px;font-weight:500;color:var(--text);flex:1}
+.krit-sublabel{font-size:11px;color:var(--muted)}
+.krit-chevron{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s;flex-shrink:0}
+.krit-item.open .krit-chevron{transform:rotate(180deg)}
+.krit-body{display:none;padding:.75rem 1rem .85rem;background:var(--cream);border-top:1px solid var(--border);font-size:12.5px;color:var(--text2);line-height:1.65}
+.krit-item.open .krit-body{display:block}
+.krit-body ul{list-style:none;padding:0;margin-top:.5rem}
+.krit-body ul li{display:flex;align-items:flex-start;gap:7px;padding:.25rem 0}
+.krit-body ul li::before{content:'–';color:var(--muted);flex-shrink:0;margin-top:1px}
+
+/* LOCKED MSG */
+.lmsg{display:none;align-items:center;justify-content:center;gap:6px;padding:.65rem;font-size:12px;color:var(--muted);background:var(--cream-mid);border-radius:var(--r-sm);margin-bottom:.9rem}
+.lmsg svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* BEHAVIOR CARD */
+.bcard{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.4rem 1.5rem;margin-bottom:1rem;box-shadow:var(--sh);transition:opacity .3s,filter .3s}
+.bcard.locked{opacity:0.38;pointer-events:none;filter:blur(1px)}
+.bcard-label{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);margin-bottom:1.25rem;line-height:1.4}
+.section-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;margin-bottom:.75rem}
+.pill-sb{background:rgba(196,132,90,0.1);color:var(--accent);border:1px solid rgba(196,132,90,0.2)}
+.pill-fb{background:var(--fbbg);color:var(--fb);border:1px solid rgba(74,127,165,0.2)}
+.pill-dot{width:5px;height:5px;border-radius:50%}
+.pill-sb .pill-dot{background:var(--accent)}.pill-fb .pill-dot{background:var(--fb)}
+
+/* RATING */
+.rrow{display:flex;gap:6px;margin-bottom:.9rem}
+.rbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:.7rem .3rem;border:1.5px solid var(--border2);border-radius:var(--r-md);background:var(--cream);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.rbtn:hover{border-color:var(--accent);background:white}
+.rbtn.rl{border-color:var(--red-v)!important;background:#FFF4F4!important;box-shadow:0 0 0 2px rgba(226,75,74,0.08)}
+.rbtn.rh{border-color:var(--green-v)!important;background:#F2FBF2!important;box-shadow:0 0 0 2px rgba(74,175,80,0.08)}
+.rnum{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);line-height:1}
+.rbtn.rl .rnum{color:var(--red)}.rbtn.rh .rnum{color:var(--green)}
+.rlbl{font-size:9px;color:var(--muted);text-align:center;line-height:1.25}
+
+/* FB */
+.fb-section{background:var(--fbbg);border:1px solid rgba(74,127,165,0.15);border-radius:var(--r-md);padding:1rem 1.1rem}
+.fb-person-row{display:flex;align-items:flex-start;gap:10px;padding:.6rem 0;border-bottom:1px solid rgba(74,127,165,0.1)}
+.fb-person-row:last-child{border-bottom:none}
+.fb-pav{width:30px;height:30px;border-radius:50%;background:rgba(74,127,165,0.15);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:12px;color:var(--fb);flex-shrink:0;margin-top:2px}
+.fb-pinfo{flex:1;min-width:0}
+.fb-pname{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.4rem}
+.fb-rrow{display:flex;gap:5px;margin-bottom:.5rem}
+.fb-rbtn{flex:1;display:flex;align-items:center;justify-content:center;height:34px;border:1.5px solid rgba(74,127,165,0.2);border-radius:var(--r-sm);background:rgba(74,127,165,0.04);cursor:pointer;transition:all .15s;font-family:'DM Serif Display',serif;font-size:16px;color:var(--text2)}
+.fb-rbtn:hover{border-color:var(--fb);background:rgba(74,127,165,0.1)}
+.fb-rbtn.rl{border-color:var(--red-v)!important;background:#FFF4F4!important;color:var(--red)!important}
+.fb-rbtn.rh{border-color:var(--green-v)!important;background:#F2FBF2!important;color:var(--green)!important}
+
+/* COMMENT */
+.cmt-wrap{animation:fu .2s ease}
+.cmt-lbl{font-size:11px;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.req-b{background:var(--rbg);color:var(--red);font-size:9px;font-weight:500;padding:1px 6px;border-radius:8px}
+.opt-b{background:var(--cream-mid);color:var(--muted);font-size:9px;padding:1px 6px;border-radius:8px}
+.cerr{font-size:11px;color:var(--red);margin-top:3px;display:none}
+.cerr.show{display:block}
+
+/* CTX BAR */
+.ctx-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:.65rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.ctx-left{display:flex;align-items:center;gap:8px}
+.ctx-name{font-weight:500;color:var(--text);font-size:13px}
+.ctx-ctr{font-size:11px;color:var(--muted);background:var(--cream-mid);padding:2px 9px;border-radius:10px}
+
+/* NAV */
+.q-nav{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem}
+
+/* SUMMARY */
+.sum-hero{background:linear-gradient(135deg,#1A4A12,#2A6A1A);border-radius:var(--r-xl);padding:1.75rem;margin-bottom:1.25rem}
+.sum-check{width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.sum-check svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.sum-title{font-family:'DM Serif Display',serif;font-size:22px;color:white;margin-bottom:3px}
+.sum-sub{font-size:12px;color:rgba(255,255,255,0.5)}
+.sum-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.sum-tbl th{text-align:left;padding:6px 8px;font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.sum-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.4}
+.sum-tbl tr:last-child td{border-bottom:none}
+.ssc{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-family:'DM Serif Display',serif;font-size:14px}
+.ssc.lo{background:var(--rbg);color:var(--red)}.ssc.hi{background:var(--gbg);color:var(--green)}
+.coming{background:var(--cream-mid);border:1px dashed var(--border2);border-radius:var(--r-md);padding:.9rem 1.1rem;text-align:center;font-size:12px;color:var(--muted);margin-top:1rem}
+
+/* ERGÄNZUNGEN RAHMEN */
+.ctx-av{width:26px;height:26px;border-radius:50%;background:rgba(196,132,90,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:12px}
+.cfg-warn{display:none;background:var(--ybg);color:var(--yel);border:1px solid rgba(133,79,11,0.25);border-radius:var(--r-md);padding:.8rem 1.1rem;font-size:13px;margin-bottom:1rem}
+#vreal{display:none;width:100%;height:100%;object-fit:cover;background:#000}
+#vvimeo{display:none;position:absolute;inset:0;background:#000}
+#vvimeo iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vwrap .vpbar,.vwrap .vwbadge,.vwrap .vtimer{pointer-events:none}
+.vwrap.is-vimeo .vtimer{display:none}
+.vwrap .vpbar,.vwrap .vtimer,.vwrap .vwbadge{z-index:2}
+.vwrap .voverlay{z-index:3}
+@media (max-width:480px){.rlbl{font-size:8px}.rbtn{padding:.6rem .15rem}}
+.krit-head-txt{flex:1;min-width:0}
+.krit-lead{color:var(--text);font-size:12.5px;line-height:1.6}
+.krit-lead + ul{margin-top:.55rem}
+.krit-sublabel{margin-top:1px}
+.rit-q{margin-bottom:1rem}
+#ritIntro .front-highlight p{margin-bottom:.6rem}
+#ritIntro .front-highlight p:last-child{margin-bottom:0}
+.rit-q .ct{font-size:15px;line-height:1.4;margin-bottom:.9rem}
+.rit-hint{font-size:11px;color:var(--muted);margin:-.5rem 0 .8rem}
+.rbtn.rsel{border-color:var(--accent)!important;background:white!important;box-shadow:0 0 0 2px rgba(196,132,90,0.14)}
+.rbtn.rsel .rnum{color:var(--accent)}
+.opt-grid{display:flex;flex-wrap:wrap;gap:7px}
+.opt-btn{padding:.55rem 1rem;border:1.5px solid var(--border2);border-radius:var(--r-md);background:var(--cream);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);transition:all .15s}
+.opt-btn:hover{border-color:var(--accent);background:white}
+.opt-btn.sel{border-color:var(--accent);background:white;box-shadow:0 0 0 3px rgba(196,132,90,0.12);font-weight:500}
+.seg-head{display:none;margin:0 0 1rem;padding:0 .15rem}
+.seg-gp{font-size:10.5px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.seg-sa{font-family:'DM Serif Display',serif;font-size:19px;color:var(--text);line-height:1.3}
+.seg-pos{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);margin-left:6px;white-space:nowrap}
+.sum-seg{margin:1.5rem 0 .75rem}
+.sum-seg .seg-sa{font-size:17px}
+.send-err{display:none;background:var(--rbg);color:var(--red);border:1px solid rgba(163,45,45,0.2);border-radius:var(--r-md);padding:.75rem 1rem;font-size:13px;line-height:1.5;margin-top:.75rem}
+.send-err.show{display:block}
+.send-status{display:none;border-radius:var(--r-md);padding:.8rem 1.1rem;font-size:13px;line-height:1.5;margin-bottom:1rem}
+.send-status.ok{display:block;background:var(--gbg);color:var(--green);border:1px solid rgba(59,109,17,0.2)}
+.send-status.warn{display:block;background:var(--ybg);color:var(--yel);border:1px solid rgba(133,79,11,0.25)}
+.btn.sending{opacity:.7;cursor:wait}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="brand">
+    <div class="bicon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+    <span class="bname" id="brandName"></span>
+  </div>
+  <div class="prog-wrap">
+    <span class="prog-lbl" id="progLbl"></span>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="cfg-warn" id="cfgWarn"></div>
+
+  <!-- SCREEN: FRONTBLATT -->
+  <div class="screen active" id="s-front">
+    <div class="front-hero">
+      <div class="fh-inner">
+        <div class="fh-tag" id="frontTag"></div>
+        <div class="fh-question">Eine Frage zum Einstieg</div>
+        <div class="fh-title">Woran merken Gäste eigentlich, ob sie vor einem echten Profi sitzen?</div>
+        <div class="fh-divider"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="front-body">
+        <p>Ein Friseursalon verkauft heute nicht nur Haare. Der Wert eines Salons entsteht nicht nur durch das Resultat – sondern vor allem durch das Erlebnis.</p>
+        <div class="front-highlight">
+          <strong>Das Resultat</strong> entsteht durch unser Handwerk.<br>
+          <strong>Das Erlebnis</strong> entsteht durch unser Verhalten, unsere Haltung und unseren Umgang mit Gästen und miteinander.
+        </div>
+        <p>Gäste spüren sehr genau, wie sie empfangen werden, wie aufmerksam gearbeitet wird und wie ein Team miteinander umgeht. Dieses Zusammenspiel entscheidet darüber, welchen Wert Gäste in einem Salon wahrnehmen – und welchen Preis sie bereit sind zu bezahlen.</p>
+        <p>Deshalb entwickeln wir Professionalität und Verhalten genauso bewusst wie unser Handwerk. Jede Person im Salon bringt ihre eigene Persönlichkeit, ihren Stil und ihre Wirkung ein – und ist gleichzeitig eine eigene Personenmarke.</p>
+        <p>Dieses Feedback hilft dabei, Verhalten bewusster wahrzunehmen und weiterzuentwickeln. Durch Selbstreflexion und 360°-Feedback wird sichtbar, wie wir auf Gäste und im Team wirken.</p>
+        <div class="front-highlight">
+          Das Kassensystem zeigt den wirtschaftlichen Erfolg.<br>
+          <strong>Dieses Feedbacksystem</strong> zeigt monatlich, wie sich Verhalten, Professionalität und Zusammenarbeit entwickeln.
+        </div>
+        <p>Denn Verhalten formt das Erlebnis – und das Erlebnis entscheidet darüber, welchen Wert Gäste sehen und welchen Preis sie bereit sind zu bezahlen.</p>
+      </div>
+    </div>
+    <button class="btn btn-p btn-full" id="startBtn" onclick="showScreen('s-who')">
+      Verstanden – Umfrage starten
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+
+  <!-- SCREEN: WER BIST DU -->
+  <div class="screen" id="s-who">
+    <div class="hero">
+      <div class="hi">
+        <div class="hi-tag">Schritt 1</div>
+        <div class="hi-title">Wer füllt<br>die Umfrage aus?</div>
+        <div class="hi-sub">Wähle deinen Namen – Selbstbild &amp; alle Fremdbilder werden automatisch geladen.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Feedbackgeber auswählen</div>
+      <div class="pgrid" id="personGrid"></div>
+    </div>
+    <button class="btn btn-p btn-full" id="s0next" disabled onclick="goToStep1()">
+      Weiter
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+
+  <!-- SCREEN: ENTWICKLUNG -->
+  <div class="screen" id="s1">
+    <div class="ctx-bar">
+      <div class="ctx-left">
+        <div class="ctx-av" id="s1ctxAv"></div>
+        <span class="ctx-name" id="s1ctxName"></span>
+      </div>
+      <span class="ctx-ctr" id="s1ctr"></span>
+    </div>
+    <div class="card">
+      <div class="ct">Entwicklung des Monats</div>
+      <div class="dev-label">Bei welchem Kollegen hast du im letzten Monat eine besonders positive Entwicklung im Verhalten beobachtet? <em style="color:var(--muted);font-size:12px">(Du kannst dich selbst nicht auswählen.)</em></div>
+      <div class="dev-grid" id="devGrid"></div>
+      <div id="devWhyWrap" style="display:none">
+        <div class="dev-label" style="margin-bottom:.5rem">Warum hast du so entschieden?</div>
+        <textarea class="ta" id="devWhy" rows="3" placeholder="Begründung…" style="min-height:80px"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-s" onclick="showScreen('s-who')">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-p" id="s1next" disabled onclick="afterStep1()" style="flex:1">
+        Weiter
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: RITUAL -->
+  <div class="screen" id="s-rit">
+    <div class="ctx-bar">
+      <div class="ctx-left">
+        <div class="ctx-av" id="sRctxAv"></div>
+        <span class="ctx-name" id="sRctxName"></span>
+      </div>
+      <span class="ctx-ctr" id="sRctr"></span>
+    </div>
+    <div class="card">
+      <div class="ct" id="ritTitle"></div>
+      <div class="front-body" id="ritIntro"></div>
+    </div>
+    <div id="ritQuestions"></div>
+    <div class="q-nav">
+      <button class="btn btn-s" onclick="prevRitual()">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-p" onclick="nextRitual()" style="padding:10px 22px">
+        Weiter
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: FRAGE -->
+  <div class="screen" id="s2">
+    <div class="ctx-bar">
+      <div class="ctx-left">
+        <div class="ctx-av" id="s2ctxAv"></div>
+        <span class="ctx-name" id="s2ctxName"></span>
+      </div>
+      <span class="ctx-ctr" id="s2ctr"></span>
+    </div>
+
+    <!-- SEGMENT (Grundpfeiler / Säule) -->
+    <div class="seg-head" id="segHead">
+      <div class="seg-gp" id="segGp"></div>
+      <div class="seg-sa" id="segSa"></div>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="vwrap" id="vwrap">
+      <div class="vinner" id="vinner">
+        <div class="vicon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="vtitle" id="vtitle"></div>
+      </div>
+      <video id="vreal" playsinline preload="metadata"></video>
+      <div id="vvimeo"></div>
+      <div class="vpbar"><div class="vpfill" id="vpfill"></div></div>
+      <div class="vtimer" id="vtimer"></div>
+      <div class="vwbadge" id="vwbadge">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Angesehen
+      </div>
+      <div class="voverlay" id="voverlay" onclick="startVideo()">
+        <div class="vplaybtn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <div class="vhint">Video ansehen zum Freischalten</div>
+      </div>
+    </div>
+
+    <!-- KRITERIEN -->
+    <div class="kriterien-wrap" id="kriterienWrap">
+      <div class="kriterien-title">Bewertungsstufen</div>
+      <div class="kriterien-grid" id="kriterienGrid"></div>
+    </div>
+
+    <div class="lmsg" id="lmsg">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Bitte zuerst das Video vollständig ansehen
+    </div>
+
+    <!-- BEWERTUNGSKARTE -->
+    <div class="bcard" id="bcard">
+      <div class="bcard-label" id="blabel"></div>
+      <div class="sb-section" style="margin-bottom:1.25rem">
+        <div class="section-pill pill-sb"><span class="pill-dot"></span>Selbstbild</div>
+        <div class="rrow" id="sbRrow"></div>
+        <div id="sbCmt"></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:1.1rem"></div>
+      <div>
+        <div class="section-pill pill-fb"><span class="pill-dot"></span>Fremdbild</div>
+        <div class="fb-section" id="fbSection"></div>
+      </div>
+    </div>
+
+    <div class="send-err" id="sendErr"></div>
+
+    <div class="q-nav">
+      <button class="btn btn-s" id="qPrevBtn" onclick="prevQuestion()">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-p" id="qNextBtn" onclick="nextQuestion()" style="padding:10px 22px">
+        <span id="qNextLbl">Weiter</span>
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: SUMMARY -->
+  <div class="screen" id="s3">
+    <div class="sum-hero">
+      <div class="sum-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="sum-title">Danke, <span id="sumName"></span>!</div>
+      <div class="sum-sub" id="sumSub"></div>
+    </div>
+    <div class="send-status" id="sendStatus"></div>
+    <div id="sumContent"></div>
+  </div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   KONFIGURATION – nur dieser Block wird pro Salon / Monat befüllt.
+   Alles darunter ist der feste Rahmen und muss nicht angefasst werden.
+   ═══════════════════════════════════════════════════════════════════ */
+const CONFIG = {
+
+  // Name des Salons (erscheint im Header und auf dem Frontblatt)
+  salon: 'Hammermeister',
+
+  // Länge des Platzhalter-Videos in Sekunden (gilt nur, wenn bei einem
+  // Verhalten KEINE Video-URL hinterlegt ist)
+  platzhalterVideoSekunden: 8,
+
+  // ── Supabase (Speicherung der Antworten) ──
+  // url + anonKey aus Supabase → Project Settings → API.
+  // Der anon key darf öffentlich hier stehen, NIEMALS den service_role key eintragen.
+  // Leer lassen = Antworten werden nicht gespeichert (Testmodus).
+  supabase: {
+    url: '',        // ← Project URL des neuen Supabase-Projekts
+    anonKey: '',    // ← anon / publishable key des neuen Projekts
+  },
+
+  // ── Personen ────────────────────────────────────────────────────
+  // Einfach die Vornamen eintragen, z. B.:  'Anna', 'Ben', 'Clara',
+  personen: [
+    "Michael Hammermeister",
+    "Antonella Stipic",
+    "Jaroslaw Schatalov",
+    "Behzad Pour Sakha",
+    "Olena Pankova",
+    "Lena Reifschneider",
+  ],
+
+  // ── Verhalten ───────────────────────────────────────────────────
+  // Pro Verhalten ein Block. "grundpfeiler", "saeule", "video" und
+  // "kriterien" sind optional:
+  //   - grundpfeiler / saeule: Titel und Segment, z. B.
+  //                'Grundpfeiler 1: Philosophie' / 'Säule 1: Umgangsformen und Respekt'
+  //                (wird über dem Verhalten und in der Zusammenfassung angezeigt)
+  //   - video:     Vimeo-Link (z. B. 'https://player.vimeo.com/video/123456789',
+  //                steht im Einbettungscode hinter src=) oder .mp4-URL.
+  //                Bitte NICHT den kompletten Einbettungscode einfügen.
+  //                Leer = Platzhalter-Video. Bewertung erst nach vollständigem
+  //                Ansehen; Vorspulen wird bei Vimeo verhindert.
+  //   - kriterien: 5 Stufen (1 bis 5). Pro Stufe entweder nur eine Liste
+  //                mit Stichpunkten oder ausführlich mit Name, Prozent und
+  //                Leitsatz: { stufe:'1 – Bewusstsein', prozent:'0–25%',
+  //                            text:'Leitsatz …', items:['…','…'] }
+  //                Leer lassen = Bewertungsstufen werden ausgeblendet.
+  //
+  // Beispiel:
+  // {
+  //   grundpfeiler: 'Grundpfeiler 2: Kultur',
+  //   saeule: 'Säule 1: Motivation',
+  //   titel: 'Nutzt Leerlaufzeiten sinnvoll (z. B. Aufräumen, Vorbereiten)',
+  //   video: '',
+  //   kriterien: [
+  //     ['Stichpunkt Stufe 1', 'Stichpunkt Stufe 1'],   // 1 – Bewusstsein
+  //     ['Stichpunkt Stufe 2'],                         // 2 – Aufbau
+  //     ['Stichpunkt Stufe 3'],                         // 3 – Stabilität
+  //     ['Stichpunkt Stufe 4'],                         // 4 – Profi
+  //     ['Stichpunkt Stufe 5'],                         // 5 – High Performer
+  //   ]
+  // },
+  verhalten: [
+    // ── Verhalten 1 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Nutzt Leerlaufzeiten sinnvoll (z. B. Aufräumen, Vorbereiten).",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Leerlaufzeiten bewusster wahrzunehmen und sinnvoll zu nutzen.",
+          items: ["entwickelt ein erstes Gefühl für freie Zeit im Arbeitsalltag", "erkennt zunehmend Möglichkeiten für kleine Aufgaben", "nutzt Leerlaufphasen gelegentlich für Ordnung oder Vorbereitung", "versteht den Mehrwert sinnvoll genutzter Zeit für den Ablauf im Salon"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Nutzt Leerlaufzeiten in vielen Situationen bewusst und baut erste Routinen auf.",
+          items: ["nutzt freie Momente häufiger für Aufräumen oder Vorbereitung", "achtet zunehmend auf Ordnung im eigenen Arbeitsbereich", "übernimmt erste vorbereitende Tätigkeiten", "entwickelt mehr Eigeninitiative in ruhigen Phasen"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Nutzt Leerlaufzeiten regelmäßig sinnvoll und eigenständig.",
+          items: ["verwendet freie Zeit konsequent für sinnvolle Aufgaben", "sorgt für Ordnung und Vorbereitung im eigenen Bereich", "erkennt selbstständig, was gerade zu tun ist", "unterstützt damit einen strukturierten und reibungslosen Ablauf"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Geht vorausschauend mit Leerlaufzeiten um und bereitet Abläufe aktiv vor.",
+          items: ["erkennt Leerlaufphasen frühzeitig und nutzt sie gezielt", "denkt kommende Arbeitsschritte mit und bereitet sie vor", "handelt eigenständig und ohne Aufforderung", "sorgt durch sein Verhalten für Struktur und Ruhe im Arbeitsalltag"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Denkt Leerlaufzeiten über den eigenen Bereich hinaus und stärkt damit das gesamte Team.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt frühzeitig, wo im Salon Unterstützung oder Ordnung gebraucht wird", "gleicht Leerlaufphasen im Team aktiv aus", "unterstützt Kollegen situativ und selbstverständlich", "sorgt für durchgehend klare, strukturierte und effiziente Abläufe"] }
+      ]
+    },
+    // ── Verhalten 2 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Übernimmt auch weniger attraktive Aufgaben im Arbeitsalltag selbstverständlich und verantwortungsbewusst.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, gemeinsame Aufgaben im Arbeitsalltag bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Verständnis für gemeinsame Verantwortung im Team", "erkennt zunehmend, dass auch weniger attraktive Aufgaben zum Alltag gehören", "beteiligt sich gelegentlich an solchen Aufgaben", "baut ein Bewusstsein für Fairness im Team auf"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Übernimmt weniger attraktive Aufgaben in vielen Situationen und gewinnt an Selbstverständlichkeit.",
+          items: ["beteiligt sich häufiger an gemeinsamen Aufgaben", "zeigt Bereitschaft, Verantwortung im Alltag zu übernehmen", "übernimmt Aufgaben teilweise eigenständig", "entwickelt mehr Routine im Umgang mit solchen Tätigkeiten"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Übernimmt auch weniger attraktive Aufgaben zuverlässig und eigenständig.",
+          items: ["übernimmt Aufgaben unabhängig von Attraktivität", "beteiligt sich konstant an gemeinsamen Pflichten", "handelt verlässlich im Teamkontext", "trägt zu einem fairen und ausgeglichenen Arbeitsalltag bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Handelt vorausschauend und übernimmt Verantwortung auch bei weniger sichtbaren Aufgaben.",
+          items: ["erkennt eigenständig, was im Hintergrund erledigt werden muss", "übernimmt Aufgaben ohne Aufforderung und ohne Zögern", "denkt über den eigenen Bereich hinaus", "sorgt durch sein Verhalten für Verlässlichkeit und Struktur im Team"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Stärkt durch sein Verhalten eine Kultur, in der Verantwortung selbstverständlich geteilt wird.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt frühzeitig, wo im Team Unterstützung gebraucht wird", "gleicht Aufgaben im Team aktiv aus", "unterstützt Kollegen dabei, Verantwortung zu übernehmen", "sorgt für eine klare, faire und selbstverständliche Aufgabenverteilung im Alltag"] }
+      ]
+    },
+    // ── Verhalten 3 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Unterstützt Kollegen aktiv und situativ passend im Arbeitsalltag.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Auslastung im Team bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Gefühl dafür, wann Kollegen Unterstützung brauchen", "nimmt Belastung im Umfeld zunehmend wahr", "bietet vereinzelt Hilfe an", "baut ein Bewusstsein für Zusammenarbeit im Alltag auf"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Unterstützt Kollegen in vielen Situationen und gewinnt an Sicherheit.",
+          items: ["bietet häufiger Unterstützung an", "übernimmt kleinere Aufgaben zur Entlastung", "reagiert auf erkennbare Auslastung im Team", "entwickelt mehr Aufmerksamkeit für Abläufe im Umfeld"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Unterstützt Kollegen regelmäßig und eigenständig im Arbeitsalltag.",
+          items: ["erkennt zuverlässig, wann Unterstützung sinnvoll ist", "hilft aktiv und ohne Aufforderung", "übernimmt Aufgaben situativ passend", "trägt zu einem ruhigen und flüssigen Ablauf bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Handelt vorausschauend und entlastet Kollegen gezielt in intensiven Phasen.",
+          items: ["erkennt frühzeitig erhöhte Auslastung im Team", "bietet Unterstützung passend und zum richtigen Zeitpunkt an", "übernimmt eigenständig Aufgaben zur Entlastung", "denkt Abläufe mit und stabilisiert den Arbeitsfluss aktiv"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Sorgt für ein ausgeglichenes Arbeiten im Team und stärkt die Zusammenarbeit aktiv.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt frühzeitig, wo im Team Unterstützung benötigt wird", "gleicht Belastungen im Team aktiv aus", "unterstützt mehrere Kollegen situativ und selbstverständlich", "trägt zu einer klaren, unterstützenden und stabilen Teamdynamik bei"] }
+      ]
+    },
+    // ── Verhalten 4 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Handelt im Arbeitsalltag bewusst im Sinne unserer Salon-Kultur und des Gästeerlebnisses.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt zu verstehen, wie das eigene Verhalten das Erlebnis für Gäste und das Team beeinflusst.",
+          items: ["entwickelt ein erstes Verständnis für unsere Werte und Haltung", "erkennt, dass Verhalten das Erlebnis im Salon prägt", "reflektiert das eigene Auftreten im Alltag", "orientiert sich zunehmend an gemeinsamen Standards"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Richtet sein Verhalten in vielen Situationen bewusst an unserer Salon-Kultur aus.",
+          items: ["zeigt häufig ein Verhalten, das zu unseren Werten passt", "achtet bewusster auf den Umgang mit Gästen und Kollegen", "orientiert sich an den vereinbarten Standards", "entwickelt Sicherheit im Auftreten im Sinne des Salons"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Handelt konstant im Sinne unserer Salon-Kultur und trägt zum Erlebnis bei.",
+          items: ["trifft Entscheidungen im Einklang mit unseren Werten", "zeigt ein stimmiges Verhalten im Umgang mit Gästen und Kollegen", "hält Standards zuverlässig ein", "trägt zu einer klaren, ruhigen und hochwertigen Atmosphäre bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Handelt bewusst und versteht, dass Verhalten direkt den wahrgenommenen Wert des Salons beeinflusst.",
+          items: ["richtet sein Verhalten klar am Gästeerlebnis aus", "trifft auch in anspruchsvollen Situationen bewusste Entscheidungen", "wahrt Professionalität unabhängig von äußeren Umständen", "sorgt aktiv dafür, dass unsere Kultur im Alltag sichtbar wird"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Versteht Verhalten als entscheidenden Faktor für Erlebnis, Bindung und Preis – und handelt konsequent danach.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "handelt jederzeit im Sinne des Gesamterlebnisses", "gibt Orientierung durch klares und konsequentes Verhalten", "stärkt aktiv das Verständnis im Team für Kultur und Wirkung", "sorgt dafür, dass unsere Salon-Kultur im Alltag klar erlebbar bleibt"] }
+      ]
+    },
+    // ── Verhalten 5 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Zeigt im Arbeitsalltag eine konstante Einsatzbereitschaft und eine stabile, verlässliche Präsenz.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, die eigene Wirkung und Präsenz im Arbeitsalltag bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Gefühl für die eigene Energie im Tagesverlauf", "bringt sich in einzelnen Situationen bewusst ein", "reflektiert das eigene Auftreten im Umgang mit Gästen und Kollegen", "erkennt, dass Verhalten und Präsenz das Umfeld beeinflussen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Zeigt in vielen Situationen Einsatzbereitschaft und gewinnt an Stabilität im Auftreten.",
+          items: ["bringt sich häufig aktiv in den Arbeitsalltag ein", "arbeitet zunehmend gleichmäßiger über den Tag hinweg", "bleibt in vielen Situationen ruhig und ansprechbar", "entwickelt mehr Konstanz in Verhalten und Auftreten"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Zeigt eine konstante Einsatzbereitschaft und eine verlässliche Präsenz im Arbeitsalltag.",
+          items: ["arbeitet durchgehend aufmerksam und engagiert", "bleibt auch bei höherer Auslastung stabil im Auftreten", "reagiert ruhig und kontrolliert auf Veränderungen im Ablauf", "sorgt für Verlässlichkeit und Kontinuität im Team"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Hält eine stabile, professionelle Präsenz – unabhängig von äußeren Umständen.",
+          items: ["bleibt auch in stressigen oder unklaren Situationen ruhig und fokussiert", "zeigt eine gleichmäßige, kontrollierte Arbeitsweise", "wirkt konstant ansprechbar und präsent für Gäste und Kollegen", "trägt aktiv zu einer ruhigen und stabilen Atmosphäre bei"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Setzt durch seine stabile Präsenz und konstante Einsatzbereitschaft einen Maßstab im Team.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "bleibt auch in herausfordernden Phasen konstant ruhig und klar", "stabilisiert durch sein Verhalten das Umfeld und den Ablauf", "gibt Orientierung durch verlässliche Präsenz und Haltung", "sorgt für ein gleichbleibend professionelles Niveau im gesamten Team"] }
+      ]
+    },
+    // ── Verhalten 6 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Übernimmt die Gesprächsführung bewusst, richtet sich nach dem Bedarf des Gastes und sorgt für eine ruhige, fokussierte Atmosphäre.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Gespräche im Arbeitsalltag bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Gefühl dafür, wie unterschiedlich Gäste kommunizieren möchten", "bringt sich bewusster in Gespräche ein", "stellt erste gezielte Fragen", "erkennt zunehmend, dass Kommunikation das Erlebnis im Salon beeinflusst"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Gestaltet Gespräche in vielen Situationen bewusster und achtet auf den Gast.",
+          items: ["stellt häufiger passende Fragen zur Gesprächsbereitschaft", "richtet den Fokus zunehmend auf den Gast", "erkennt erste Unterschiede zwischen Gesprächsbedarf und Ruhebedürfnis", "entwickelt mehr Gefühl für Timing im Gespräch"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Führt Gespräche situationsgerecht und mit klarem Fokus auf den Gast.",
+          items: ["erkennt, ob der Gast sprechen, lesen oder für sich sein möchte", "passt die Kommunikation entsprechend an", "hält Gespräche ruhig, klar und zielgerichtet", "nutzt Gespräche bewusst für relevante Inhalte (z. B. Ablauf, Produkte)"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Steuert Kommunikation bewusst und schafft eine ruhige, hochwertige Atmosphäre.",
+          items: ["wählt gezielt zwischen Gespräch und bewusster Ruhe", "hält die Lautstärke im Arbeitsumfeld kontrolliert und angenehm", "erklärt Arbeitsschritte und Produkte klar und passend", "schafft durch Kommunikation Fokus, Ruhe und Professionalität"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch intuitive und präzise Gesprächsführung ein besonders stimmiges und hochwertiges Gästeerlebnis.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt unmittelbar, welche Form der Kommunikation der Gast braucht", "wechselt mühelos zwischen Gespräch, Erklärung und bewusster Ruhe", "setzt Worte gezielt und reduziert ein – ohne unnötige Kommunikation", "schafft eine Atmosphäre, in der sich der Gast gleichzeitig betreut und vollkommen entspannt fühlt"] }
+      ]
+    },
+    // ── Verhalten 7 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Spricht und kommuniziert so, dass sich der Gast jederzeit einbezogen und verstanden fühlt.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, die Wirkung von Sprache auf das Gefühl des Gastes bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Verständnis dafür, dass Sprache Zugehörigkeit schafft", "erkennt, dass unverständliche Kommunikation den Gast ausschließen kann", "achtet gelegentlich darauf, den Gast einzubeziehen", "reflektiert eigene Kommunikation im Arbeitsalltag"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Kommuniziert in vielen Situationen bewusst so, dass der Gast folgen kann.",
+          items: ["spricht im Kundenkontakt überwiegend klar und verständlich", "achtet häufiger darauf, den Gast einzubeziehen", "reduziert interne oder schwer verständliche Kommunikation", "entwickelt mehr Sicherheit im sprachlichen Umgang mit Gästen"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Sorgt durch klare und bewusste Sprache für ein durchgehend verständliches Erlebnis.",
+          items: ["spricht im Kundenkontakt konsequent verständlich (z. B. auf Deutsch)", "hält Kommunikation für den Gast nachvollziehbar", "nutzt andere Sprachen im Arbeitsalltag nur situativ und dezent", "sorgt dafür, dass der Gast sich jederzeit eingebunden fühlt"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Steuert Sprache bewusst so, dass der Gast vollständig integriert bleibt.",
+          items: ["wählt Sprache konsequent im Sinne des Gastes", "integriert interne Kommunikation unauffällig und ohne Ausgrenzung", "erklärt Inhalte klar und verständlich", "sorgt für ein Gefühl von Sicherheit und Zugehörigkeit beim Gast"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch bewusste und präzise Kommunikation ein besonders klares und inklusives Gästeerlebnis.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt sofort, wenn Kommunikation für den Gast unklar werden könnte", "passt Sprache und Ausdruck intuitiv an", "vermeidet jede Form von Ausgrenzung durch Kommunikation", "sorgt dafür, dass sich der Gast jederzeit vollständig verstanden und einbezogen fühlt"] }
+      ]
+    },
+    // ── Verhalten 8 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Spricht den Gast bewusst und angemessen mit Namen an und schafft dadurch persönliche Nähe mit Stil.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, die Wirkung persönlicher Ansprache bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Gefühl für den Einsatz des Namens", "integriert den Namen situativ in den Kontakt", "erkennt, dass persönliche Ansprache die Beziehung stärkt", "baut Sicherheit im Umgang mit Namen auf"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Setzt den Namen in vielen Situationen bewusst ein und gewinnt an Selbstverständlichkeit.",
+          items: ["begrüßt und verabschiedet häufig mit Namen", "integriert den Namen zunehmend im Gespräch", "achtet mehr auf passende Momente", "entwickelt ein Gefühl für eine angenehme und natürliche Ansprache"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Verwendet den Namen konstant und situationsgerecht im Arbeitsalltag.",
+          items: ["nutzt den Namen in passenden Momenten selbstverständlich", "vermeidet Überbetonung oder Wiederholungen", "wirkt aufmerksam und persönlich", "sorgt für eine natürliche und angenehme Ansprache", "bereitet sich auf den Gast vor (z. B. kennt den Namen vor dem Kontakt)"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Setzt Namensansprache gezielt und bewusst als Teil des Service ein.",
+          items: ["nutzt den Namen sicher im persönlichen Kontakt und am Telefon", "wählt Zeitpunkt und Häufigkeit bewusst", "verbindet Ansprache mit ruhiger Präsenz und klarer Struktur", "schafft durch gezielte Ansprache Aufmerksamkeit und Wertschätzung"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch präzise und fein dosierte Ansprache eine besonders persönliche und hochwertige Verbindung.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt intuitiv, wann und wie der Name wirkungsvoll eingesetzt wird", "setzt den Namen gezielt und zurückhaltend ein", "schafft eine spürbare persönliche Verbindung ohne Aufdringlichkeit", "sorgt dafür, dass sich der Gast individuell wahrgenommen und wertgeschätzt fühlt"] }
+      ]
+    },
+    // ── Verhalten 9 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Informiert den Gast bei jedem Arbeitsschritt über verwendete Produkte, Tools und Dienstleistungen.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, die Wirkung von Erklärungen im Service bewusster wahrzunehmen.",
+          items: ["nennt Produkte oder Schritte situativ im Ablauf", "erklärt einzelne Handgriffe in passenden Momenten", "entwickelt ein erstes Gefühl für Struktur im Service", "erkennt, dass Erklärungen Vertrauen schaffen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Integriert Erklärungen in viele Arbeitsschritte und gewinnt an Sicherheit.",
+          items: ["nennt Produkte und Abläufe häufiger aktiv", "erklärt Wirkung zunehmend verständlich", "bindet den Gast mehr in den Ablauf ein", "entwickelt mehr Sicherheit in der fachlichen Kommunikation"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Erklärt Arbeitsschritte und Produkte konstant verständlich und nachvollziehbar.",
+          items: ["beschreibt Produkte, Tools und Abläufe klar und ruhig", "erklärt Wirkung und Anwendung verständlich", "gibt dem Gast Orientierung im Ablauf", "schafft Sicherheit durch nachvollziehbare Informationen"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Strukturiert den Ablauf bewusst und vermittelt Kompetenz klar und ruhig.",
+          items: ["erklärt Auswahl und Ziel der Produkte verständlich", "führt den Gast strukturiert durch den gesamten Ablauf", "nutzt klare und einheitliche Sprache", "vermittelt Fachwissen ruhig und ohne Verkaufsdruck", "schafft ein Gefühl von Professionalität und Vertrauen"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch präzise und verständliche Erklärungen ein besonders hochwertiges und sicheres Erlebnis.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "stellt Zusammenhänge zwischen Haarzustand, Produkten und Ergebnis klar dar", "erklärt Wirkung und Langzeiteffekte verständlich und relevant", "passt Tiefe und Umfang der Erklärungen intuitiv an den Gast an", "sorgt dafür, dass sich der Gast sicher, verstanden und optimal betreut fühlt"] }
+      ]
+    },
+    // ── Verhalten 10 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Erfasst relevante Gästeinformationen bewusst und nutzt sie, um ein persönliches und vorbereitetes Gästeerlebnis zu schaffen.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Gästeinformationen als Teil eines persönlichen Service zu erkennen.",
+          items: ["nimmt Details zum Gast bewusster wahr", "hält einzelne Informationen situativ fest", "erkennt erste Zusammenhänge zwischen Notizen und Service", "entwickelt ein Gefühl für persönliche Ansprache"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Erfasst Gästeinformationen in vielen Situationen bewusst und nutzt sie zunehmend.",
+          items: ["hält Wünsche und Besonderheiten häufiger fest", "greift gespeicherte Informationen im Ablauf auf", "erkennt den Mehrwert für den Service", "entwickelt mehr Struktur im Umgang mit Informationen"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Arbeitet zuverlässig mit Gästeinformationen und nutzt sie aktiv im Service.",
+          items: ["hält Informationen klar und nachvollziehbar fest", "nutzt vorhandene Daten im Kontakt mit dem Gast", "vermeidet unnötige Wiederholungsfragen", "wirkt vorbereitet und aufmerksam"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Nutzt Gästeinformationen gezielt, um ein persönliches und hochwertiges Erlebnis zu schaffen.",
+          items: ["dokumentiert präzise und vollständig", "bereitet sich bewusst auf den Termin vor", "nutzt Informationen für eine persönliche Ansprache", "schafft einen strukturierten und durchdachten Ablauf", "sorgt dafür, dass sich der Gast wiedererkannt fühlt"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch gezielte Nutzung von Informationen eine besonders persönliche und nachhaltige Verbindung.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt, welche Details für den Gast wirklich relevant sind", "nutzt Informationen gezielt und situationsgerecht", "schafft Wiedererkennung über mehrere Besuche hinweg", "sorgt dafür, dass sich der Gast individuell wahrgenommen und langfristig verbunden fühlt"] }
+      ]
+    },
+    // ── Verhalten 11 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Fragt Gäste regelmäßig und passend nach Feedback (z. B. Google).",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Feedback als natürlichen Teil des Austauschs mit dem Gast zu verstehen.",
+          items: ["entwickelt ein erstes Verständnis dafür, dass Feedback Unterstützung ist", "erkennt, dass ehrliches Feedback zur Weiterentwicklung beiträgt", "überwindet erste Unsicherheiten in der Ansprache", "spricht Feedback vereinzelt in passenden Momenten an", "löst sich zunehmend von dem Gefühl, „nach etwas zu fragen“"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Fragt in vielen Situationen nach Feedback und gewinnt Sicherheit in der Ansprache.",
+          items: ["nutzt passende Momente im Abschluss häufiger bewusst", "formuliert Feedback als Einladung statt als Bitte", "entwickelt ein Gefühl dafür, wie es sich natürlich integrieren lässt", "merkt, dass Gäste positiv auf die Ansprache reagieren", "gewinnt Sicherheit, Feedback offen anzusprechen"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Integriert Feedback konstant und selbstverständlich in den Ablauf.",
+          items: ["erkennt emotionale Hochmomente beim Gast", "fragt ruhig und passend nach Feedback", "wirkt natürlich und sicher in der Ansprache", "verbindet Feedback mit dem Erlebnis im Salon"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Integriert Feedback bewusst in den Serviceprozess und zeigt Wertschätzung im Umgang damit.",
+          items: ["wählt den richtigen Moment gezielt aus", "erkennt, wann Feedback passend ist und wann nicht", "dokumentiert, ob ein Gast bereits Feedback gegeben hat", "vermeidet wiederholtes Nachfragen bewusst", "nutzt vorhandene Informationen, um sich persönlich zu bedanken", "vermittelt Feedback als Einladung und zeigt echte Wertschätzung dafür"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch bewussten Umgang mit Feedback eine persönliche und nachhaltige Beziehung zum Gast.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "behält im Blick, welche Gäste bereits Feedback gegeben haben", "bedankt sich gezielt und persönlich bei Gästen für ihr Feedback", "nutzt kleine, passende Aufmerksamkeiten (z. B. Eye Care vom Azubi oder ähnliche Gesten)", "sorgt dafür, dass sich der Gast gesehen und wertgeschätzt fühlt", "integriert Feedback selbstverständlich in eine gelebte Beziehungskultur"] }
+      ]
+    },
+    // ── Verhalten 12 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Sorgt dafür, dass Gäste während der Behandlung durchgehend betreut sind und keine Unterbrechungen im Service entstehen.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Unterbrechungen im eigenen Ablauf bewusst wahrzunehmen.",
+          items: ["erkennt, wann der eigene Fokus vom Gast abweicht", "bemerkt Ablenkungen durch Kollegen, Telefon oder Umfeld", "unterbricht die Behandlung noch situativ", "entwickelt ein erstes Bewusstsein für durchgängige Betreuung"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Reduziert Unterbrechungen und richtet den Fokus zunehmend auf den Gast.",
+          items: ["bleibt häufiger beim Gast und unterbricht seltener", "reagiert bewusster auf Ablenkungen im Umfeld", "beginnt, den aktuellen Gast klar zu priorisieren", "hält die Behandlung ruhiger und strukturierter"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Arbeitet überwiegend ohne Unterbrechungen und hält den Fokus konstant beim Gast.",
+          items: ["lässt sich während der Behandlung nicht ablenken", "priorisiert den aktuellen Gast vor parallelen Themen", "hält den Ablauf klar und konzentriert", "sorgt für eine ruhige, durchgehende Behandlung"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Arbeitet konsequent ohne Unterbrechungen und zeigt klare Priorität für den Gast.",
+          items: ["bleibt während der gesamten Behandlung vollständig beim Gast", "lässt sich weder durch Kollegen, Telefon noch andere Gäste ablenken", "organisiert Abläufe so, dass Unterbrechungen vermieden werden", "arbeitet strukturiert, ruhig und fokussiert", "vermittelt durchgehend Präsenz und Kontrolle im Ablauf"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Verkörpert maximale Präsenz und setzt einen klaren Standard für fokussiertes Arbeiten.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "arbeitet durchgehend ohne wahrnehmbare Unterbrechungen", "priorisiert den aktuellen Gast konsequent über alle parallelen Einflüsse", "bleibt auch in dynamischen Situationen vollständig fokussiert", "steht für eine Arbeitsweise, in der volle Aufmerksamkeit und Präsenz selbstverständlich sind"] }
+      ]
+    },
+    // ── Verhalten 13 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Erscheint mit gepflegten Haaren und einer ordentlichen, bewusst gewählten eigenen Frisur.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, die eigene Erscheinung als Teil der professionellen Wirkung zu verstehen.",
+          items: ["entwickelt ein erstes Bewusstsein für die Wirkung der eigenen Frisur", "erkennt, dass äußere Erscheinung Einfluss auf Wahrnehmung hat", "achtet gelegentlich auf ein gepflegtes Auftreten", "beginnt, sich bewusster mit dem eigenen Erscheinungsbild auseinanderzusetzen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Achtet in vielen Situationen bewusst auf eine gepflegte und ordentliche eigene Frisur.",
+          items: ["erscheint überwiegend mit gepflegten Haaren", "achtet auf ein ordentliches Gesamtbild", "entwickelt mehr Konstanz im eigenen Auftreten", "versteht zunehmend die Verbindung zwischen Erscheinung und Professionalität"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Sorgt zuverlässig für ein gepflegtes und stimmiges äußeres Erscheinungsbild.",
+          items: ["erscheint konstant mit gepflegten Haaren und ordentlicher Frisur", "wirkt sauber, strukturiert und bewusst im Auftreten", "vermittelt ein stimmiges Gesamtbild", "trägt zur Wahrnehmung von Professionalität im Salon bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Nutzt das eigene Erscheinungsbild bewusst als Teil der Dienstleistung.",
+          items: ["erscheint durchgehend gepflegt und sichtbar gestylt", "wählt die eigene Frisur bewusst und passend zum Salonstandard", "wirkt präsent, ordentlich und professionell", "versteht die eigene Ausstrahlung als Teil der Markenwirkung", "verkörpert sichtbar das, was im Salon umgesetzt wird"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Verkörpert durch das eigene Erscheinungsbild den Qualitätsanspruch des Salons auf höchstem Niveau.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "nutzt die eigene Frisur als Ausdruck von Stil und Qualität", "wirkt inspirierend und authentisch auf Gäste", "vermittelt durch das eigene Auftreten Sicherheit und Vertrauen", "steht für einen sichtbaren Standard, der Professionalität und Gepflegtheit selbstverständlich macht"] }
+      ]
+    },
+    // ── Verhalten 14 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Hält die definierten Dresscode-Farben ein (schwarz, weiß oder Erdtöne) und sorgt für ein ruhiges, stimmiges Gesamtbild ohne Muster oder Logos.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, den Dresscode als Teil der eigenen Außenwirkung zu verstehen.",
+          items: ["entwickelt ein erstes Bewusstsein für Farben und Wirkung", "erkennt, dass Kleidung das eigene Auftreten beeinflusst", "achtet gelegentlich auf die Vorgaben", "beginnt, sich mit dem eigenen Erscheinungsbild auseinanderzusetzen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Achtet in vielen Situationen bewusst auf die Einhaltung des Dresscodes.",
+          items: ["erscheint häufig in den definierten Farben", "reduziert auffällige Muster oder Logos", "entwickelt mehr Sicherheit in der eigenen Kleiderwahl", "versteht zunehmend die Wirkung eines ruhigen Erscheinungsbildes"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Hält den Dresscode zuverlässig ein und sorgt für ein stimmiges Auftreten.",
+          items: ["erscheint konstant in den definierten Farben", "verzichtet auf Muster und auffällige Logos", "wirkt ruhig und gepflegt im Gesamtbild", "trägt zu einem klaren Erscheinungsbild bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Nutzt den Dresscode bewusst als Teil der eigenen Personenmarke.",
+          items: ["wählt Kleidung gezielt und passend zum Stil des Salons", "wirkt klar, ruhig und hochwertig im Auftreten", "achtet auf ein stimmiges Gesamtbild", "versteht Kleidung als Teil der eigenen Wirkung", "verkörpert durch das eigene Auftreten Professionalität und Stil"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Verkörpert den Dresscode selbstverständlich und stärkt damit die eigene Ausstrahlung.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "wirkt jederzeit stimmig, reduziert und hochwertig", "nutzt Kleidung bewusst als Ausdruck der eigenen Persönlichkeit", "achtet intuitiv auf Details im Gesamtbild", "strahlt durch das eigene Auftreten Klarheit, Stil und Professionalität aus"] }
+      ]
+    },
+    // ── Verhalten 15 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Hinterlässt den Waschbereich nach jeder Nutzung sauber und vorbereitet für den nächsten Gast.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, den Zustand des Waschbereichs nach der Nutzung bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Bewusstsein für Ordnung und Sauberkeit", "erkennt, dass der Zustand des Waschbereichs den Eindruck beeinflusst", "achtet gelegentlich darauf, den Platz sauber zu hinterlassen", "beginnt, Verantwortung für den eigenen Arbeitsbereich zu übernehmen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Achtet in vielen Situationen bewusst darauf, den Waschbereich sauber zu hinterlassen.",
+          items: ["hinterlässt den Waschbereich häufig ordentlich", "entfernt sichtbare Rückstände nach der Nutzung", "achtet zunehmend auf Details", "entwickelt mehr Routine im Ablauf"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Sorgt zuverlässig für einen sauberen und vorbereiteten Waschbereich.",
+          items: ["hinterlässt den Waschbereich nach jeder Nutzung sauber", "entfernt Rückstände konsequent und sorgfältig", "richtet den Platz für den nächsten Gast her", "sorgt für einen klaren und ordentlichen Eindruck"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Handelt vorausschauend und sorgt für einen durchgehend sauberen und strukturierten Waschbereich.",
+          items: ["hinterlässt den Bereich vollständig sauber und vorbereitet", "achtet auf Details, die den Unterschied machen", "arbeitet ruhig und konsequent im Ablauf", "sorgt dafür, dass der nächste Gast direkt starten kann", "versteht Sauberkeit als Teil der Dienstleistung"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch konsequente Sauberkeit einen durchgehend hohen Standard im Salon.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "sorgt dafür, dass der Waschbereich jederzeit einwandfrei wirkt", "erkennt sofort, wenn etwas nicht dem Standard entspricht", "handelt selbstverständlich und ohne Verzögerung", "trägt dazu bei, dass Sauberkeit im Salon als selbstverständlich wahrgenommen wird"] }
+      ]
+    },
+    // ── Verhalten 16 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Leistet nach Arbeitsschluss aktiv einen Beitrag zu Ordnung, Sauberkeit und einem vorbereiteten Salon.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, Ordnung und Sauberkeit nach Arbeitsschluss bewusster wahrzunehmen.",
+          items: ["entwickelt ein erstes Bewusstsein für den Zustand des Salons am Tagesende", "erkennt, dass ein vorbereiteter Salon den nächsten Tag beeinflusst", "beteiligt sich gelegentlich an einfachen Abschlussaufgaben", "beginnt, Verantwortung für gemeinsame Bereiche zu übernehmen"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Beteiligt sich in vielen Situationen aktiv an Ordnung und Sauberkeit nach Arbeitsschluss.",
+          items: ["übernimmt regelmäßig Aufgaben im Abschluss", "achtet bewusster auf Ordnung im eigenen Bereich", "unterstützt Kollegen bei gemeinsamen Aufgaben", "entwickelt mehr Routine in den Abläufen am Tagesende"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Sorgt zuverlässig für Ordnung und Sauberkeit nach Arbeitsschluss.",
+          items: ["hinterlässt den eigenen Arbeitsbereich ordentlich und vorbereitet", "beteiligt sich selbstverständlich an gemeinsamen Abschlussaufgaben", "achtet auf Sauberkeit und Struktur im Salon", "trägt zu einem ruhigen und organisierten Tagesabschluss bei"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Handelt vorausschauend und sorgt aktiv für einen klaren und vorbereiteten Salonzustand.",
+          items: ["erkennt selbstständig, was am Tagesende noch erledigt werden muss", "unterstützt aktiv bei Ordnung und Sauberkeit im gesamten Salon", "arbeitet strukturiert und zuverlässig bis zum Abschluss", "sorgt dafür, dass der Salon vorbereitet und professionell hinterlassen wird", "versteht Ordnung und Sauberkeit als Teil der gemeinsamen Verantwortung"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Schafft durch konsequentes Mitdenken einen durchgehend hohen Standard im Salon.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "erkennt frühzeitig offene Aufgaben im Abschluss", "sorgt mit dafür, dass der Salon am nächsten Tag direkt arbeitsbereit ist", "handelt selbstverständlich im Sinne des gesamten Teams", "trägt dazu bei, dass Ordnung und Sauberkeit als fester Qualitätsstandard gelebt werden"] }
+      ]
+    },
+    // ── Verhalten 17 ──
+    {
+      grundpfeiler: '',   // Zuordnung folgt
+      saeule: '',         // Zuordnung folgt
+      titel: "Portioniert Farbverbrauch bewusst und dokumentiert verwendete Mengen nachvollziehbar.",
+      video: '',
+      kriterien: [
+        { stufe: "1 – Bewusstsein", prozent: "0–25%",
+          text: "Beginnt, den bewussten Umgang mit Farbverbrauch und Materialeinsatz wahrzunehmen.",
+          items: ["entwickelt ein erstes Bewusstsein für Farbverbrauch im Alltag", "erkennt, dass genaue Mengen Einfluss auf Qualität und Wirtschaftlichkeit haben", "achtet gelegentlich auf portioniertes Arbeiten", "beginnt, Farbverbrauch bewusster zu dokumentieren"] },
+        { stufe: "2 – Aufbau", prozent: "25–50%",
+          text: "Arbeitet zunehmend strukturierter mit Farbportionierung und Dokumentation.",
+          items: ["portioniert Farben in vielen Situationen bewusster", "notiert verwendete Mengen häufiger nachvollziehbar", "entwickelt mehr Sicherheit im Umgang mit Materialeinsatz", "erkennt Zusammenhänge zwischen Vorbereitung, Verbrauch und Ergebnis"] },
+        { stufe: "3 – Stabilität", prozent: "50–75%",
+          text: "Arbeitet zuverlässig mit klarer Portionierung und nachvollziehbarer Dokumentation.",
+          items: ["portioniert Farben konstant passend zum Bedarf", "dokumentiert Mengen sauber und nachvollziehbar", "vermeidet unnötigen Materialüberschuss", "sorgt für Struktur und Nachvollziehbarkeit im Ablauf"] },
+        { stufe: "4 – Profi", prozent: "75–100%",
+          text: "Arbeitet präzise, wirtschaftlich und mit hoher Kontrolle über Materialeinsatz.",
+          items: ["portioniert Farben vorausschauend und passend zur Dienstleistung", "dokumentiert Verbrauch vollständig und klar", "arbeitet sauber und organisiert im Umgang mit Material", "vermeidet unnötige Verschwendung", "versteht bewussten Materialeinsatz als Teil professioneller Arbeitsweise"] },
+        { stufe: "5 – High Performer", prozent: "110%",
+          text: "Verbindet präzises Arbeiten mit verantwortungsbewusstem Materialeinsatz auf höchstem Niveau.",
+          items: ["erfüllt konsequent alle Kriterien aus Stufe 4", "arbeitet konstant kontrolliert und vorausschauend", "erkennt Optimierungsmöglichkeiten im Verbrauch frühzeitig", "sorgt für hohe Nachvollziehbarkeit und Klarheit im Ablauf", "trägt dazu bei, dass bewusster Materialeinsatz als Qualitätsstandard gelebt wird"] }
+      ]
+    }
+  ],
+
+  // ── Rituale (erscheinen nach der Entwicklungsfrage, vor den Verhalten) ──
+  // Pro Ritual eine eigene Seite mit Einleitungstext und Fragen.
+  // Fragetypen:
+  //   { typ:'skala',   frage:'…', labels:['1 …','2 …','3 …','4 …','5 …'] }  (labels optional)
+  //   { typ:'auswahl', frage:'…', optionen:['A','B','C'] }
+  //   { typ:'text',    frage:'…' }
+  // pflicht: true / false  (Standard: Skala & Auswahl Pflicht, Text optional)
+  //
+  // Beispiel:
+  // {
+  //   titel: 'Empfangsritual',
+  //   untertitel: '',                       (optional, kleine Überschrift)
+  //   einleitung: ['Absatz 1', 'Absatz 2'],
+  //   fragen: [
+  //     { typ:'skala', frage:'Wie nah war deine Umsetzung …?' },
+  //     { typ:'text',  frage:'Anmerkungen' },
+  //   ]
+  // },
+  rituale: [],   // Hammermeister: noch keine Rituale
+};
+/* ═══════════════════ ENDE KONFIGURATION ═══════════════════ */
+
+
+// ── Feste Werte des Rahmens ──
+const STUFEN = ['1 – Bewusstsein','2 – Aufbau','3 – Stabilität','4 – Profi','5 – High Performer'];
+const RLBLS  = ['Nicht sichtbar','Selten sichtbar','Oft sichtbar','Immer sichtbar','Vorbildlich'];
+const PFLICHT_AB = 4;   // ab dieser Note ist ein Kommentar Pflicht
+
+const PERSONS   = CONFIG.personen.map(p => String(p).trim()).filter(Boolean);
+const BEHAVIORS = CONFIG.verhalten.map(v => typeof v === 'string' ? {titel:v} : v)
+                                  .filter(v => v && v.titel);
+const RITUALS = (CONFIG.rituale || []).filter(r => r && r.titel).map(r => ({
+  ...r,
+  einleitung: [].concat(r.einleitung || []),
+  fragen: (r.fragen || []).map(f => ({ ...f, pflicht: f.pflicht ?? (f.typ !== 'text') }))
+}));
+const R = RITUALS.length;
+const TOTAL_STEPS = 1 + R + BEHAVIORS.length;   // Entwicklungsfrage + Rituale + alle Verhalten
+const VID_DUR = CONFIG.platzhalterVideoSekunden || 8;
+
+let S = {
+  giver: null, others: [],
+  startedAt: null,             // Start der Umfrage (für die Ausfülldauer)
+  devNominee: null, devWhy: '',
+  answers: [], currentQ: 0,
+  videoWatched: [], vidTimer: null, vidElapsed: 0
+};
+
+// ── Hilfsfunktionen ──
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ini = s => esc(String(s).charAt(0).toUpperCase());
+const fmt = sec => `${Math.floor(sec/60)}:${String(Math.floor(sec%60)).padStart(2,'0')}`;
+
+// ── INIT ──
+(function(){
+  document.getElementById('brandName').textContent = `${CONFIG.salon} – Umfrage`;
+  document.getElementById('frontTag').textContent  = `Monatliche Reflexion · ${CONFIG.salon}`;
+  document.title = `${CONFIG.salon} – Monatliche Umfrage`;
+
+  const missing = [];
+  if(PERSONS.length < 2) missing.push('mindestens 2 Personen');
+  if(!BEHAVIORS.length)  missing.push('mindestens 1 Verhalten');
+  if(missing.length){
+    const w = document.getElementById('cfgWarn');
+    w.innerHTML = `<strong>Rahmen noch leer:</strong> Bitte im Konfigurationsblock ${missing.join(' und ')} eintragen.`;
+    w.style.display = 'block';
+    document.getElementById('startBtn').disabled = true;
+    return;
+  }
+
+  const grid = document.getElementById('personGrid');
+  PERSONS.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'pb';
+    b.innerHTML = `<div class="pav">${ini(p)}</div><div class="pnm">${esc(p)}</div>`;
+    b.onclick = () => {
+      document.querySelectorAll('.pb').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel'); S.giver = p;
+      document.getElementById('s0next').disabled = false;
+    };
+    grid.appendChild(b);
+  });
+})();
+
+function setCtx(prefix){
+  document.getElementById(prefix+'ctxAv').innerHTML = ini(S.giver);
+  document.getElementById(prefix+'ctxName').textContent = S.giver;
+}
+
+function goToStep1(){
+  // Ausfülldauer: Uhr startet, sobald die Feedbackgeberin feststeht und die erste Frage kommt
+  if(!S.startedAt) S.startedAt = new Date().toISOString();
+  S.others = PERSONS.filter(p => p !== S.giver);
+  S.answers = BEHAVIORS.map(() => ({
+    sb: {score:null, comment:''},
+    fb: S.others.map(() => ({score:null, comment:''}))
+  }));
+  S.videoWatched = Array(BEHAVIORS.length).fill(false);
+  S.rit = RITUALS.map(r => r.fragen.map(() => null));
+  S.currentR = 0;
+  S.devNominee = null; S.devWhy = '';
+  setCtx('s1');
+  document.getElementById('s1ctr').textContent = `Schritt 1 von ${TOTAL_STEPS}`;
+  document.getElementById('devWhy').value = '';
+  document.getElementById('devWhyWrap').style.display = 'none';
+  const dg = document.getElementById('devGrid');
+  dg.innerHTML = '';
+  S.others.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'dev-btn';
+    b.innerHTML = `<div class="dev-av">${ini(p)}</div><div class="dev-nm">${esc(p)}</div>`;
+    b.onclick = () => {
+      document.querySelectorAll('.dev-btn').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel'); S.devNominee = p;
+      document.getElementById('devWhyWrap').style.display = 'block';
+      checkStep1();
+    };
+    dg.appendChild(b);
+  });
+  document.getElementById('devWhy').oninput = e => { S.devWhy = e.target.value; checkStep1(); };
+  checkStep1();
+  showScreen('s1'); updateProgress(1, TOTAL_STEPS);
+}
+
+function checkStep1(){
+  document.getElementById('s1next').disabled = !(S.devNominee && S.devWhy.trim().length > 0);
+}
+
+function goToQuestion(idx){ S.currentQ = idx; showScreen('s2'); renderQuestion(); }
+
+function renderQuestion(){
+  const qi = S.currentQ, beh = BEHAVIORS[qi];
+  updateProgress(qi+2+R, TOTAL_STEPS);
+  setCtx('s2');
+  document.getElementById('s2ctr').textContent = `Verhalten ${qi+1} von ${BEHAVIORS.length}`;
+  document.getElementById('blabel').textContent = beh.titel;
+  renderSegment(qi);
+  document.getElementById('qNextLbl').textContent = qi === BEHAVIORS.length-1 ? 'Absenden' : 'Weiter';
+  document.getElementById('sendErr').classList.remove('show');
+  const short = beh.titel.length > 45 ? beh.titel.substring(0,45)+'…' : beh.titel;
+  document.getElementById('vtitle').textContent = `Verhalten ${qi+1} · ${short}`;
+  resetVideo(qi);
+  setLocked(!S.videoWatched[qi]);
+  renderKriterien(qi);
+  renderSB(qi);
+  renderFB(qi);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderKriterien(qi){
+  const wrap = document.getElementById('kriterienWrap');
+  const krit = BEHAVIORS[qi].kriterien;
+  if(!Array.isArray(krit) || !krit.some(l => (Array.isArray(l) && l.length) || (l && (l.text || (l.items||[]).length)))){
+    wrap.style.display = 'none'; return;
+  }
+  wrap.style.display = 'block';
+  document.getElementById('kriterienGrid').innerHTML = STUFEN.map((stdName,i) => {
+    // Eine Stufe ist entweder eine einfache Liste von Stichpunkten
+    // oder ein Objekt { stufe, prozent, text, items }
+    const k = Array.isArray(krit[i]) ? {items:krit[i]} : (krit[i] || {});
+    const items = Array.isArray(k.items) ? k.items : [];
+    return `
+    <div class="krit-item" id="ki_${qi}_${i}">
+      <div class="krit-header" onclick="toggleKrit('ki_${qi}_${i}')">
+        <div class="krit-badge kb-${i+1}">${i+1}</div>
+        <div class="krit-head-txt">
+          <div class="krit-label">${esc(k.stufe || stdName)}</div>
+          ${k.prozent ? `<div class="krit-sublabel">${esc(k.prozent)}</div>` : ''}
+        </div>
+        <svg class="krit-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="krit-body">
+        ${k.text ? `<div class="krit-lead">${esc(k.text)}</div>` : ''}
+        ${items.length ? `<ul>${items.map(it => `<li>${esc(it)}</li>`).join('')}</ul>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleKrit(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ── SEGMENT (Grundpfeiler / Säule) ──
+function segKey(b){ return (b.grundpfeiler||'') + '|' + (b.saeule||''); }
+function renderSegment(qi){
+  const b = BEHAVIORS[qi], head = document.getElementById('segHead');
+  if(!b.grundpfeiler && !b.saeule){ head.style.display = 'none'; return; }
+  head.style.display = 'block';
+  const same = BEHAVIORS.map((x,i) => i).filter(i => segKey(BEHAVIORS[i]) === segKey(b));
+  document.getElementById('segGp').textContent = b.grundpfeiler || '';
+  document.getElementById('segSa').innerHTML = esc(b.saeule || '') +
+    (same.length > 1 ? `<span class="seg-pos">${same.indexOf(qi)+1} / ${same.length}</span>` : '');
+}
+
+// ── VIDEO: Vimeo-Einbettung, .mp4-URL oder Platzhalter mit Timer ──
+// "video" darf eine .mp4-URL, ein Vimeo-Link oder der komplette Vimeo-Einbettungscode sein.
+function videoSource(raw){
+  raw = String(raw || '').trim();
+  if(!raw) return {type:'none'};
+  const m = raw.match(/src=["']([^"']+)["']/);           // Einbettungscode → src herausziehen
+  let url = (m ? m[1] : raw).replace(/&amp;/g,'&');
+  if(/vimeo\.com/.test(url)){
+    const id = (url.match(/vimeo\.com\/(?:video\/)?(\d+)/) || [])[1];
+    if(!id) return {type:'none'};
+    if(!/player\.vimeo\.com/.test(url)){                   // normaler Vimeo-Link → Player-URL
+      const h = (url.match(/vimeo\.com\/\d+\/([0-9a-f]+)/) || [])[1];
+      url = `https://player.vimeo.com/video/${id}` + (h ? `?h=${h}` : '');
+    }
+    return {type:'vimeo', url};
+  }
+  return {type:'file', url};
+}
+
+let vimeoApi = null;
+function loadVimeoApi(){
+  if(window.Vimeo && window.Vimeo.Player) return Promise.resolve();
+  if(vimeoApi) return vimeoApi;
+  vimeoApi = new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://player.vimeo.com/api/player.js';
+    sc.onload = res; sc.onerror = () => { vimeoApi = null; rej(); };
+    document.head.appendChild(sc);
+  });
+  return vimeoApi;
+}
+
+let vimeoPlayer = null;
+function clearVimeo(){
+  if(vimeoPlayer){ try{ vimeoPlayer.destroy(); }catch(e){} vimeoPlayer = null; }
+  const box = document.getElementById('vvimeo');
+  box.innerHTML = ''; box.style.display = 'none';
+  document.getElementById('vwrap').classList.remove('is-vimeo');
+}
+
+function setupVimeo(qi, url){
+  const box = document.getElementById('vvimeo');
+  box.style.display = 'block';
+  document.getElementById('vwrap').classList.add('is-vimeo');
+  document.getElementById('vinner').style.display = 'none';
+  document.getElementById('voverlay').style.display = 'none';   // Vimeo bringt eigenen Play-Button mit
+  const sep = url.includes('?') ? '&' : '?';
+  box.innerHTML = `<iframe src="${esc(url + sep + 'badge=0&autopause=0&dnt=1')}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" title="Video"></iframe>`;
+  if(S.videoWatched[qi]) return;                                // schon angesehen → frei abspielbar
+  const token = S.vimeoToken = (S.vimeoToken || 0) + 1;
+
+  loadVimeoApi().then(() => {
+    if(S.currentQ !== qi || S.vimeoToken !== token) return;
+    const player = vimeoPlayer = new Vimeo.Player(box.querySelector('iframe'));
+    let maxSeen = 0, duration = 0, correcting = false;
+    player.getDuration().then(d => { duration = d; }).catch(()=>{});
+    const fill = sec => { if(duration) document.getElementById('vpfill').style.width = Math.min(sec/duration*100,100)+'%'; };
+    // Vorspulen verhindern: springt zurück an die bisher gesehene Stelle
+    const guard = data => {
+      if(S.videoWatched[qi] || correcting) return;
+      if(data.seconds > maxSeen + 2){
+        correcting = true;
+        player.setCurrentTime(maxSeen).finally(() => { correcting = false; });
+      } else {
+        maxSeen = Math.max(maxSeen, data.seconds); fill(maxSeen);
+      }
+    };
+    player.on('timeupdate', guard);
+    player.on('seeked', guard);
+    player.on('ended', () => {
+      if(S.currentQ !== qi) return;
+      if(!duration || maxSeen >= duration - 3) markWatched(qi);
+    });
+  }).catch(() => {
+    // Vimeo-Steuerung nicht ladbar (z. B. Netzwerk) → Bewertung nicht blockieren
+    if(S.currentQ === qi && S.vimeoToken === token) markWatched(qi);
+  });
+}
+
+function resetVideo(qi){
+  clearInterval(S.vidTimer); S.vidElapsed = 0;
+  clearVimeo();
+  const w = S.videoWatched[qi];
+  const src = videoSource(BEHAVIORS[qi].video);
+  const url = src.type === 'file' ? src.url : '';
+  const v = document.getElementById('vreal');
+  v.pause(); v.onended = null; v.ontimeupdate = null;
+  if(url){
+    v.src = url; v.style.display = 'block'; v.controls = w;
+    document.getElementById('vinner').style.display = 'none';
+  } else {
+    v.removeAttribute('src'); v.load(); v.style.display = 'none';
+    document.getElementById('vinner').style.display = 'flex';
+  }
+  document.getElementById('vpfill').style.width = w ? '100%' : '0%';
+  document.getElementById('vtimer').textContent = (w || url) ? '' : `0:00 / ${fmt(VID_DUR)}`;
+  document.getElementById('vwbadge').style.display = w ? 'flex' : 'none';
+  const ov = document.getElementById('voverlay');
+  ov.style.display = w ? 'none' : 'flex';
+  ov.classList.remove('playing');
+  ov.querySelector('.vplaybtn').style.display = 'flex';
+  ov.querySelector('.vhint').style.display = 'block';
+  if(src.type === 'vimeo') setupVimeo(qi, src.url);
+}
+
+function markWatched(qi){
+  clearInterval(S.vidTimer);
+  S.videoWatched[qi] = true;
+  document.getElementById('vpfill').style.width = '100%';
+  document.getElementById('vwbadge').style.display = 'flex';
+  document.getElementById('vtimer').textContent = '';
+  document.getElementById('voverlay').style.display = 'none';
+  document.getElementById('vreal').controls = true;
+  setLocked(false);
+}
+
+function startVideo(){
+  const qi = S.currentQ;
+  if(S.videoWatched[qi]) return;
+  const ov = document.getElementById('voverlay');
+  ov.classList.add('playing');
+  ov.querySelector('.vplaybtn').style.display = 'none';
+  ov.querySelector('.vhint').style.display = 'none';
+  const src = videoSource(BEHAVIORS[qi].video);
+  if(src.type === 'vimeo') return;
+  const url = src.type === 'file' ? src.url : '';
+
+  if(url){
+    const v = document.getElementById('vreal');
+    v.ontimeupdate = () => {
+      if(!v.duration) return;
+      document.getElementById('vpfill').style.width = Math.min(v.currentTime/v.duration*100,100)+'%';
+      document.getElementById('vtimer').textContent = `${fmt(v.currentTime)} / ${fmt(v.duration)}`;
+    };
+    v.onended = () => { if(S.currentQ === qi) markWatched(qi); };
+    v.play().catch(() => { ov.classList.remove('playing'); ov.querySelector('.vplaybtn').style.display='flex'; ov.querySelector('.vhint').style.display='block'; });
+    return;
+  }
+
+  clearInterval(S.vidTimer); S.vidElapsed = 0;
+  S.vidTimer = setInterval(() => {
+    S.vidElapsed++;
+    document.getElementById('vpfill').style.width = Math.min((S.vidElapsed/VID_DUR)*100,100)+'%';
+    document.getElementById('vtimer').textContent = `${fmt(S.vidElapsed)} / ${fmt(VID_DUR)}`;
+    if(S.vidElapsed >= VID_DUR) markWatched(qi);
+  }, 1000);
+}
+
+function setLocked(locked){
+  document.getElementById('bcard').classList.toggle('locked', locked);
+  document.getElementById('lmsg').style.display = locked ? 'flex' : 'none';
+}
+
+// ── SELBSTBILD ──
+function renderSB(qi){
+  const ans = S.answers[qi].sb;
+  const row = document.getElementById('sbRrow');
+  row.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const selCls = ans.score===i ? (i>=PFLICHT_AB?' rh':' rl') : '';
+    const b = document.createElement('button');
+    b.className = `rbtn${selCls}`;
+    b.innerHTML = `<span class="rnum">${i}</span><span class="rlbl">${RLBLS[i-1]}</span>`;
+    b.onclick = () => { S.answers[qi].sb.score = i; renderSB(qi); };
+    row.appendChild(b);
+  }
+  const cw = document.getElementById('sbCmt');
+  if(ans.score===null){ cw.innerHTML=''; return; }
+  const isReq = ans.score>=PFLICHT_AB;
+  cw.innerHTML = `<div class="cmt-wrap">
+    <div class="cmt-lbl"><span class="${isReq?'req-b':'opt-b'}">${isReq?'Pflichtfeld':'Optional'}</span>${isReq?'Was genau ist dir aufgefallen?':'Möchtest du etwas ergänzen?'}</div>
+    <textarea class="ta" style="min-height:70px" id="sbTa_${qi}" placeholder="${isReq?'Bitte konkret beschreiben…':'Zusätzliche Anmerkungen…'}" oninput="S.answers[${qi}].sb.comment=this.value">${esc(ans.comment)}</textarea>
+    <div class="cerr" id="sbErr_${qi}">Bitte einen Kommentar hinterlassen.</div>
+  </div>`;
+}
+
+// ── FREMDBILD ──
+function renderFB(qi){
+  document.getElementById('fbSection').innerHTML = S.others.map((person,pi) => {
+    const ans = S.answers[qi].fb[pi];
+    const rbtns = [1,2,3,4,5].map(i => {
+      const selCls = ans.score===i ? (i>=PFLICHT_AB?' rh':' rl') : '';
+      return `<button class="fb-rbtn${selCls}" onclick="setFBScore(${qi},${pi},${i})">${i}</button>`;
+    }).join('');
+    let cmt = '';
+    if(ans.score!==null){
+      const isReq = ans.score>=PFLICHT_AB;
+      cmt = `<div class="cmt-wrap" style="margin-top:.4rem">
+        <div class="cmt-lbl" style="font-size:10px"><span class="${isReq?'req-b':'opt-b'}">${isReq?'Pflichtfeld':'Optional'}</span>${isReq?'Was ist dir aufgefallen?':'Anmerkung (optional)'}</div>
+        <textarea class="ta" style="min-height:60px;font-size:12px" id="fbTa_${qi}_${pi}" placeholder="${isReq?'Bitte konkret…':'Optional…'}" oninput="S.answers[${qi}].fb[${pi}].comment=this.value">${esc(ans.comment)}</textarea>
+        <div class="cerr" id="fbErr_${qi}_${pi}">Kommentar erforderlich.</div>
+      </div>`;
+    }
+    return `<div class="fb-person-row">
+      <div class="fb-pav">${ini(person)}</div>
+      <div class="fb-pinfo">
+        <div class="fb-pname">${esc(person)}</div>
+        <div class="fb-rrow">${rbtns}</div>
+        ${cmt}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setFBScore(qi,pi,score){
+  S.answers[qi].fb[pi].score = score;
+  renderFB(qi);
+}
+
+// ── RITUALE ──
+function afterStep1(){ if(R) goToRitual(0); else goToQuestion(0); }
+
+function goToRitual(ri){
+  S.currentR = ri;
+  const r = RITUALS[ri];
+  setCtx('sR');
+  document.getElementById('sRctr').textContent = `Ritual ${ri+1} von ${R}`;
+  document.getElementById('ritTitle').textContent = r.titel;
+  document.getElementById('ritIntro').innerHTML = (r.untertitel ? `<div class="kriterien-title">${esc(r.untertitel)}</div>` : '') +
+    (r.einleitung.length ? `<div class="front-highlight" style="margin:0">${r.einleitung.map(p => `<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div>` : '');
+  renderRitualQuestions(ri);
+  showScreen('s-rit'); updateProgress(2+ri, TOTAL_STEPS);
+}
+
+function renderRitualQuestions(ri){
+  const r = RITUALS[ri];
+  document.getElementById('ritQuestions').innerHTML = r.fragen.map((f,fi) => {
+    const val = S.rit[ri][fi];
+    const badge = `<span class="${f.pflicht?'req-b':'opt-b'}">${f.pflicht?'Pflichtfeld':'Optional'}</span>`;
+    let body = '';
+    if(f.typ === 'skala'){
+      const lb = f.labels || [];
+      body = `<div class="rrow">${[1,2,3,4,5].map(i =>
+        `<button class="rbtn${val===i?' rsel':''}" onclick="setRit(${ri},${fi},${i})"><span class="rnum">${i}</span>${lb[i-1]?`<span class="rlbl">${esc(lb[i-1])}</span>`:''}</button>`).join('')}</div>`;
+    } else if(f.typ === 'auswahl'){
+      body = `<div class="opt-grid">${(f.optionen||[]).map((o,oi) =>
+        `<button class="opt-btn${val===o?' sel':''}" onclick="setRit(${ri},${fi},${oi},true)">${esc(o)}</button>`).join('')}</div>`;
+    } else {
+      body = `<textarea class="ta" style="min-height:70px" id="ritTa_${ri}_${fi}" placeholder="${f.pflicht?'Bitte ausfüllen…':'Optional…'}" oninput="S.rit[${ri}][${fi}]=this.value">${esc(val||'')}</textarea>`;
+    }
+    return `<div class="card rit-q" id="ritQ_${ri}_${fi}">
+      <div class="cmt-lbl" style="margin-bottom:.4rem">${badge}</div>
+      <div class="ct">${esc(f.frage)}</div>
+      ${f.hinweis?`<div class="rit-hint">${esc(f.hinweis)}</div>`:''}
+      ${body}
+      <div class="cerr" id="ritErr_${ri}_${fi}">Bitte beantworten.</div>
+    </div>`;
+  }).join('');
+}
+
+function setRit(ri,fi,v,isOpt){
+  S.rit[ri][fi] = isOpt ? RITUALS[ri].fragen[fi].optionen[v] : v;
+  renderRitualQuestions(ri);
+}
+
+function nextRitual(){
+  const ri = S.currentR, r = RITUALS[ri];
+  for(let fi=0; fi<r.fragen.length; fi++){
+    const f = r.fragen[fi];
+    if(f.typ === 'text') S.rit[ri][fi] = (document.getElementById(`ritTa_${ri}_${fi}`)?.value || '').trim();
+    const v = S.rit[ri][fi];
+    if(f.pflicht && (v === null || v === '')){
+      document.getElementById(`ritErr_${ri}_${fi}`)?.classList.add('show');
+      highlight(`ritQ_${ri}_${fi}`); return;
+    }
+  }
+  if(ri < R-1) goToRitual(ri+1); else goToQuestion(0);
+}
+
+function prevRitual(){
+  if(S.currentR > 0) goToRitual(S.currentR-1);
+  else { showScreen('s1'); updateProgress(1,TOTAL_STEPS); }
+}
+
+// ── NAVIGATION / VALIDIERUNG ──
+function nextQuestion(){
+  const qi = S.currentQ;
+  if(!S.videoWatched[qi]){ highlight('vwrap'); return; }
+  const sb = S.answers[qi].sb;
+  if(sb.score===null){ highlight('sbRrow'); return; }
+  sb.comment = (document.getElementById(`sbTa_${qi}`)?.value || '').trim();
+  if(sb.score>=PFLICHT_AB && !sb.comment){ showErr(`sbErr_${qi}`,`sbTa_${qi}`); return; }
+  for(let pi=0; pi<S.others.length; pi++){
+    const fb = S.answers[qi].fb[pi];
+    if(fb.score===null){ highlight('fbSection'); return; }
+    fb.comment = (document.getElementById(`fbTa_${qi}_${pi}`)?.value || '').trim();
+    if(fb.score>=PFLICHT_AB && !fb.comment){ showErr(`fbErr_${qi}_${pi}`,`fbTa_${qi}_${pi}`); return; }
+  }
+  if(qi < BEHAVIORS.length-1){ S.currentQ++; renderQuestion(); }
+  else submitSurvey();
+}
+
+function prevQuestion(){
+  if(S.currentQ>0){ S.currentQ--; renderQuestion(); }
+  else { clearInterval(S.vidTimer); document.getElementById('vreal').pause(); clearVimeo();
+         if(R){ goToRitual(R-1); } else { showScreen('s1'); updateProgress(1,TOTAL_STEPS); } }
+}
+
+function highlight(id){ const el=document.getElementById(id); el.style.outline='2px solid var(--red-v)'; el.scrollIntoView({behavior:'smooth',block:'center'}); setTimeout(()=>el.style.outline='',900); }
+function showErr(errId,inputId){ document.getElementById(errId)?.classList.add('show'); const i=document.getElementById(inputId); i?.classList.add('err'); i?.focus(); }
+
+// ── ERGEBNIS (strukturiert, für die spätere Übergabe an Supabase) ──
+function buildResult(){
+  return {
+    salon: CONFIG.salon,
+    version: CONFIG.version || null,
+    zeitpunkt: new Date().toISOString(),
+    gestartet_am: S.startedAt,
+    feedbackgeber: S.giver,
+    entwicklung: { person: S.devNominee, begruendung: S.devWhy.trim() },
+    rituale: RITUALS.flatMap((r,ri) => r.fragen.map((f,fi) => ({
+      ritual: r.titel, frage_nr: fi+1, frage: f.frage, typ: f.typ, antwort: S.rit[ri][fi] ?? null }))),
+    bewertungen: BEHAVIORS.flatMap((beh,qi) => [
+      { verhalten_nr: qi+1, grundpfeiler: beh.grundpfeiler || null, saeule: beh.saeule || null, verhalten: beh.titel, art: 'selbstbild', bewertete_person: S.giver,
+        note: S.answers[qi].sb.score, kommentar: S.answers[qi].sb.comment },
+      ...S.others.map((p,pi) => ({ verhalten_nr: qi+1, grundpfeiler: beh.grundpfeiler || null, saeule: beh.saeule || null, verhalten: beh.titel, art: 'fremdbild', bewertete_person: p,
+        note: S.answers[qi].fb[pi].score, kommentar: S.answers[qi].fb[pi].comment }))
+    ])
+  };
+}
+
+// ── SPEICHERN IN SUPABASE ──
+async function submitSurvey(){
+  if(S.submitting || S.submitted) return;
+  const cfg = CONFIG.supabase || {};
+  const result = buildResult();
+  if(!cfg.url || !cfg.anonKey){            // Testmodus ohne Datenbank
+    showSummary(result, 'warn', '<strong>Testmodus:</strong> Es ist keine Datenbank verbunden – die Antworten wurden nicht gespeichert.');
+    return;
+  }
+  setSending(true);
+  try{
+    const res = await fetch(cfg.url.replace(/\/+$/,'') + '/rest/v1/rpc/umfrage_einreichen', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': cfg.anonKey,
+        'Authorization': 'Bearer ' + cfg.anonKey
+      },
+      body: JSON.stringify({ payload: result })
+    });
+    let body = null;
+    try{ body = await res.json(); }catch(e){}
+    if(res.ok){
+      S.submitted = true; S.submissionId = body;
+      showSummary(result, 'ok', 'Deine Antworten wurden sicher gespeichert.');
+    } else if(res.status === 409 || (body && body.code === '23505')){
+      S.submitted = true;
+      showSummary(result, 'warn', esc((body && body.message) || 'Für diesen Monat wurde bereits eine Umfrage abgegeben.') +
+        ' Diese Antworten wurden <strong>nicht</strong> erneut gespeichert.');
+    } else {
+      showSendError('Die Antworten konnten nicht gespeichert werden' + (body && body.message ? ` (${esc(body.message)})` : ` (Fehler ${res.status})`) + '.');
+    }
+  } catch(e){
+    showSendError('Keine Verbindung zur Datenbank. Bitte Internetverbindung prüfen.');
+  } finally {
+    setSending(false);
+  }
+}
+
+function setSending(on){
+  S.submitting = on;
+  const b = document.getElementById('qNextBtn');
+  b.disabled = on; b.classList.toggle('sending', on);
+  document.getElementById('qPrevBtn').disabled = on;
+  document.getElementById('qNextLbl').innerHTML = on ? '<span class="spin"></span> Wird gespeichert…' : 'Absenden';
+  if(on) document.getElementById('sendErr').classList.remove('show');
+}
+
+function showSendError(msg){
+  const el = document.getElementById('sendErr');
+  el.innerHTML = msg + ' Deine Eingaben sind noch da – bitte einfach erneut auf „Absenden“ tippen.';
+  el.classList.add('show');
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function showSummary(result, statusType, statusMsg){
+  clearVimeo();
+  showScreen('s3');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progLbl').textContent='Fertig';
+  document.getElementById('sumName').textContent=S.giver;
+  const erfasst = R ? 'Entwicklungsfrage, Rituale und alle Verhalten erfasst' : 'Entwicklungsfrage und alle Verhalten erfasst';
+  let dauerTxt = '';
+  if(S.startedAt && result && result.zeitpunkt){
+    const min = Math.round((new Date(result.zeitpunkt) - new Date(S.startedAt)) / 60000);
+    if(min >= 1) dauerTxt = ` · ausgefüllt in ${min} Min`;
+  }
+  document.getElementById('sumSub').textContent = erfasst + dauerTxt + '.';
+  const ssc = sc => `<span class="ssc ${sc>=PFLICHT_AB?'hi':'lo'}">${sc}</span>`;
+  let html = `<div class="card"><div class="ct">Entwicklung des Monats</div><p style="font-size:13px;color:var(--text2)"><strong>${esc(S.devNominee)}</strong> – ${esc(S.devWhy)}</p></div>`;
+  RITUALS.forEach((r,ri) => {
+    html += `<div class="card" style="margin-bottom:.75rem"><div class="ct">${esc(r.titel)}</div>
+      <table class="sum-tbl"><tbody>${r.fragen.map((f,fi) => { const v=S.rit[ri][fi];
+        return `<tr><td style="font-size:12px;color:var(--text2)">${esc(f.frage)}</td><td style="font-weight:500;white-space:nowrap">${v===null||v===''?'–':esc(v)}</td></tr>`; }).join('')}
+      </tbody></table></div>`;
+  });
+  let lastSeg = null;
+  BEHAVIORS.forEach((beh,qi) => {
+    if((beh.grundpfeiler || beh.saeule) && segKey(beh) !== lastSeg){
+      lastSeg = segKey(beh);
+      html += `<div class="sum-seg"><div class="seg-gp">${esc(beh.grundpfeiler||'')}</div><div class="seg-sa">${esc(beh.saeule||'')}</div></div>`;
+    }
+    const sb = S.answers[qi].sb;
+    html += `<div class="card" style="margin-bottom:.75rem">
+      <div style="font-family:'DM Serif Display',serif;font-size:14px;margin-bottom:.9rem;line-height:1.35">${esc(beh.titel)}</div>
+      <table class="sum-tbl"><thead><tr><th>Person</th><th>Art</th><th style="text-align:center">Note</th><th>Kommentar</th></tr></thead><tbody>
+      <tr><td style="font-weight:500">${esc(S.giver)}</td><td><span style="font-size:10px;color:var(--accent)">SB</span></td><td style="text-align:center">${sb.score?ssc(sb.score):'–'}</td><td style="font-size:11px;color:var(--text2)">${esc(sb.comment)||'–'}</td></tr>
+      ${S.others.map((p,pi) => { const fb=S.answers[qi].fb[pi]; return `<tr><td style="color:var(--text2)">${esc(p)}</td><td><span style="font-size:10px;color:var(--fb)">FB</span></td><td style="text-align:center">${fb.score?ssc(fb.score):'–'}</td><td style="font-size:11px;color:var(--text2)">${esc(fb.comment)||'–'}</td></tr>`; }).join('')}
+      </tbody></table></div>`;
+  });
+  document.getElementById('sumContent').innerHTML = html;
+  window.SURVEY_RESULT = result || buildResult();
+  const st = document.getElementById('sendStatus');
+  st.className = 'send-status' + (statusType ? ' ' + statusType : '');
+  st.innerHTML = statusMsg || '';
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProgress(step,total){
+  document.getElementById('progFill').style.width = Math.round((step/total)*100)+'%';
+  document.getElementById('progLbl').textContent = `${step} / ${total}`;
+}
+</script>
+</body>
+</html>
