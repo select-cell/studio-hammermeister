@@ -143,7 +143,7 @@ describe('Payload', () => {
     expect(n.zeitpunkt).toBe('2026-10-20T10:12:30.000Z')
     expect(n.gestartet_am).toBe('2026-10-20T10:00:00.000Z')
     expect(n.entwicklung).toEqual({ person_id: 'k1', begruendung: 'Sehr gut' })
-    expect(n.bewertungen).toHaveLength(2 * 3) // 2 Verhalten × (ich + 2 Kolleg:innen)
+    expect(n.bewertungen).toHaveLength(2 * 3) // 2 Verhalten × (ich + 2 Kollegen)
     expect(n.bewertungen.filter((b) => b.bewertete_person_id === 'me')).toHaveLength(2)
     expect(n.bewertungen[0]).toEqual({ verhalten_nr: 1, bewertete_person_id: 'me', note: 3, kommentar: '' })
     expect(n.bewertungen[1]).toEqual({ verhalten_nr: 1, bewertete_person_id: 'k1', note: 2, kommentar: '' })

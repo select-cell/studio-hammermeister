@@ -1,8 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════
---  Migration 012 · „Meine Ergebnisse“: Mitarbeiter sehen die Kommentare der Kolleg:innen nicht
+--  Migration 012 · „Meine Ergebnisse“: Mitarbeiter sehen die Kommentare der Kollegen nicht
 -- ═══════════════════════════════════════════════════════════════════════════
 --  Klarstellung des Auftraggebers zu 011: Es geht nur um die Fremdbild-Kommentare der einzelnen
---  Kolleg:innen im eigenen Tab. Alles andere bleibt wie bisher: Selbstbild, Ø Fremdbild,
+--  Kollegen im eigenen Tab. Alles andere bleibt wie bisher: Selbstbild, Ø Fremdbild,
 --  Differenz, Top/Flop, Detailtabelle, Verlauf, Rituale, Ausfülldauer und der eigene Kommentar.
 --
 --  Umsetzung in der Datenbank, nicht im Frontend:
@@ -24,7 +24,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 
--- 1. Kommentare der Kolleg:innen aus einer fertigen Auswertung nehmen (intern) ──
+-- 1. Kommentare der Kollegen aus einer fertigen Auswertung nehmen (intern) ──
 
 create or replace function public.ohne_fremdkommentare(p_auswertung jsonb)
 returns jsonb
@@ -57,7 +57,7 @@ select jsonb_set(
 $$;
 
 comment on function public.ohne_fremdkommentare(jsonb) is
-  'Leert in einer Personen-Auswertung die Kommentare und Einzelnoten der Kolleg:innen und setzt ohne_fremdkommentare = true. Intern.';
+  'Leert in einer Personen-Auswertung die Kommentare und Einzelnoten der Kollegen und setzt ohne_fremdkommentare = true. Intern.';
 
 revoke all on function public.ohne_fremdkommentare(jsonb) from public, anon, authenticated;
 
@@ -84,7 +84,7 @@ begin
 
   v_erg := public.auswertung_person(v_p.id, p_von, p_bis, public.absender_sichtbar_fuer(v_p.id, v_p.id));
 
-  -- Die Kommentare der Kolleg:innen sehen nur Verantwortliche und Admin (auch bei sich selbst)
+  -- Die Kommentare der Kollegen sehen nur Verantwortliche und Admin (auch bei sich selbst)
   if v_p.rolle in ('verantwortlicher', 'admin') then
     return v_erg;
   end if;
@@ -93,7 +93,7 @@ end;
 $$;
 
 comment on function public.meine_ergebnisse(date, date) is
-  'Eigene Auswertung für Teilnehmer. Verantwortliche und Admin: mit den Kommentaren der Kolleg:innen (Absender nach absender_sichtbar_fuer). Alle anderen: dieselben Zahlen, aber ohne Fremdkommentare (ohne_fremdkommentare = true).';
+  'Eigene Auswertung für Teilnehmer. Verantwortliche und Admin: mit den Kommentaren der Kollegen (Absender nach absender_sichtbar_fuer). Alle anderen: dieselben Zahlen, aber ohne Fremdkommentare (ohne_fremdkommentare = true).';
 
 revoke all on function public.meine_ergebnisse(date, date) from public, anon;
 grant execute on function public.meine_ergebnisse(date, date) to authenticated;

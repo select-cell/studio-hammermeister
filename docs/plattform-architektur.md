@@ -53,7 +53,7 @@ Wir bauen eine Web-Plattform, auf der
 
 | Rolle | Wer | Nimmt an Teamumfrage teil | Sieht |
 |---|---|---|---|
-| `mitarbeiter` | Antonella, Jaroslaw, Behzad, Olena, Lena | Ja: Selbstbild und Fremdbild aller anderen Teilnehmer | Eigene Ergebnisse (Selbstbild, Fremdbild-Schnitt, Differenz und der eigene Kommentar; **ohne** die Kommentare der Kolleg:innen, Migration 012, siehe §5.6) und Team-Ergebnisse (nur Schnitte, keine Einzelpersonen) |
+| `mitarbeiter` | Antonella, Jaroslaw, Behzad, Olena, Lena | Ja: Selbstbild und Fremdbild aller anderen Teilnehmer | Eigene Ergebnisse (Selbstbild, Fremdbild-Schnitt, Differenz und der eigene Kommentar; **ohne** die Kommentare der Kollegen, Migration 012, siehe §5.6) und Team-Ergebnisse (nur Schnitte, keine Einzelpersonen) |
 | `verantwortlicher` | Michael Hammermeister (Chef des Salons) | **Ja**, er ist bei Hammermeister **zugleich Teil des Teams**: Er bewertet und wird bewertet | Alles, was ein Teammitglied sieht (eigene Umfrage, eigene Ergebnisse), **plus** alles im Salon: Team, jedes Teammitglied im Detail inkl. Einzelbewertungen, Abgabe-Status, Reminder, später Chef- und Gästeumfrage |
 | `admin` | Plattformbetreiber | Nein | Alles (gleiche Sicht wie Verantwortlicher). Pflegt Personen und Inhalte in Supabase. |
 
@@ -362,9 +362,9 @@ Alle Bausteine beziehen sich auf einen **gewählten Monat** (Monatsauswahl oben 
 | **Heatmap (Segmentanalyse)** | Matrix Verhalten × Person im Fremdbild, Farbe nach Score-Niveau, Zeilen nach Säule gruppiert | – | ✓ |
 | **Detailtabelle** | Tabs Selbstbild / Fremdbild / Rituale. Team-Sicht: Spalte je Person + Ø Team. Personen-Sicht: SB · FB · Differenz. Sortierung „Standard“ (nach Säulen gruppiert) / „Höchste“ / „Niedrigste“ (ohne Gruppierung) | ✓ Personen-Sicht (eigene) | ✓ beide Sichten |
 | **Verlauf** | Liniendiagramm Ø SB, Ø FB, Ø Rituale über alle Monate | ✓ eigener | ✓ je Person und Team |
-| **Monats-Detail** | Monats-Tabs; je Verhalten Score + Kommentar(e) | ✓ ohne die Kommentare der Kolleg:innen (nur der eigene Kommentar) | ✓ mit den Kommentaren der Kolleg:innen und Absender nach Regel |
+| **Monats-Detail** | Monats-Tabs; je Verhalten Score + Kommentar(e) | ✓ ohne die Kommentare der Kollegen (nur der eigene Kommentar) | ✓ mit den Kommentaren der Kollegen und Absender nach Regel |
 
-**Mitarbeiter sehen die Kommentare der Kolleg:innen nicht** (Anpassung vom 20.10.2026, Migration 012): In „Meine Ergebnisse“ bleibt alles wie bisher; nur die Fremdbild-Kommentare der einzelnen Kolleg:innen fehlen, es steht der eigene Kommentar. Das setzt die Datenbank durch (`meine_ergebnisse` leert für Mitarbeiter `kommentare` und `fremdbilder`), nicht das Frontend. Verantwortliche und Admin sehen die Kommentare, auch bei sich selbst. Die Team-Seite bleibt unverändert.
+**Mitarbeiter sehen die Kommentare der Kollegen nicht** (Anpassung vom 20.10.2026, Migration 012): In „Meine Ergebnisse“ bleibt alles wie bisher; nur die Fremdbild-Kommentare der einzelnen Kollegen fehlen, es steht der eigene Kommentar. Das setzt die Datenbank durch (`meine_ergebnisse` leert für Mitarbeiter `kommentare` und `fremdbilder`), nicht das Frontend. Verantwortliche und Admin sehen die Kommentare, auch bei sich selbst. Die Team-Seite bleibt unverändert.
 
 Datenbasis: Die Funktionen aus §5.3 liefern die Zahlen. Ergänzend:
 
@@ -492,7 +492,7 @@ Jede Phase ist für sich nutzbar und wird vor der nächsten getestet.
   3. Rangliste, Heatmap, Ansicht-Umschalter Team ↔ Person
   4. Verlauf und Monats-Detail mit Kommentaren
 - **Fertig, wenn:**
-  - Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und ohne die Kommentare der Kolleg:innen, und das Team nur als Schnitt.
+  - Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und ohne die Kommentare der Kollegen, und das Team nur als Schnitt.
   - Michael sieht alles im Detail, inklusive sich selbst als Teammitglied.
   - Alle Seiten funktionieren ohne Säulen und ohne Rituale.
   - Die Zahlen stimmen mit den Views `v_selbst_vs_fremdbild` und `v_person_saeule` überein.
@@ -521,7 +521,7 @@ Vorbild ist der Jarvis aus dem alten Board, aber sicher umgebaut.
 - Frontend → Supabase Edge Function `jarvis` → n8n-Webhook → Antwort zurück.
 - Die **Webhook-URL** liegt als Secret in der Edge Function. Sie steht nicht mehr im Browser und ist nicht mehr per Zahnrad einstellbar.
 - Die Edge Function baut den **Kontext** serverseitig aus den Ergebnis-Funktionen, mit der Session des Nutzers. Jarvis bekommt dadurch ausschließlich, was die Person ohnehin sehen darf:
-  - **Teammitglied (auch Michael für sich selbst):** nur eigene Ergebnisse (SB, FB, Differenz, Top/Flop 5, Verlauf, eigener Kommentar, Ausfülldauer; die Kommentare der Kolleg:innen nur bei Rolle Verantwortlicher/Admin, so liefert es `meine_ergebnisse`) plus Team-Schnitte
+  - **Teammitglied (auch Michael für sich selbst):** nur eigene Ergebnisse (SB, FB, Differenz, Top/Flop 5, Verlauf, eigener Kommentar, Ausfülldauer; die Kommentare der Kollegen nur bei Rolle Verantwortlicher/Admin, so liefert es `meine_ergebnisse`) plus Team-Schnitte
   - **Verantwortlicher / Admin:** der volle Kontext wie im alten Board, mit `meta` (Skala, Datenstart, Verhaltens-Liste), `overview` (Monat, Rangliste, Team-Schnitte, Ausfülldauern), `personSummaries` (je Person SB/FB/Differenz, alle Verhalten, Top/Flop 5) und `personDetail` (je Monat Schnitt, Einzelwerte, Kommentare)
   - zusätzlich die aktuelle Ansicht (welche Seite, welche Person, welcher Monat), damit Jarvis weiß, worüber gerade gesprochen wird
 - Format an n8n wie bisher: `{ message, context }`. Antwort aus `output` / `message` / `text`. Der bestehende n8n-Workflow kann so weiterverwendet werden.

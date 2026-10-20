@@ -60,12 +60,12 @@ export default function PersonAnsicht({
             diff={mo.gesamt?.diff ?? null}
             dauerMin={mo.dauer_min}
             schwelle={schwellen.ausgewogen}
-            fremdbilder={mo.gesamt?.anzahl_fremdbilder ? `von ${mo.gesamt.anzahl_fremdbilder} Kolleg:innen` : undefined}
+            fremdbilder={mo.gesamt?.anzahl_fremdbilder ? `von ${mo.gesamt.anzahl_fremdbilder} Kollegen` : undefined}
           />
           {nachKacheln}
           <Abschnitt
             titel={bal?.art === 'saeulen' ? 'Selbstbild und Fremdbild je Säule' : 'Selbstbild und Fremdbild je Verhalten'}
-            hinweis={`Kupfer zeigt, wie ${eigene ? 'du dich' : `${vornameVon(daten.person.name)} sich`} sieht, Blau, wie die Kolleg:innen ${wer} sehen.`}
+            hinweis={`Kupfer zeigt, wie ${eigene ? 'du dich' : `${vornameVon(daten.person.name)} sich`} sieht, Blau, wie die Kollegen ${wer} sehen.`}
           >
             <SbFbDiagramm daten={bal?.daten ?? []} beschreibung={`Selbstbild und Fremdbild von ${daten.person.name}`} />
           </Abschnitt>

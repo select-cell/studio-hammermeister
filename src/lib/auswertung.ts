@@ -75,7 +75,7 @@ export interface VerlaufPunkt {
 export interface PersonErgebnisse {
   person: { id: string; name: string }
   absender_sichtbar: boolean
-  /** true: die Datenbank hat die Kommentare der Kolleg:innen weggelassen (Mitarbeiter, Migration 012) */
+  /** true: die Datenbank hat die Kommentare der Kollegen weggelassen (Mitarbeiter, Migration 012) */
   ohne_fremdkommentare?: boolean
   monate: string[]
   verlauf: VerlaufPunkt[]

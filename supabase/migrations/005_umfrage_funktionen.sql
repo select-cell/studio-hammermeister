@@ -3,7 +3,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 --  Im Supabase SQL-Editor ausführen (nach 004). Kann gefahrlos mehrfach ausgeführt werden.
 --
---    umfrage_inhalt()          Verhalten samt Stufen, Rituale, bewertbare Kolleg:innen
+--    umfrage_inhalt()          Verhalten samt Stufen, Rituale, bewertbare Kollegen
 --    meine_offenen_monate()    Monate ohne Abgabe, jeweils mit Frist und Überfälligkeit
 --    umfrage_einreichen_v2()   speichert eine Abgabe (alles oder nichts)
 --    offene_monate_von()       interne Hilfe mit simulierbarem Datum (nicht aufrufbar)
@@ -172,7 +172,7 @@ end;
 $$;
 
 comment on function public.umfrage_inhalt() is
-  'Inhalt der Umfrage für die eingeloggte Person: aktive Verhalten mit Stufen, Rituale mit Fragen, bewertbare Kolleg:innen.';
+  'Inhalt der Umfrage für die eingeloggte Person: aktive Verhalten mit Stufen, Rituale mit Fragen, bewertbare Kollegen.';
 
 revoke all on function public.umfrage_inhalt() from public, anon;
 grant execute on function public.umfrage_inhalt() to authenticated;

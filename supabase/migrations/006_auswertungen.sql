@@ -5,7 +5,7 @@
 --
 --  Alle Zahlen werden hier berechnet (docs §5.5), das Frontend zeigt sie nur an:
 --    Selbstbild   = eigene Note je Verhalten und Monat
---    Fremdbild    = Durchschnitt der Noten der Kolleg:innen je Verhalten und Monat
+--    Fremdbild    = Durchschnitt der Noten der Kollegen je Verhalten und Monat
 --    Abweichung   = Selbstbild − Fremdbild
 --    Verdichtung  = je Säule und gesamt der Durchschnitt der Verhalten
 --    Team-Schnitt = Durchschnitt über alle Teilnehmer (jede Person zählt gleich viel)

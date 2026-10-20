@@ -8,7 +8,7 @@ function KommentarZeile({ k }: { k: Kommentar }) {
   return (
     <blockquote className="au-kommentar">
       <span className="au-kommentar-kopf">
-        {k.von ? `${k.von} · ` : 'Kolleg:in · '}Note {k.note}
+        {k.von ? `${k.von} · ` : 'Kollege · '}Note {k.note}
       </span>
       {k.text}
     </blockquote>
@@ -32,7 +32,7 @@ export default function MonatsDetail({
   start: string | null
   schwellen: Schwellen
   absenderSichtbar: boolean
-  /** Die Datenbank liefert keine Kommentare der Kolleg:innen; es bleibt nur der eigene Kommentar */
+  /** Die Datenbank liefert keine Kommentare der Kollegen; es bleibt nur der eigene Kommentar */
   ohneFremdkommentare?: boolean
 }) {
   const [gewaehlt, setGewaehlt] = useState<string | null>(start && monate.includes(start) ? start : (monate[monate.length - 1] ?? null))
@@ -58,7 +58,7 @@ export default function MonatsDetail({
                 ? 'In diesem Monat gibt es keine Kommentare.'
                 : `${mitKommentar} von ${verhalten.length} Verhalten mit Kommentar.`}{' '}
             {ohneFremdkommentare
-              ? 'Die Kommentare deiner Kolleg:innen sehen nur die Salonleitung und der Plattformbetreiber.'
+              ? 'Die Kommentare deiner Kollegen sehen nur die Salonleitung und der Plattformbetreiber.'
               : absenderSichtbar
                 ? 'Die Absender sind sichtbar.'
                 : 'Kommentare erscheinen ohne Absender.'}

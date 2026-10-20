@@ -17,7 +17,7 @@ export default function KennzahlKacheln({
   schwelle: number
   /** Team-Sicht nutzt die Kurzform „SB > FB“ */
   teamSicht?: boolean
-  /** Hinweis unter dem Fremdbild, z. B. „von 5 Kolleg:innen“ */
+  /** Hinweis unter dem Fremdbild, z. B. „von 5 Kollegen“ */
   fremdbilder?: string
 }) {
   const ein = einordnung(diff, schwelle)

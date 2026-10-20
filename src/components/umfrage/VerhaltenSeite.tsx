@@ -70,7 +70,7 @@ function Kommentar({
   )
 }
 
-/** Eine Verhaltens-Seite: Titel des Verhaltens, Video, Bewertungsstufen, Selbstbild und Fremdbild aller Kolleg:innen. */
+/** Eine Verhaltens-Seite: Titel des Verhaltens, Video, Bewertungsstufen, Selbstbild und Fremdbild aller Kollegen. */
 export default function VerhaltenSeite(p: Props) {
   const { verhalten: v, antworten } = p
   const gesehen = !!antworten.videoGesehen[v.nr]

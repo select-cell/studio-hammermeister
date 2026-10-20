@@ -55,7 +55,7 @@ export async function abmelden(): Promise<void> {
 
 // ── Monatsumfrage ─────────────────────────────────────────────────────────
 
-/** Verhalten mit Stufen, Rituale und bewertbare Kolleg:innen für die eingeloggte Person. */
+/** Verhalten mit Stufen, Rituale und bewertbare Kollegen für die eingeloggte Person. */
 export async function ladeUmfrageInhalt(): Promise<UmfrageInhalt> {
   const { data, error } = await supabase.rpc('umfrage_inhalt')
   if (error) throw error

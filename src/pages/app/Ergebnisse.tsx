@@ -19,7 +19,7 @@ export default function Ergebnisse() {
   const monat = auswahl && l.daten.monate.includes(auswahl) ? auswahl : neuesterMonat(l.daten.monate)
   return (
     <>
-      <Seitenkopf titel="Meine Ergebnisse" text="So siehst du dich selbst – und so sehen dich deine Kolleg:innen.">
+      <Seitenkopf titel="Meine Ergebnisse" text="So siehst du dich selbst – und so sehen dich deine Kollegen.">
         <MonatsAuswahl monate={l.daten.monate} monat={monat} onWahl={setAuswahl} />
       </Seitenkopf>
       <PersonAnsicht daten={l.daten} monat={monat} schwellen={schwellenVon(person.salon)} eigene />

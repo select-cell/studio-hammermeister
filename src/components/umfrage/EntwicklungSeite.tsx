@@ -1,7 +1,7 @@
 import { initiale } from '../../lib/rechte'
 import { entwicklungFertig, type Antworten, type Kollege } from '../../lib/umfrage'
 
-/** Schritt 1: Entwicklung des Monats. Auswahl nur unter den Kolleg:innen, man selbst steht nicht zur Wahl. */
+/** Schritt 1: Entwicklung des Monats. Auswahl nur unter den Kollegen, man selbst steht nicht zur Wahl. */
 export default function EntwicklungSeite({
   kollegen,
   antworten,

@@ -2,7 +2,7 @@
 --  Migration 011 · „Meine Ergebnisse“: Mitarbeiter sehen nur ihre eigenen Antworten
 -- ═══════════════════════════════════════════════════════════════════════════
 --  Wunsch des Auftraggebers: Mitarbeiter finden in ihren Ergebnissen nur ihr Selbstbild, also das,
---  was sie selbst geantwortet haben. Wie die Kolleg:innen sie bewertet haben (Fremdbild, Differenz,
+--  was sie selbst geantwortet haben. Wie die Kollegen sie bewertet haben (Fremdbild, Differenz,
 --  Kommentare, Einzelnoten) sehen nur Verantwortliche und Admin.
 --
 --  Umsetzung in der Datenbank, nicht im Frontend:
