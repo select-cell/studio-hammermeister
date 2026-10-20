@@ -6,9 +6,10 @@
 --    1. Unten statt „HIER-EMAIL-EINTRAGEN“ die echten E-Mail-Adressen einsetzen.
 --       Zeilen ohne „@“ werden übersprungen, die Vorlage ist also gefahrlos ausführbar.
 --    2. Im Supabase SQL-Editor ausführen. Bereits vorhandene E-Mails bleiben unverändert.
---    3. Danach unter  Authentication → Users → „Invite user“  dieselben Adressen einladen.
---       Ein Trigger verknüpft Login und Person automatisch über die E-Mail
---       (auch in umgekehrter Reihenfolge).
+--    3. Danach unter  Authentication → Users → „Add user“ → „Create new user“  dieselben Adressen
+--       mit je einem Start-Passwort anlegen und „Auto Confirm User“ anhaken (kein Magic Link).
+--       Ein Trigger verknüpft Login und Person automatisch über die bestätigte E-Mail
+--       (auch in umgekehrter Reihenfolge, siehe Migration 007).
 --
 --  Michael Hammermeister ist Verantwortlicher UND Teil des Teams (nimmt_an_teamumfrage = true).
 --  Schreibweise „Behzad Pour Sakha“ ist bestätigt.

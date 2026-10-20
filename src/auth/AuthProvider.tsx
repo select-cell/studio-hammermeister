@@ -12,7 +12,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [personStatus, setPersonStatus] = useState<PersonStatus>('leer')
   const [version, setVersion] = useState(0)
 
-  // Sitzung: beim Start lesen (verarbeitet auch den Magic-Link-Rücksprung) und auf Änderungen hören.
+  // Sitzung: beim Start lesen und auf Änderungen hören (Anmeldung, Abmeldung, Token-Erneuerung).
   useEffect(() => {
     if (!konfigurationVollstaendig) return
     let aktiv = true

@@ -11,26 +11,41 @@ export async function ladeIch(): Promise<Person | null> {
   return (data as Person | null) ?? null
 }
 
-export type LinkErgebnis = 'gesendet' | 'zuVieleAnfragen' | 'fehler'
+export type AnmeldeErgebnis = 'ok' | 'falsch' | 'nichtBestaetigt' | 'zuVieleAnfragen' | 'fehler'
 
-/** Schickt den Magic Link. Es werden keine neuen Zugänge angelegt (shouldCreateUser: false). */
-export async function anmeldelinkSenden(email: string): Promise<LinkErgebnis> {
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.trim().toLowerCase(),
-    options: {
-      shouldCreateUser: false,
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-    },
-  })
-  if (!error) return 'gesendet'
+const istZuVieleAnfragen = (error: { status?: number; code?: string }) =>
+  error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'over_email_send_rate_limit'
 
+/**
+ * Anmeldung mit E-Mail und Passwort. Neue Zugänge entstehen hier nicht: Die Person und ihr Login legt der Admin an.
+ * Supabase antwortet bei unbekannter Adresse und falschem Passwort gleich („invalid_credentials“),
+ * so lässt sich nicht durchprobieren, wer einen Zugang hat.
+ */
+export async function anmelden(email: string, passwort: string): Promise<AnmeldeErgebnis> {
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: passwort })
+  if (!error) return 'ok'
   const code = (error as { code?: string }).code
-  if (error.status === 429 || code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit') {
-    return 'zuVieleAnfragen'
-  }
-  // Nicht angelegte Adresse: dieselbe Antwort wie bei Erfolg, damit niemand Adressen durchprobieren kann.
-  if (code === 'otp_disabled' || /signups not allowed/i.test(error.message)) return 'gesendet'
+  if (code === 'invalid_credentials') return 'falsch'
+  if (code === 'email_not_confirmed') return 'nichtBestaetigt'
+  if (istZuVieleAnfragen(error)) return 'zuVieleAnfragen'
   return 'fehler'
+}
+
+export type PasswortErgebnis = 'ok' | 'aktuellFalsch' | 'zuSchwach' | 'gleich' | 'zuVieleAnfragen' | 'fehler'
+
+/** Passwort ändern. Das aktuelle Passwort wird vorher geprüft, damit niemand an einem offenen Gerät fremde Zugänge übernimmt. */
+export async function passwortAendern(email: string, aktuell: string, neu: string): Promise<PasswortErgebnis> {
+  const pruefung = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: aktuell })
+  if (pruefung.error) {
+    if ((pruefung.error as { code?: string }).code === 'invalid_credentials') return 'aktuellFalsch'
+    return istZuVieleAnfragen(pruefung.error) ? 'zuVieleAnfragen' : 'fehler'
+  }
+  const { error } = await supabase.auth.updateUser({ password: neu })
+  if (!error) return 'ok'
+  const code = (error as { code?: string }).code
+  if (code === 'same_password') return 'gleich'
+  if (code === 'weak_password') return 'zuSchwach'
+  return istZuVieleAnfragen(error) ? 'zuVieleAnfragen' : 'fehler'
 }
 
 export async function abmelden(): Promise<void> {

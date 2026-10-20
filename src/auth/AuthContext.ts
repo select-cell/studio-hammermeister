@@ -13,7 +13,7 @@ import type { Person } from '../lib/types'
 export type PersonStatus = 'leer' | 'laedt' | 'bereit' | 'unbekannt' | 'inaktiv' | 'fehler'
 
 export interface AuthWert {
-  /** Die Sitzung wird noch geprüft (Seitenstart, Rücksprung aus dem Magic Link). */
+  /** Die Sitzung wird noch geprüft (beim Seitenstart). */
   laedt: boolean
   session: Session | null
   /** Nur gesetzt, wenn die Person gefunden wurde und aktiv ist. */

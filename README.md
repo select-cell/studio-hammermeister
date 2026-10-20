@@ -1,16 +1,16 @@
 # Salon-Plattform Hammermeister
 
-Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen sich mit eigenem Zugang ein, füllen monatlich die Verhaltens-Umfrage aus und sehen ihre Ergebnisse. Der Verantwortliche (Michael Hammermeister, zugleich Teil des Teams) sieht alle Auswertungen und wird erinnert, wenn jemand überfällig ist.
+Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen sich mit eigener E-Mail-Adresse und eigenem Passwort ein, füllen monatlich die Verhaltens-Umfrage aus und sehen ihre Ergebnisse. Der Verantwortliche (Michael Hammermeister, zugleich Teil des Teams) sieht alle Auswertungen und wird erinnert, wenn jemand überfällig ist.
 
 - **Frontend:** React (Vite + TypeScript), gehostet auf Netlify
-- **Backend:** Supabase (Datenbank, Magic-Link-Login, Row Level Security, Funktionen)
+- **Backend:** Supabase (Datenbank, Login mit E-Mail und Passwort, Row Level Security, Funktionen)
 - **Bauanleitung:** [`docs/plattform-architektur.md`](docs/plattform-architektur.md)
 
 ## Stand der Bauphasen
 
 | Phase | Inhalt | Stand |
 |---|---|---|
-| 1 | Fundament: Login per Magic Link, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Auth-Einstellungen, E-Mail-Versand, Personen (siehe „Fertig, wenn“) |
+| 1 | Fundament: Login mit E-Mail und Passwort, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Logins der Teammitglieder anlegen (siehe „Person anlegen“) |
 | 2 | Monatsumfrage in der Plattform | gebaut, getestet und eingespielt. Offen: Durchspielen mit echten Logins (siehe „Fertig, wenn“ Phase 2) |
 | 3 | Auswertungen | gebaut, getestet und eingespielt (Datenbank `006`, Seiten Ergebnisse, Team, Mitglieder). Offen: Durchspielen mit echten Logins und echten Daten (siehe „Fertig, wenn“ Phase 3) |
 | 4 | Abgabe-Status & Reminder | offen |
@@ -33,11 +33,11 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `006`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `007`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
-- Die Auth-Einstellungen (Sign-ups, Site URL, SMTP, Vorlagen) gelten für das ganze Projekt. Im Projekt existiert bereits ein Login. Er ist keiner Person zugeordnet und kommt in der Plattform nicht über „Dein Zugang ist noch nicht freigeschaltet“ hinaus, solange er nicht als Person angelegt wird.
+- Die Auth-Einstellungen (Sign-ups, Passwort-Regeln) gelten für das ganze Projekt. Ein Login kommt in der Plattform nicht über „Dein Zugang ist noch nicht freigeschaltet“ hinaus, solange er keiner Person in `personen` zugeordnet ist.
 - Das Projekt „Plattform Salon Dawiid“ ist eine andere Instanz und wird nicht angefasst.
 
 ## Supabase einrichten (neues Projekt, Schritt für Schritt)
@@ -51,38 +51,39 @@ Gut zu wissen:
    6. `supabase/migrations/004_abgaben_ids.sql`
    7. `supabase/migrations/005_umfrage_funktionen.sql`
    8. `supabase/migrations/006_auswertungen.sql`
+   9. `supabase/migrations/007_login_nur_bestaetigt.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
-2. **Authentication → URL Configuration**
-   - Site URL: die Netlify-Adresse der Plattform
-   - Redirect URLs: `https://<netlify-adresse>/**` und `http://localhost:5173/**` (der Magic Link springt auf `/auth/callback`, das muss in der Liste erlaubt sein)
-3. **Authentication → Providers → Email:** aktiv, „Allow new users to sign up“ **aus**.
-4. **Eigener E-Mail-Versand (Pflicht):** Der eingebaute Versand ist nur zum Testen gedacht (nur Mitglieder des Supabase-Teams, ca. 2 Mails pro Stunde). Empfohlen: Resend (kostenloser Tarif). Absenderdomain verifizieren, dann unter Authentication → Emails → SMTP Settings eintragen und das Rate Limit unter Authentication → Rate Limits passend erhöhen.
-5. **E-Mail-Vorlagen** (Authentication → Emails → Templates) auf Deutsch anpassen. Empfehlung: Der Link zeigt direkt auf die Plattform und wird dort bestätigt. So können Mail-Programme, die Links vorab aufrufen, den Link nicht „verbrauchen“.
+2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
+3. Optional: unter Authentication → Providers → Email die Passwort-Regeln (Mindestlänge) verschärfen. Das Formular der Plattform verlangt mindestens 8 Zeichen.
 
-   Vorlage „Magic Link“:
-
-   ```html
-   <h2>Dein Anmelde-Link</h2>
-   <p>Mit diesem Link meldest du dich bei der Team-Plattform an:</p>
-   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Jetzt anmelden</a></p>
-   <p>Der Link ist nur kurz gültig und funktioniert nur einmal. Wenn du ihn nicht angefordert hast, kannst du diese Mail ignorieren.</p>
-   ```
-
-   Vorlage „Invite user“:
-
-   ```html
-   <h2>Willkommen auf der Team-Plattform</h2>
-   <p>Du wurdest eingeladen. Mit diesem Link meldest du dich zum ersten Mal an:</p>
-   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite">Jetzt anmelden</a></p>
-   <p>Danach meldest du dich immer über die Startseite mit deiner E-Mail-Adresse an.</p>
-   ```
+Die Plattform meldet mit E-Mail und Passwort an und verschickt **keine E-Mails**. Es braucht deshalb weder eigenen E-Mail-Versand (SMTP) noch Mail-Vorlagen noch Site URL oder Redirect URLs.
 
 ## Person anlegen (Admin)
 
 1. Zeile in der Tabelle `personen` anlegen: Name, E-Mail, Rolle, `nimmt_an_teamumfrage`. Eine Vorlage für alle sechs Teammitglieder und den Admin liegt in `supabase/personen_anlegen.sql`.
-2. In Supabase unter **Authentication → Users → Invite user** dieselbe E-Mail einladen.
-3. Ein Datenbank-Trigger verknüpft Login und Person automatisch über die E-Mail (`personen.auth_user_id`), auch in umgekehrter Reihenfolge.
+2. In Supabase unter **Authentication → Users → Add user → Create new user** dieselbe E-Mail mit einem Start-Passwort anlegen und **„Auto Confirm User“ anhaken**.
+3. Ein Datenbank-Trigger verknüpft Login und Person automatisch über die E-Mail (`personen.auth_user_id`), auch in umgekehrter Reihenfolge. Verknüpft wird nur ein Login mit **bestätigter** Adresse (Migration 007). Ohne „Auto Confirm User“ bleibt der Login unverknüpft und die Anmeldung wird abgewiesen („noch nicht freigeschaltet“).
+4. Der Person das Start-Passwort sagen. Sie ändert es selbst: **Passwort ändern** neben ihrem Namen in der Navigation.
+
+Die Platzhalter-Adressen `…@platzhalter.invalid` taugen für den Login: Es wird nie eine E-Mail verschickt. Wer später auf eine echte Adresse umsteigt, tauscht den Zugang aus (die Person und alle ihre Abgaben bleiben erhalten, weil sie an `personen.id` hängen):
+
+1. Authentication → Users: den Zugang mit der alten Adresse löschen (die Verknüpfung in `personen` löst sich dabei).
+2. `update public.personen set email = 'echte@adresse.de' where email = 'alte@platzhalter.invalid';`
+3. Neuen Zugang mit der echten Adresse anlegen („Auto Confirm User“), der Trigger verknüpft ihn wieder.
+
+### Passwort zurücksetzen
+
+Es gibt keinen Zurücksetzen-Link per Mail. Wer sein Passwort vergessen hat, bekommt vom Admin ein neues (SQL-Editor in Supabase):
+
+```sql
+update auth.users
+   set encrypted_password = extensions.crypt('NEUES-START-PASSWORT', extensions.gen_salt('bf')),
+       updated_at = now()
+ where email = 'adresse@der-person.de';
+```
+
+Das Passwort steht danach im Verlauf des SQL-Editors. Die Person ändert es deshalb direkt nach der Anmeldung selbst. Bestehende Anmeldungen auf anderen Geräten laufen weiter, bis sie ablaufen.
 
 | Merkmal | Schaltet frei |
 |---|---|
@@ -99,13 +100,7 @@ Michael Hammermeister bekommt beides.
 update public.personen set rolle = 'verantwortlicher' where name = 'Michael Hammermeister';
 ```
 
-Eine echte Adresse nachtragen, danach im Dashboard einladen:
-
-```sql
-update public.personen
-   set email = 'echte@adresse.de'
- where email = 'lena.reifschneider@platzhalter.invalid';
-```
+Für die Logins der Teammitglieder siehe „Person anlegen“.
 
 ## Auswertungen (Phase 3)
 
@@ -161,11 +156,11 @@ Die Umfrage für Monat M bewertet M und ist bis zum letzten Tag von M abzugeben 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
 - **Weg B (empfohlen):** Git-Repo mit Netlify verbinden. Gebaut wird bei jedem Push automatisch (`netlify.toml`), die Variablen `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` stehen in den Netlify-Einstellungen.
 
-In beiden Fällen die Netlify-Adresse in Supabase als Site URL und Redirect URL eintragen. Die Datei `public/_redirects` sorgt dafür, dass alle Pfade der App (SPA) funktionieren.
+Für den Login muss die Netlify-Adresse nirgends in Supabase eingetragen werden. Die Datei `public/_redirects` sorgt dafür, dass alle Pfade der App (SPA) funktionieren.
 
 ## Fertig, wenn (Phase 1)
 
-- Der Admin legt alle 6 Personen aus §2.1 an. Jede loggt sich mit eigenem Magic Link ein und landet im passenden Bereich.
+- Der Admin legt alle 6 Personen aus §2.1 an. Jede loggt sich mit eigener E-Mail und eigenem Passwort ein und landet im passenden Bereich.
 - Michael sieht dabei Teilnehmer- **und** Leitungs-Kacheln.
 
 ## Fertig, wenn (Phase 2)
@@ -197,7 +192,7 @@ src/
   components/         Layout, Kacheln, Karten
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
-  pages/              Start, Login, Callback, app/…
+  pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
   styles/             tokens.css, base.css, umfrage.css, auswertung.css
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```

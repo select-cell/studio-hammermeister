@@ -7,12 +7,12 @@ import KonfigFehlt from './components/KonfigFehlt'
 import Laden from './components/Laden'
 import Layout from './components/Layout'
 import { konfigurationVollstaendig } from './lib/supabase'
-import Callback from './pages/Callback'
 import GaesteUmfrage from './pages/GaesteUmfrage'
 import Login from './pages/Login'
 import NichtGefunden from './pages/NichtGefunden'
 import Start from './pages/Start'
 import Home from './pages/app/Home'
+import Passwort from './pages/app/Passwort'
 import { BereichPlatzhalter } from './pages/app/Platzhalter'
 import UmfrageSeite from './pages/app/Umfrage'
 
@@ -37,12 +37,12 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Start />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/auth/callback" element={<Callback />} />
           <Route path="/gaeste-umfrage" element={<GaesteUmfrage />} />
 
           <Route path="/app" element={<RequireAuth />}>
             <Route element={<Layout />}>
               <Route index element={<Home />} />
+              <Route path="passwort" element={<Passwort />} />
 
               {/* Teilnehmer der Teamumfrage (nimmt_an_teamumfrage) */}
               <Route element={<RequireZugriff bedingung="teilnehmer" />}>

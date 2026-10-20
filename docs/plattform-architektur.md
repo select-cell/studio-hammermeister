@@ -16,7 +16,7 @@ Wir bauen eine Web-Plattform, auf der
 
 **Grundsatz:** Alles fußt auf den Antworten in Supabase. Die Plattform speichert jede Einzelantwort und rechnet alle Auswertungen selbst daraus (Selbstbild, Fremdbild, Abweichungen, Verläufe).
 
-**Technik:** React-App (Vite + TypeScript), gehostet auf Netlify. Backend komplett in Supabase: Datenbank, Auth mit Magic Link, Row Level Security und Datenbank-Funktionen.
+**Technik:** React-App (Vite + TypeScript), gehostet auf Netlify. Backend komplett in Supabase: Datenbank, Auth mit E-Mail und Passwort, Row Level Security und Datenbank-Funktionen.
 
 **Design:** Der Look der bestehenden Umfrage wird übernommen (siehe §7). Er ist bei Dawiid und Hammermeister identisch.
 
@@ -69,7 +69,7 @@ Wir bauen eine Web-Plattform, auf der
 
 ### 2.1 Personen & Zugänge (Hammermeister)
 
-Jede Person bekommt einen **eigenen Zugang** per Magic Link (§4). Der Admin legt alle an.
+Jede Person bekommt einen **eigenen Zugang** mit E-Mail und Passwort (§4). Der Admin legt alle an.
 
 | Name | Rolle | `nimmt_an_teamumfrage` | E-Mail |
 |---|---|---|---|
@@ -92,8 +92,7 @@ Was aus Michaels Doppelrolle folgt:
 
 ```
 /                         Startseite (öffentlich)
-/login                    Login per Magic Link (E-Mail eingeben → Link kommt per Mail)
-/auth/callback            Rücksprung aus dem Magic Link → Weiterleitung nach Rolle
+/login                    Login mit E-Mail und Passwort → Weiterleitung nach /app
 /gaeste-umfrage           [Phase 5] Gästeumfrage, öffentlich ohne Login (Link / QR-Code im Salon)
 
 /app                      Begrüßungsbereich (Inhalt je nach Rolle)
@@ -127,7 +126,7 @@ Was aus Michaels Doppelrolle folgt:
 
 | Mural-Kachel | Rolle | Umsetzung |
 |---|---|---|
-| Startseite → Login | alle | `/`, `/login` (Magic Link) |
+| Startseite → Login | alle | `/`, `/login` (E-Mail und Passwort) |
 | Individueller Begrüßungsbereich | beide | `/app`, Inhalt je nach Rolle |
 | Team-Ergebnisse | Mitarbeiter | `/app/team` (nur Schnitte) |
 | Individuelle Auswertungs-Ergebnisse | Mitarbeiter | `/app/ergebnisse` |
@@ -153,28 +152,33 @@ Was aus Michaels Doppelrolle folgt:
 
 ## 4. Login & Zugänge
 
+> **Änderung (20.10.2026, Wunsch des Auftraggebers):** Die Plattform meldet mit **E-Mail und Passwort** an, **nicht** per Magic Link. Dadurch entfallen Custom SMTP (Resend), Mail-Vorlagen und der Rücksprung `/auth/callback`. Der Abschnitt ersetzt die frühere Fassung.
+
 ### 4.1 Ablauf für den Admin: Person anlegen
 
 1. In Supabase in der Tabelle `personen` eine Zeile anlegen: Name, E-Mail, Rolle, `nimmt_an_teamumfrage` (für Hammermeister siehe Tabelle §2.1).
-2. In Supabase unter **Authentication → Users → Invite user** dieselbe E-Mail einladen.
-3. Ein Datenbank-Trigger verknüpft den Auth-Nutzer automatisch über die E-Mail mit der Person (`personen.auth_user_id`).
+2. In Supabase unter **Authentication → Users → Add user → Create new user** dieselbe E-Mail mit einem Start-Passwort anlegen, **„Auto Confirm User“ anhaken**.
+3. Ein Datenbank-Trigger verknüpft den Auth-Nutzer automatisch über die E-Mail mit der Person (`personen.auth_user_id`). Verknüpft wird nur ein Login mit **bestätigter** E-Mail-Adresse (Migration 007). So kann sich niemand mit der Adresse eines Teammitglieds selbst registrieren und dessen Rechte erben.
+4. Das Start-Passwort der Person mitteilen (nicht per E-Mail oder Chat im Klartext an Dritte). Sie ändert es unter **Passwort ändern** (`/app/passwort`).
+
+Vergessenes Passwort: Es gibt keinen Zurücksetzen-Link per Mail. Der Admin setzt ein neues Passwort (README, „Passwort zurücksetzen“).
 
 ### 4.2 Login für alle
 
-- Auf `/login` wird die E-Mail eingegeben. Aufgerufen wird `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: <site>/auth/callback } })`.
-- `shouldCreateUser: false` sorgt dafür, dass sich niemand selbst registrieren kann. Nur vom Admin angelegte Personen kommen rein.
-- Nach dem Klick auf den Link: Session aktiv → `/app`. Die Rolle wird aus `personen` geladen.
+- Auf `/login` werden E-Mail und Passwort eingegeben. Aufgerufen wird `supabase.auth.signInWithPassword({ email, password })`.
+- Neue Zugänge entstehen dabei nie. „Allow new users to sign up“ ist in Supabase **aus**; Personen und Logins legt nur der Admin an.
+- Bei unbekannter Adresse und bei falschem Passwort erscheint dieselbe Meldung, damit niemand durchprobieren kann, wer einen Zugang hat.
+- Nach der Anmeldung: Session aktiv → `/app`. Die Rolle wird aus `personen` geladen.
 - Ist eine Person eingeloggt, aber nicht in `personen` oder `aktiv = false`, erscheint ein Hinweis plus Logout.
+- Angemeldete ändern ihr Passwort selbst unter `/app/passwort` (das aktuelle Passwort wird vorher geprüft, mindestens 8 Zeichen).
+- Tokens in der Adresszeile werden nicht ausgewertet (`detectSessionInUrl` aus).
 
 ### 4.3 Supabase-Einstellungen
 
-- Authentication → URL Configuration: **Site URL** = Netlify-Domain. **Redirect URLs** = Netlify-Domain + `http://localhost:5173` für die Entwicklung.
-- Authentication → Providers: E-Mail aktiv, „Allow new users to sign up“ **aus**.
-- E-Mail-Vorlage „Magic Link“ auf Deutsch und im Salon-Ton anpassen.
-- **Eigener E-Mail-Versand (Custom SMTP) ist Pflicht.** Der eingebaute Supabase-Mailversand ist nur zum Testen gedacht. Er stellt nur an Mitglieder des Supabase-Teams zu und ist auf etwa 2 Mails pro Stunde begrenzt. Ohne eigenen Versand kommen die Magic Links beim Team nicht an.
-  - Empfehlung: Resend (kostenloser Tarif reicht).
-  - Absenderdomain verifizieren, dann unter Authentication → Emails → SMTP Settings eintragen.
-  - Rate Limit für E-Mails unter Authentication → Rate Limits passend hochsetzen.
+- Authentication → Providers → Email: aktiv, **„Allow new users to sign up“ aus**. „Confirm email“ ist für die Plattform unerheblich, weil der Admin Logins mit „Auto Confirm User“ anlegt.
+- Authentication → Rate Limits: die Voreinstellungen für Anmeldungen genügen für ein Team dieser Größe.
+- Passwort-Regeln (Mindestlänge usw.) unter Authentication → Providers → Email → Password. Die Plattform verlangt im Formular mindestens 8 Zeichen.
+- Es werden **keine E-Mails** verschickt. Custom SMTP, Mail-Vorlagen sowie Site URL und Redirect URLs sind für den Login nicht nötig. Eine Netlify-Adresse als Site URL einzutragen schadet nicht, wird aber nicht gebraucht.
 
 ---
 
@@ -434,7 +438,7 @@ Fachlich 1:1 wie die Referenzdatei. Unterschiede:
 ├─ src/
 │  ├─ lib/ (supabase.ts, api.ts, monat.ts)
 │  ├─ auth/ (AuthProvider, RequireRole)
-│  ├─ pages/ (Start, Login, Callback, app/…)
+│  ├─ pages/ (Start, Login, app/…)
 │  ├─ components/ (Layout, Karte, Popup, Charts, Umfrage/…)
 │  └─ styles/ (tokens.css, base.css)
 ├─ public/_redirects                 „/*  /index.html  200“ für Netlify (SPA-Routing)
@@ -445,7 +449,7 @@ Fachlich 1:1 wie die Referenzdatei. Unterschiede:
 
 - **Weg A, wie bisher:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
 - **Weg B, empfohlen für später:** Git-Repo mit Netlify verbinden. Dann wird bei jedem Push automatisch gebaut, und die Env-Variablen stehen in den Netlify-Einstellungen.
-- In beiden Fällen: Netlify-Domain in den Supabase Redirect URLs eintragen (§4.3).
+- Für den Login muss die Netlify-Domain nirgends in Supabase eingetragen werden (Passwort-Login, §4.3).
 
 ---
 
@@ -457,11 +461,10 @@ Jede Phase ist für sich nutzbar und wird vor der nächsten getestet.
 - Neues Supabase-Projekt anlegen, `umfrage_schema.sql` + `ausfuelldauer.sql` ausführen (falls noch nicht geschehen)
 - Vite-Projekt, Design-Tokens, Layout, Startseite
 - Migration: `salons`, `personen`, Trigger zur Verknüpfung mit `auth.users`, RLS, `ich()`
-- Custom SMTP (Resend) in Supabase einrichten (§4.3)
-- Login per Magic Link, Callback, Rollen-Routing, geschützte Routen
+- Login mit E-Mail und Passwort, Passwort ändern, Rollen-Routing, geschützte Routen
 - Begrüßungsbereiche mit Kacheln nach den zwei Merkmalen aus §2, alle Zielseiten zunächst als Platzhalter
 - **Fertig, wenn:**
-  - Der Admin legt alle 6 Personen aus §2.1 an. Jede loggt sich mit eigenem Magic Link ein und landet im passenden Bereich.
+  - Der Admin legt alle 6 Personen aus §2.1 an. Jede loggt sich mit eigener E-Mail und eigenem Passwort ein und landet im passenden Bereich.
   - Michael sieht dabei Teilnehmer- **und** Leitungs-Kacheln.
 
 ### Phase 2 – Monatsumfrage in der Plattform
@@ -551,9 +554,8 @@ Vorbild ist der Jarvis aus dem alten Board, aber sicher umgebaut.
   - `supabase/umfrage_schema.sql` und `supabase/ausfuelldauer.sql`
 - [ ] **Neues** Supabase-Projekt angelegt, `umfrage_schema.sql` + `ausfuelldauer.sql` ausgeführt
 - [ ] Supabase-URL und anon-Key des neuen Projekts bereit (für `.env`). Den **service_role-Key nie** an Claude Code geben oder ins Frontend schreiben.
-- [ ] Resend-Konto angelegt, Absenderdomain verifiziert (für Custom SMTP, §4.3)
 - [ ] E-Mail-Adressen aller Personen: 6 Teammitglieder (inkl. Michael) und Admin
-- [ ] Eigene Netlify-Seite für Hammermeister, Domain bekannt (für Site URL / Redirect URLs, §4.3)
+- [ ] Eigene Netlify-Seite für Hammermeister
 - [ ] Node.js (LTS) lokal installiert, damit `npm run build` läuft
 
 ### 10.2 Ablauf
