@@ -1,0 +1,38 @@
+/* Design-Tokens – übernommen aus der bestehenden Umfrage (docs/plattform-architektur.md §7.2) */
+:root {
+  --cream: #faf8f3;
+  --cream-mid: #f0ebe0;
+  --cream-deep: #e2d9c8;
+  --accent: #c4845a;
+  --accent-h: #a86840;
+  --text: #1a1208;
+  --text2: #6b5b45;
+  --muted: #9b8e7e;
+  --border: rgba(92, 61, 30, 0.12);
+  --border2: rgba(92, 61, 30, 0.22);
+  --white: #ffffff;
+  --green: #3b6d11;
+  --gbg: #eaf3de;
+  --green-v: #4caf50;
+  --red: #a32d2d;
+  --rbg: #fcebeb;
+  --red-v: #e24b4a;
+  --yel: #854f0b;
+  --ybg: #faeeda;
+  --fb: #4a7fa5;
+  --fbbg: rgba(74, 127, 165, 0.08);
+
+  /* Diagramme (Phase 3): Selbstbild Kupfer, Fremdbild Blau, Rituale Grün */
+  --chart-sb: #c4845a;
+  --chart-fb: #4a7fa5;
+  --chart-rituale: #4caf50;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --sh: 0 2px 8px rgba(92, 61, 30, 0.09);
+
+  --font-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-kopf: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+}
