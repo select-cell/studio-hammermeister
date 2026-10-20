@@ -10,7 +10,8 @@ import Login from './pages/Login'
 import NichtGefunden from './pages/NichtGefunden'
 import Start from './pages/Start'
 import Home from './pages/app/Home'
-import { BereichPlatzhalter, MitgliedPlatzhalter, UmfragePlatzhalter } from './pages/app/Platzhalter'
+import { BereichPlatzhalter, MitgliedPlatzhalter } from './pages/app/Platzhalter'
+import UmfrageSeite from './pages/app/Umfrage'
 
 export default function App() {
   if (!konfigurationVollstaendig) return <KonfigFehlt />
@@ -30,7 +31,7 @@ export default function App() {
 
               {/* Teilnehmer der Teamumfrage (nimmt_an_teamumfrage) */}
               <Route element={<RequireZugriff bedingung="teilnehmer" />}>
-                <Route path="umfrage/:monat" element={<UmfragePlatzhalter />} />
+                <Route path="umfrage/:monat" element={<UmfrageSeite />} />
                 <Route path="ergebnisse" element={<BereichPlatzhalter id="ergebnisse" />} />
               </Route>
 

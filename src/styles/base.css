@@ -476,6 +476,21 @@ code {
   white-space: nowrap;
 }
 
+.abzeichen-gruen {
+  background: var(--gbg);
+  color: var(--green);
+}
+
+.abzeichen-rot {
+  background: var(--rbg);
+  color: var(--red);
+}
+
+.karte-ueberfaellig {
+  border-color: rgba(163, 45, 45, 0.35);
+  background: linear-gradient(180deg, #fffafa, var(--white));
+}
+
 .hervorhebung {
   background: linear-gradient(135deg, rgba(196, 132, 90, 0.06), rgba(196, 132, 90, 0.03));
   border-left: 3px solid var(--accent);

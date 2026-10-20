@@ -11,7 +11,7 @@ Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen
 | Phase | Inhalt | Stand |
 |---|---|---|
 | 1 | Fundament: Login per Magic Link, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Auth-Einstellungen, E-Mail-Versand, Personen (siehe „Fertig, wenn“) |
-| 2 | Monatsumfrage in der Plattform | offen |
+| 2 | Monatsumfrage in der Plattform | gebaut, getestet und eingespielt. Offen: Durchspielen mit echten Logins (siehe „Fertig, wenn“ Phase 2) |
 | 3 | Auswertungen | offen |
 | 4 | Abgabe-Status & Reminder | offen |
 | 5 | Chef-, Gäste- und Verantwortlichen-Umfrage | offen |
@@ -33,7 +33,7 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und `001_salons_personen.sql` (dort in drei Teilen als `001a`–`001c`; der Inhalt ist identisch mit der Datei). Der Salon Hammermeister existiert, es gibt noch keine Personen.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `005`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`) und 005 in zwei Teilen (`005a`, `005b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
@@ -46,6 +46,10 @@ Gut zu wissen:
    1. `supabase/umfrage_schema.sql`
    2. `supabase/ausfuelldauer.sql`
    3. `supabase/migrations/001_salons_personen.sql`
+   4. `supabase/migrations/002_inhalte.sql`
+   5. `supabase/migrations/003_seed_hammermeister_inhalte.sql` (erzeugt aus `referenz/umfrage-hammermeister.html` mit `node scripts/erzeuge-seed-inhalte.mjs`)
+   6. `supabase/migrations/004_abgaben_ids.sql`
+   7. `supabase/migrations/005_umfrage_funktionen.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → URL Configuration**
@@ -94,6 +98,29 @@ update public.personen
  where email = 'lena.reifschneider@platzhalter.invalid';
 ```
 
+## Umfrage-Inhalte pflegen
+
+Verhalten, Bewertungsstufen und Rituale stehen in der Datenbank und lassen sich ohne Code-Änderung ändern (Supabase SQL-Editor oder Table Editor):
+
+```sql
+-- Video zu einem Verhalten (Vimeo-Player-URL oder .mp4). Ohne Video läuft ein 8-Sekunden-Platzhalter.
+update public.verhalten set video_url = 'https://player.vimeo.com/video/123456789' where nr = 1;
+
+-- Grundpfeiler und Säule zuordnen (offener Punkt §9.1). Die Umfrage zeigt sie dann über dem Verhalten.
+update public.verhalten
+   set grundpfeiler = 'Grundpfeiler 1: Philosophie', saeule = 'Säule 1: Umgangsformen und Respekt'
+ where nr in (1, 2, 3);
+
+-- Ein Verhalten ausblenden (gilt nur für künftige Abgaben)
+update public.verhalten set aktiv = false where nr = 17;
+```
+
+Beim Absenden werden die Texte jeder Abgabe als Momentaufnahme mitgespeichert. Spätere Textänderungen verfälschen deshalb keine alten Auswertungen. Ändert sich ein Verhalten oder das Team mitten im Monat, müssen alle, die noch nicht abgegeben haben, die neue Fassung ausfüllen; wer schon abgegeben hat, bleibt unverändert.
+
+## Fristen der Umfrage
+
+Die Umfrage für Monat M bewertet M und ist bis zum letzten Tag von M abzugeben (Berliner Zeit). Danach kann nachträglich abgegeben werden, die Karte „Deine Umfrage“ ist dann rot hervorgehoben. Eine Person muss ab `max(salons.start_monat, personen.aktiv_ab)` abgeben.
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -106,6 +133,13 @@ In beiden Fällen die Netlify-Adresse in Supabase als Site URL und Redirect URL 
 - Der Admin legt alle 6 Personen aus §2.1 an. Jede loggt sich mit eigenem Magic Link ein und landet im passenden Bereich.
 - Michael sieht dabei Teilnehmer- **und** Leitungs-Kacheln.
 
+## Fertig, wenn (Phase 2)
+
+- Ein Teammitglied und Michael füllen eingeloggt die Umfrage aus. Jeder bewertet die 5 anderen, alles landet mit IDs in der Datenbank.
+- Eine zweite Abgabe für denselben Monat wird abgelehnt.
+
+Beides ist gegen die echte Datenbank und im Browser geprüft (mit simuliertem Login). Offen ist das Durchspielen mit echten Logins, sobald die E-Mail-Adressen da sind.
+
 ## Projektstruktur
 
 ```
@@ -117,6 +151,8 @@ src/
   lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten
+  components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   pages/              Start, Login, Callback, app/…
-  styles/             tokens.css, base.css
+  styles/             tokens.css, base.css, umfrage.css
+scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```

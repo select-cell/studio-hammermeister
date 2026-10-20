@@ -311,6 +311,8 @@ Alle mit `security definer`, `set search_path = public`. Jede prüft am Anfang d
 
 **Alte Funktion:** Die alte `umfrage_einreichen` verliert das `anon`-Recht, sobald die Umfrage in der Plattform live ist (Ende Phase 2). Bis dahin läuft die alte HTML-Umfrage parallel weiter.
 
+> **Umgesetzt mit Migration 005 (20.10.2026):** Die Rechte sind für `anon` **und** `authenticated` entzogen. Die alte Funktion nimmt Namen aus dem Payload; solange Eingeloggte sie aufrufen könnten, ließe sich damit im Namen anderer abgeben und die Regeln von `umfrage_einreichen_v2` umgehen. Die alte HTML-Umfrage war nie mit diesem Projekt verbunden (`CONFIG.supabase` leer), es gibt also nichts, was parallel weiterlaufen müsste.
+
 ### 5.4 Row Level Security
 
 - `personen`: Lesen der eigenen Zeile für alle. Lesen aller Zeilen des eigenen Salons für Verantwortlicher und Admin. Schreiben nur im Supabase-Dashboard.
@@ -523,11 +525,11 @@ Vorbild ist der Jarvis aus dem alten Board, aber sicher umgebaut.
 |---|---|---|
 | 1 | **Grundpfeiler/Säulen-Zuordnung** der 17 Verhalten. Im Toolbox-Teil mit den Hammermeister-Verhalten gibt es keine Überschriften. | vor Phase 3 |
 | 2 | ~~Schreibweise: „Behzad Pour Sakha“ oder „Pour Shaka“?~~ **Geklärt (20.10.2026):** „Behzad Pour Sakha“ ist korrekt. | erledigt |
-| 3 | **Leerlauf-Titel:** Typeform-Wortlaut („… sinnvoll (z. B. Aufräumen, Vorbereiten)“) oder Toolbox-Wortlaut („… sinnvoll und strukturiert (z. B. für Ordnung, Vorbereitung oder Unterstützung)“)? | vor Phase 2 |
+| 3 | ~~Leerlauf-Titel: Typeform- oder Toolbox-Wortlaut?~~ **Geklärt (20.10.2026):** Es gilt die Umfrage aus `referenz/umfrage-hammermeister.html` („… sinnvoll (z. B. Aufräumen, Vorbereiten).“). | erledigt |
 | 4 | **Michaels eigene Fremdbilder:** Sieht er als Verantwortlicher auch bei Bewertungen **über sich selbst**, wer was gegeben hat? *Vorschlag:* Für sich selbst sieht er sie wie ein Teammitglied, also ohne Absender. Sonst sinkt die Ehrlichkeit des Teams. | vor Phase 3 |
 | 5 | E-Mail-Adressen aller 6 Personen + Admin (§2.1) | vor Phase 1 |
 | 6 | Feinheiten der Selbst-/Fremdbild-Auswertung (Gewichtung, Schwellen, Hervorhebungen) | vor Phase 3 |
-| 7 | **Fragetext:** „Entwicklung des Monats“ spricht vom „letzten Monat“. Mit der Frist „bis Ende des Monats“ wird aber der laufende Monat bewertet. Text auf „in diesem Monat“ anpassen? | vor Phase 2 |
+| 7 | ~~Fragetext „Entwicklung des Monats“: „im letzten Monat“?~~ **Geklärt (20.10.2026):** Der Text lautet „in diesem Monat“. Die Umfrage für Monat M bewertet M und ist bis zum Monatsende abzugeben. | erledigt |
 | 8 | ~~Ab welchem Monat zählt die Plattform (`salons.start_monat`)?~~ **Geklärt (20.10.2026):** Oktober 2026. | erledigt |
 | 9 | Rituale für Hammermeister: aktuell keine, Rahmen und Datenmodell sind vorbereitet | jederzeit |
 | 10 | Sichtbarkeit für Teammitglieder ggf. anpassen (z. B. Absender sichtbar oder nicht) | jederzeit, betrifft nur die Funktionen aus §5.3 |

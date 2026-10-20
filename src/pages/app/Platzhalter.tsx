@@ -1,7 +1,6 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { bereichById, PHASEN } from '../../lib/bereiche'
-import { istMonat, monatName } from '../../lib/monat'
 
 function Platzhalter({ titel, text, phase }: { titel: string; text: string; phase: number }) {
   return (
@@ -30,19 +29,6 @@ export function BereichPlatzhalter({ id }: { id: string }) {
   const bereich = bereichById(id)
   if (!person || !bereich) return <Navigate to="/app" replace />
   return <Platzhalter titel={bereich.titel(person)} text={bereich.beschreibung(person)} phase={bereich.phase} />
-}
-
-/** /app/umfrage/:monat – die Monatsumfrage kommt mit Phase 2. */
-export function UmfragePlatzhalter() {
-  const { monat } = useParams()
-  if (!monat || !istMonat(monat)) return <Navigate to="/app" replace />
-  return (
-    <Platzhalter
-      titel={`Umfrage ${monatName(monat)}`}
-      text="Hier füllst du die monatliche Verhaltens-Umfrage aus: Selbstbild und Fremdbild aller Kolleginnen und Kollegen."
-      phase={2}
-    />
-  )
 }
 
 /** /app/mitglieder/:id – die individuelle Auswertung kommt mit Phase 3. */
