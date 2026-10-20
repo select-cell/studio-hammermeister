@@ -66,7 +66,7 @@ Die Plattform meldet mit E-Mail und Passwort an und verschickt **keine E-Mails**
 3. Ein Datenbank-Trigger verknüpft Login und Person automatisch über die E-Mail (`personen.auth_user_id`), auch in umgekehrter Reihenfolge. Verknüpft wird nur ein Login mit **bestätigter** Adresse (Migration 007). Ohne „Auto Confirm User“ bleibt der Login unverknüpft und die Anmeldung wird abgewiesen („noch nicht freigeschaltet“).
 4. Der Person das Start-Passwort sagen. Sie ändert es selbst: **Passwort ändern** neben ihrem Namen in der Navigation.
 
-Die Platzhalter-Adressen `…@platzhalter.invalid` taugen für den Login: Es wird nie eine E-Mail verschickt. Wer später auf eine echte Adresse umsteigt, tauscht den Zugang aus (die Person und alle ihre Abgaben bleiben erhalten, weil sie an `personen.id` hängen):
+Die Platzhalter-Adressen `…@platzhalter.invalid` sollten für den Login taugen, weil nie eine E-Mail verschickt wird. Das ist noch nicht ausprobiert: Lehnt Supabase die Endung ab („Email address … is invalid“), vorher die echte Adresse in `personen` eintragen. Wer später auf eine echte Adresse umsteigt, tauscht den Zugang aus (die Person und alle ihre Abgaben bleiben erhalten, weil sie an `personen.id` hängen):
 
 1. Authentication → Users: den Zugang mit der alten Adresse löschen (die Verknüpfung in `personen` löst sich dabei).
 2. `update public.personen set email = 'echte@adresse.de' where email = 'alte@platzhalter.invalid';`
@@ -83,7 +83,7 @@ update auth.users
  where email = 'adresse@der-person.de';
 ```
 
-Das Passwort steht danach im Verlauf des SQL-Editors. Die Person ändert es deshalb direkt nach der Anmeldung selbst. Bestehende Anmeldungen auf anderen Geräten laufen weiter, bis sie ablaufen.
+Das Passwort steht danach im Verlauf des SQL-Editors. Die Person ändert es deshalb direkt nach der Anmeldung selbst. Das SQL beendet keine bestehenden Anmeldungen auf anderen Geräten. Soll ein Gerät sofort ausgesperrt werden, genügt `update public.personen set aktiv = false where email = '…';` (alle Datenfunktionen prüfen `aktiv`) oder das Löschen des Zugangs unter Authentication → Users.
 
 | Merkmal | Schaltet frei |
 |---|---|

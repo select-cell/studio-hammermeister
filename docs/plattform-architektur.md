@@ -104,6 +104,7 @@ Was aus Michaels Doppelrolle folgt:
 /app/ergebnisse           Eigene Auswertung: Kennzahl-Kacheln, Top/Flop 4, Detailtabelle
                           (Selbstbild | Fremdbild | Rituale, sortierbar), Verlauf, Kommentare
 /app/team                 Team-Ergebnisse (Schnitte, ohne Einzelpersonen)
+/app/passwort             Eigenes Passwort ändern (alle angemeldeten Personen, auch Admin)
 /app/chefumfrage          [Phase 5 · Platzhalter] Chefumfrage ausfüllen, einmal im Quartal (nicht für Michael)
 /app/coaching             [Phase 6 · Platzhalter] Jarvis
 

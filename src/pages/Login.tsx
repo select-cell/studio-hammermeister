@@ -72,7 +72,7 @@ export default function Login() {
                 value={passwort}
                 onChange={(e) => setPasswort(e.target.value)}
               />
-              <button type="button" className="feld-passwort-knopf" aria-pressed={zeigen} onClick={() => setZeigen((z) => !z)}>
+              <button type="button" className="feld-passwort-knopf" onClick={() => setZeigen((z) => !z)}>
                 {zeigen ? 'Verbergen' : 'Anzeigen'}
               </button>
             </div>

@@ -48,12 +48,10 @@ export default function Layout() {
               </span>
               <span className="nav-nutzer-text">
                 <strong>{person.name}</strong>
-                <small>
-                  {rolleLabel[person.rolle]} ·{' '}
-                  <NavLink to="/app/passwort" className="nav-nutzer-link" onClick={schliessen}>
-                    Passwort ändern
-                  </NavLink>
-                </small>
+                <small>{rolleLabel[person.rolle]}</small>
+                <NavLink to="/app/passwort" className="nav-nutzer-link" onClick={schliessen}>
+                  Passwort ändern
+                </NavLink>
               </span>
               <button type="button" className="btn btn-sekundaer btn-klein" onClick={() => void abmelden()}>
                 Abmelden
