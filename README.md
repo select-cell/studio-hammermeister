@@ -50,7 +50,7 @@ Gut zu wissen:
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → URL Configuration**
    - Site URL: die Netlify-Adresse der Plattform
-   - Redirect URLs: Netlify-Adresse plus `http://localhost:5173`
+   - Redirect URLs: `https://<netlify-adresse>/**` und `http://localhost:5173/**` (der Magic Link springt auf `/auth/callback`, das muss in der Liste erlaubt sein)
 3. **Authentication → Providers → Email:** aktiv, „Allow new users to sign up“ **aus**.
 4. **Eigener E-Mail-Versand (Pflicht):** Der eingebaute Versand ist nur zum Testen gedacht (nur Mitglieder des Supabase-Teams, ca. 2 Mails pro Stunde). Empfohlen: Resend (kostenloser Tarif). Absenderdomain verifizieren, dann unter Authentication → Emails → SMTP Settings eintragen und das Rate Limit unter Authentication → Rate Limits passend erhöhen.
 5. **E-Mail-Vorlagen** (Authentication → Emails → Templates) auf Deutsch anpassen. Empfehlung: Der Link zeigt direkt auf die Plattform und wird dort bestätigt. So können Mail-Programme, die Links vorab aufrufen, den Link nicht „verbrauchen“.
@@ -85,6 +85,14 @@ Gut zu wissen:
 | `rolle` = `verantwortlicher` oder `admin` | Leitungs-Bereiche: Team-Dashboard, Mitglieder, Reminder, Chef- und Gästeumfrage-Ergebnisse |
 
 Michael Hammermeister bekommt beides.
+
+**Aktueller Stand der Personen:** Die sechs Teammitglieder sind mit Platzhalter-Adressen `…@platzhalter.invalid` angelegt (diese Endung kann keine Mails empfangen). Der Admin ist mit `select@voidos.de` angelegt und bereits mit seinem Login verknüpft. Eine echte Adresse nachtragen, danach im Dashboard einladen:
+
+```sql
+update public.personen
+   set email = 'echte@adresse.de'
+ where email = 'lena.reifschneider@platzhalter.invalid';
+```
 
 ## Deploy (Netlify)
 

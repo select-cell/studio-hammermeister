@@ -11,7 +11,7 @@
 --       (auch in umgekehrter Reihenfolge).
 --
 --  Michael Hammermeister ist Verantwortlicher UND Teil des Teams (nimmt_an_teamumfrage = true).
---  Schreibweise „Behzad Pour Sakha“ ist noch zu prüfen (offener Punkt §9.2).
+--  Schreibweise „Behzad Pour Sakha“ ist bestätigt.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 insert into public.personen (salon_id, name, email, rolle, nimmt_an_teamumfrage)

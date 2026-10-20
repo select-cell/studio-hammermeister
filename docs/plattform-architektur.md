@@ -76,7 +76,7 @@ Jede Person bekommt einen **eigenen Zugang** per Magic Link (§4). Der Admin leg
 | Michael Hammermeister | `verantwortlicher` | `true` | *folgt* |
 | Antonella Stipic | `mitarbeiter` | `true` | *folgt* |
 | Jaroslaw Schatalov | `mitarbeiter` | `true` | *folgt* |
-| Behzad Pour Sakha *(Schreibweise prüfen, §9)* | `mitarbeiter` | `true` | *folgt* |
+| Behzad Pour Sakha | `mitarbeiter` | `true` | *folgt* |
 | Olena Pankova | `mitarbeiter` | `true` | *folgt* |
 | Lena Reifschneider | `mitarbeiter` | `true` | *folgt* |
 | Plattformbetreiber | `admin` | `false` | *folgt* |
@@ -522,13 +522,13 @@ Vorbild ist der Jarvis aus dem alten Board, aber sicher umgebaut.
 | # | Punkt | Wann zu klären |
 |---|---|---|
 | 1 | **Grundpfeiler/Säulen-Zuordnung** der 17 Verhalten. Im Toolbox-Teil mit den Hammermeister-Verhalten gibt es keine Überschriften. | vor Phase 3 |
-| 2 | **Schreibweise:** „Behzad Pour Sakha“ (Typeform) oder „Pour Shaka“? | vor Phase 1 (Personen anlegen) |
+| 2 | ~~Schreibweise: „Behzad Pour Sakha“ oder „Pour Shaka“?~~ **Geklärt (20.10.2026):** „Behzad Pour Sakha“ ist korrekt. | erledigt |
 | 3 | **Leerlauf-Titel:** Typeform-Wortlaut („… sinnvoll (z. B. Aufräumen, Vorbereiten)“) oder Toolbox-Wortlaut („… sinnvoll und strukturiert (z. B. für Ordnung, Vorbereitung oder Unterstützung)“)? | vor Phase 2 |
 | 4 | **Michaels eigene Fremdbilder:** Sieht er als Verantwortlicher auch bei Bewertungen **über sich selbst**, wer was gegeben hat? *Vorschlag:* Für sich selbst sieht er sie wie ein Teammitglied, also ohne Absender. Sonst sinkt die Ehrlichkeit des Teams. | vor Phase 3 |
 | 5 | E-Mail-Adressen aller 6 Personen + Admin (§2.1) | vor Phase 1 |
 | 6 | Feinheiten der Selbst-/Fremdbild-Auswertung (Gewichtung, Schwellen, Hervorhebungen) | vor Phase 3 |
 | 7 | **Fragetext:** „Entwicklung des Monats“ spricht vom „letzten Monat“. Mit der Frist „bis Ende des Monats“ wird aber der laufende Monat bewertet. Text auf „in diesem Monat“ anpassen? | vor Phase 2 |
-| 8 | Ab welchem Monat zählt die Plattform (`salons.start_monat`)? | vor Phase 2 |
+| 8 | ~~Ab welchem Monat zählt die Plattform (`salons.start_monat`)?~~ **Geklärt (20.10.2026):** Oktober 2026. | erledigt |
 | 9 | Rituale für Hammermeister: aktuell keine, Rahmen und Datenmodell sind vorbereitet | jederzeit |
 | 10 | Sichtbarkeit für Teammitglieder ggf. anpassen (z. B. Absender sichtbar oder nicht) | jederzeit, betrifft nur die Funktionen aus §5.3 |
 | 11 | Inhalte Chefumfrage, Gästeumfrage, Umfrage für den Verantwortlichen | vor Phase 5 |
