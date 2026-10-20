@@ -17,7 +17,7 @@ export interface Bereich {
 }
 
 /** Bereiche bis zu dieser Bauphase sind fertig; alle anderen zeigen „Kommt bald“. */
-export const FERTIG_BIS_PHASE = 3
+export const FERTIG_BIS_PHASE = 4
 
 export const istFertig = (b: Bereich): boolean => b.phase <= FERTIG_BIS_PHASE
 

@@ -385,6 +385,8 @@ Diagramme mit Recharts, Farben wie im alten Board: SB `#C4845A`, FB `#4A7FA5`, R
   - Das Popup lässt sich wegklicken und kommt beim nächsten Besuch wieder, solange noch etwas offen ist.
   - Zusätzlich gibt es eine dauerhafte Status-Karte im Dashboard.
 - **Alle Teilnehmer** (auch Michael) sehen im eigenen Begrüßungsbereich die offene Umfrage mit Frist. Ist sie überfällig, ist sie farblich hervorgehoben.
+> **Umgesetzt mit Migration 008 (20.10.2026):** Das Beispiel „Frist 31.10. → ab 4. November“ ist maßgeblich. Die Karenztage zählen ab dem Tag nach dem Fristende: `tage_ueberfaellig = heute − Fristende`, erinnert wird bei `tage_ueberfaellig > reminder_tage_nach_frist`. `abgabe_status(monat, heute)` und `ueberfaellige_abgaben(heute)` haben den optionalen Parameter `heute` für den Test mit simuliertem Datum (nur Verantwortliche und Admin, nur lesend); in der App geht das mit `/app?heute=2026-11-04`. Das Popup (natives `<dialog>`) merkt sich das Wegklicken je Sitzung (`sessionStorage`) und erscheint früher wieder, wenn sich die Menge der offenen Fälle ändert.
+
 - **Später optional:** tägliche E-Mail an den Verantwortlichen über `pg_cron` + Edge Function + Resend. Nicht Teil der ersten Version.
 
 ---

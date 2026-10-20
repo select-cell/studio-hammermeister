@@ -13,7 +13,7 @@ Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen
 | 1 | Fundament: Login mit E-Mail und Passwort, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Logins der Teammitglieder anlegen (siehe „Person anlegen“) |
 | 2 | Monatsumfrage in der Plattform | gebaut, getestet und eingespielt. Offen: Durchspielen mit echten Logins (siehe „Fertig, wenn“ Phase 2) |
 | 3 | Auswertungen | gebaut, getestet und eingespielt (Datenbank `006`, Seiten Ergebnisse, Team, Mitglieder). Offen: Durchspielen mit echten Logins und echten Daten (siehe „Fertig, wenn“ Phase 3) |
-| 4 | Abgabe-Status & Reminder | offen |
+| 4 | Abgabe-Status & Reminder | gebaut, getestet und eingespielt (Datenbank `008`, Status-Karte und Popup auf `/app`). Offen: Durchspielen mit echten Abgaben (siehe „Fertig, wenn“ Phase 4) |
 | 5 | Chef-, Gäste- und Verantwortlichen-Umfrage | offen |
 | 6 | Jarvis | offen |
 
@@ -33,7 +33,7 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `007`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `008`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
@@ -52,6 +52,7 @@ Gut zu wissen:
    7. `supabase/migrations/005_umfrage_funktionen.sql`
    8. `supabase/migrations/006_auswertungen.sql`
    9. `supabase/migrations/007_login_nur_bestaetigt.sql`
+   10. `supabase/migrations/008_abgabe_status.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -151,6 +152,21 @@ Beim Absenden werden die Texte jeder Abgabe als Momentaufnahme mitgespeichert. S
 
 Die Umfrage für Monat M bewertet M und ist bis zum letzten Tag von M abzugeben (Berliner Zeit). Danach kann nachträglich abgegeben werden, die Karte „Deine Umfrage“ ist dann rot hervorgehoben. Eine Person muss ab `max(salons.start_monat, personen.aktiv_ab)` abgeben.
 
+## Abgabe-Status und Reminder (Phase 4)
+
+Verantwortliche und Admin sehen auf `/app` die Karte **Abgabe-Status** (wer hat für den Monat abgegeben, mit Zeitpunkt; Überfällige stehen oben, rot) und bekommen beim Öffnen ein **Popup**, solange jemand überfällig ist. Auch Michael steht als Teilnehmer in der Liste; fehlt seine eigene Abgabe, steht dort „Du hast …“.
+
+**Wann ist jemand überfällig?** Die Frist für Monat M ist der letzte Tag von M. Die Tage danach zählen als „überfällig“: Am 5.11. fehlt der Oktober seit 5 Tagen. Erinnert wird, sobald diese Zahl **größer** ist als `salons.reminder_tage_nach_frist` (Standard 3). Die 3 Tage sind also Karenztage: Frist 31.10. → Reminder ab **4. November** (das Beispiel aus §6 der Bauanleitung). Berechnet wird live beim Abruf, es gibt keinen täglichen Job.
+
+```sql
+-- Erinnerung früher oder später beginnen lassen (Karenztage)
+update public.salons set reminder_tage_nach_frist = 5;
+```
+
+**Popup:** Es lässt sich wegklicken (Schließen, Esc, Klick daneben) und kommt beim nächsten Besuch (neuer Tab oder neue Sitzung) wieder, solange etwas offen ist. Ändert sich die Menge der offenen Fälle, erscheint es auch im selben Tab sofort wieder.
+
+**Zum Testen mit simuliertem Datum:** Als Verantwortlicher oder Admin `/app?heute=2026-11-04` aufrufen. Beide Funktionen (`abgabe_status`, `ueberfaellige_abgaben`) rechnen dann mit diesem Tag; ein gelber Hinweis zeigt die Testansicht an, es wird nichts verändert. Ungültige Angaben werden ignoriert, für Teammitglieder hat der Parameter keine Wirkung. Der 3.11. zeigt noch kein Popup, der 4.11. zeigt es.
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -179,6 +195,12 @@ Beides ist gegen die echte Datenbank und im Browser geprüft (mit simuliertem Lo
 
 Geprüft: Datenbank lokal (PGlite, 100 Prüfungen inkl. Vergleich mit den Views) und in der echten Datenbank (Funktionen per Fingerabdruck identisch, Rechte-Szenarien als zurückgerollte Transaktionen); Oberfläche im Browser gegen Antworten der echten SQL-Funktionen (alle Seiten, alle Rollen, mit und ohne Säulen/Rituale, ohne Daten, Fehlerfälle, Handy-Breite). Offen: Durchspielen mit echten Logins und echten Daten.
 
+## Fertig, wenn (Phase 4)
+
+- Bei fehlender Abgabe erscheint ab Tag 3 nach Fristende (bei Frist 31.10. also ab dem 4.11.) das Popup. Geprüft mit simuliertem Datum.
+
+Geprüft: Datenbank lokal (PGlite, 62 Prüfungen: Schwelle, Zeitzonen, mehrere Monate, Salon-Trennung, Rechte) und in der echten Datenbank (zurückgerollte Transaktion); Oberfläche im Browser gegen Antworten der echten SQL-Funktionen (Popup, Status-Karte, Testdatum, alle Rollen, Fehlerfälle, Handy-Breite). Offen: Durchspielen mit echten Abgaben.
+
 ## Projektstruktur
 
 ```
@@ -187,12 +209,12 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, useLaden.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, useLaden.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
-  components/         Layout, Kacheln, Karten
+  components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status)
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
-  styles/             tokens.css, base.css, umfrage.css, auswertung.css
+  styles/             tokens.css, base.css, umfrage.css, auswertung.css, abgabe.css
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```

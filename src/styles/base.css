@@ -499,6 +499,11 @@ code {
   color: var(--green);
 }
 
+.abzeichen-gelb {
+  background: var(--ybg);
+  color: var(--yel);
+}
+
 .abzeichen-rot {
   background: var(--rbg);
   color: var(--red);

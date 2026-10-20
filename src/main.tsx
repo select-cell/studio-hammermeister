@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/umfrage.css'
 import './styles/auswertung.css'
+import './styles/abgabe.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

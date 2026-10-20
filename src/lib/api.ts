@@ -1,5 +1,6 @@
 // Gebündelter Datenzugriff: dünne Wrapper um Supabase. Berechnungen gehören in SQL-Funktionen, nicht hierher.
 import { supabase } from './supabase'
+import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
@@ -110,4 +111,21 @@ export async function ladeTeamDashboard(monat?: string): Promise<TeamDashboard> 
   const { data, error } = await supabase.rpc('team_dashboard', { p_monat: monat ? `${monat}-01` : null })
   if (error) throw error
   return data as TeamDashboard
+}
+
+// ── Abgabe-Status und Reminder (nur Verantwortliche und Admin) ─────────────
+// `heute` simuliert das Datum zum Testen (`/app?heute=2026-11-04`); ohne Angabe gilt der Berliner Tag.
+
+/** Fehlende Abgaben, die länger als `reminder_tage_nach_frist` über der Frist sind. */
+export async function ladeUeberfaellige(heute?: string): Promise<Ueberfaellige> {
+  const { data, error } = await supabase.rpc('ueberfaellige_abgaben', { p_heute: heute ?? null })
+  if (error) throw error
+  return data as Ueberfaellige
+}
+
+/** Wer hat für einen Monat ('YYYY-MM', Standard: laufender Monat) abgegeben? */
+export async function ladeAbgabeStatus(monat?: string, heute?: string): Promise<AbgabeStatus> {
+  const { data, error } = await supabase.rpc('abgabe_status', { p_monat: monat ? `${monat}-01` : null, p_heute: heute ?? null })
+  if (error) throw error
+  return data as AbgabeStatus
 }
