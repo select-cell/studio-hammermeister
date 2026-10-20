@@ -742,6 +742,12 @@ code {
   border: 1px solid rgba(163, 45, 45, 0.2);
 }
 
+.hinweis-info {
+  background: var(--cream-mid);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
 .hinweis-warnung {
   background: var(--ybg);
   color: var(--yel);

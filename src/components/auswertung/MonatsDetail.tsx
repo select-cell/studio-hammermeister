@@ -25,19 +25,22 @@ export default function MonatsDetail({
   start,
   schwellen,
   absenderSichtbar,
+  nurSelbstbild = false,
 }: {
   monate: string[]
   detail: Record<string, PersonMonat>
   start: string | null
   schwellen: Schwellen
   absenderSichtbar: boolean
+  /** nur die eigenen Antworten: Selbstbild und eigener Kommentar, nichts von den Kolleg:innen */
+  nurSelbstbild?: boolean
 }) {
   const [gewaehlt, setGewaehlt] = useState<string | null>(start && monate.includes(start) ? start : (monate[monate.length - 1] ?? null))
   const monat = gewaehlt && detail[gewaehlt] ? gewaehlt : null
   if (monate.length === 0) return <Leer text="Noch keine Monate mit Ergebnissen." />
 
   const verhalten = monat ? detail[monat].verhalten : []
-  const mitKommentar = verhalten.filter((v) => v.sb_kommentar || v.kommentare.length > 0).length
+  const mitKommentar = verhalten.filter((v) => v.sb_kommentar || (!nurSelbstbild && v.kommentare.length > 0)).length
 
   return (
     <>
@@ -48,7 +51,7 @@ export default function MonatsDetail({
         <>
           <p className="text-gedimmt text-klein">
             {mitKommentar === 0 ? 'In diesem Monat gibt es keine Kommentare.' : `${mitKommentar} von ${verhalten.length} Verhalten mit Kommentar.`}{' '}
-            {absenderSichtbar ? 'Die Absender sind sichtbar.' : 'Kommentare erscheinen ohne Absender.'}
+            {nurSelbstbild ? 'Hier stehen deine eigenen Antworten.' : absenderSichtbar ? 'Die Absender sind sichtbar.' : 'Kommentare erscheinen ohne Absender.'}
           </p>
           <ul className="au-verhalten-liste">
             {verhalten.map((v) => {
@@ -64,14 +67,18 @@ export default function MonatsDetail({
                     </div>
                     <div className="au-scores">
                       <span className="au-score au-score-sb" title="Selbstbild">
-                        SB {fmt(v.sb, v.sb !== null && Number.isInteger(v.sb) ? 0 : 2)}
+                        {nurSelbstbild ? 'Selbstbild' : 'SB'} {fmt(v.sb, v.sb !== null && Number.isInteger(v.sb) ? 0 : 2)}
                       </span>
-                      <span className="au-score au-score-fb" title="Ø Fremdbild">
-                        FB {fmt(v.fb)}
-                      </span>
-                      <span className={`au-score${ein ? ` au-ton-${ein.ton}` : ''}`} title={ein?.text}>
-                        {fmtDiff(v.diff)}
-                      </span>
+                      {!nurSelbstbild && (
+                        <>
+                          <span className="au-score au-score-fb" title="Ø Fremdbild">
+                            FB {fmt(v.fb)}
+                          </span>
+                          <span className={`au-score${ein ? ` au-ton-${ein.ton}` : ''}`} title={ein?.text}>
+                            {fmtDiff(v.diff)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   {v.sb_kommentar && (
@@ -80,10 +87,10 @@ export default function MonatsDetail({
                       {v.sb_kommentar}
                     </blockquote>
                   )}
-                  {v.kommentare.map((k, i) => (
+                  {!nurSelbstbild && v.kommentare.map((k, i) => (
                     <KommentarZeile key={i} k={k} />
                   ))}
-                  {v.fremdbilder && v.fremdbilder.length > 0 && (
+                  {!nurSelbstbild && v.fremdbilder && v.fremdbilder.length > 0 && (
                     <p className="au-einzelnoten">
                       Einzelnoten:{' '}
                       {v.fremdbilder.map((f, i) => (

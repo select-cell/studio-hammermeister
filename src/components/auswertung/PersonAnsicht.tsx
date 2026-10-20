@@ -32,19 +32,29 @@ export default function PersonAnsicht({
     return (
       <Abschnitt titel="Noch keine Ergebnisse">
         <p className="text-gedimmt">
-          {eigene ? 'Sobald die ersten Umfragen abgegeben sind, siehst du hier dein Selbstbild und dein Fremdbild.' : `Für ${daten.person.name} liegen noch keine Umfrage-Ergebnisse vor.`}
+          {eigene
+            ? daten.nur_selbstbild
+              ? 'Sobald du deine erste Umfrage abgegeben hast, siehst du hier deine eigenen Antworten.'
+              : 'Sobald die ersten Umfragen abgegeben sind, siehst du hier dein Selbstbild und dein Fremdbild.'
+            : `Für ${daten.person.name} liegen noch keine Umfrage-Ergebnisse vor.`}
         </p>
       </Abschnitt>
     )
   }
 
   const mo = monat ? daten.detail[monat] : undefined
+  const nur = daten.nur_selbstbild === true
   const wer = eigene ? 'dich' : daten.person.name
   const bal = mo ? balkenDaten(mo.saeulen, mo.verhalten) : null
 
   return (
     <>
-      {!daten.absender_sichtbar && !eigene && (
+      {nur && (
+        <p className="hinweis hinweis-info" role="note">
+          Hier siehst du deine eigenen Antworten. Wie dich deine Kolleg:innen bewertet haben, sehen nur die Salonleitung und der Plattformbetreiber.
+        </p>
+      )}
+      {!daten.absender_sichtbar && !eigene && !nur && (
         <p className="hinweis hinweis-warnung">Die Absender der Kommentare sind für diese Ansicht ausgeblendet.</p>
       )}
 
@@ -55,6 +65,7 @@ export default function PersonAnsicht({
       ) : (
         <>
           <KennzahlKacheln
+            nurSelbstbild={nur}
             sb={mo.gesamt?.sb ?? null}
             fb={mo.gesamt?.fb ?? null}
             diff={mo.gesamt?.diff ?? null}
@@ -64,25 +75,38 @@ export default function PersonAnsicht({
           />
           {nachKacheln}
           <Abschnitt
-            titel={bal?.art === 'saeulen' ? 'Selbstbild und Fremdbild je Säule' : 'Selbstbild und Fremdbild je Verhalten'}
-            hinweis={`Kupfer zeigt, wie ${eigene ? 'du dich' : `${vornameVon(daten.person.name)} sich`} sieht, Blau, wie die Kolleg:innen ${wer} sehen.`}
+            titel={nur ? (bal?.art === 'saeulen' ? 'Dein Selbstbild je Säule' : 'Dein Selbstbild je Verhalten') : bal?.art === 'saeulen' ? 'Selbstbild und Fremdbild je Säule' : 'Selbstbild und Fremdbild je Verhalten'}
+            hinweis={nur ? 'So hast du dich selbst bewertet (Note 1 bis 5).' : `Kupfer zeigt, wie ${eigene ? 'du dich' : `${vornameVon(daten.person.name)} sich`} sieht, Blau, wie die Kolleg:innen ${wer} sehen.`}
           >
-            <SbFbDiagramm daten={bal?.daten ?? []} beschreibung={`Selbstbild und Fremdbild von ${daten.person.name}`} />
+            <SbFbDiagramm daten={bal?.daten ?? []} beschreibung={nur ? `Selbstbild von ${daten.person.name}` : `Selbstbild und Fremdbild von ${daten.person.name}`} mitFremdbild={!nur} />
           </Abschnitt>
-          <Abschnitt titel="Top und Flop Verhalten" hinweis="Nach dem Fremdbild – so nehmen die anderen es wahr.">
-            <TopFlop zeilen={mo.verhalten} />
+          <Abschnitt titel="Top und Flop Verhalten" hinweis={nur ? 'Nach deinem Selbstbild – wo du dich am stärksten und am schwächsten siehst.' : 'Nach dem Fremdbild – so nehmen die anderen es wahr.'}>
+            <TopFlop zeilen={mo.verhalten} nach={nur ? 'sb' : 'fb'} />
           </Abschnitt>
           <Abschnitt titel="Detailtabelle">
-            <DetailtabelleSbFb zeilen={mo.verhalten} schwellen={schwellen} rituale={mo.rituale.length > 0 ? <RitualeEinzel rituale={mo.rituale} /> : undefined} />
+            <DetailtabelleSbFb
+              nurSelbstbild={nur}
+              zeilen={mo.verhalten}
+              schwellen={schwellen}
+              rituale={mo.rituale.length > 0 ? <RitualeEinzel rituale={mo.rituale} /> : undefined}
+            />
           </Abschnitt>
         </>
       )}
 
       <Abschnitt titel="Verlauf" hinweis="Durchschnitt über alle Verhalten, je Monat.">
-        <VerlaufDiagramm verlauf={daten.verlauf} />
+        <VerlaufDiagramm verlauf={daten.verlauf} mitFremdbild={!nur} />
       </Abschnitt>
-      <Abschnitt titel="Monats-Detail" hinweis="Jedes Verhalten mit Score und Kommentaren.">
-        <MonatsDetail key={monat ?? 'keiner'} monate={daten.monate} detail={daten.detail} start={monat} schwellen={schwellen} absenderSichtbar={daten.absender_sichtbar} />
+      <Abschnitt titel="Monats-Detail" hinweis={nur ? 'Jedes Verhalten mit deiner Note und deinem Kommentar.' : 'Jedes Verhalten mit Score und Kommentaren.'}>
+        <MonatsDetail
+          key={monat ?? 'keiner'}
+          monate={daten.monate}
+          detail={daten.detail}
+          start={monat}
+          schwellen={schwellen}
+          absenderSichtbar={daten.absender_sichtbar}
+          nurSelbstbild={nur}
+        />
       </Abschnitt>
     </>
   )

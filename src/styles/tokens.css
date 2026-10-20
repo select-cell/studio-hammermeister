@@ -1,5 +1,6 @@
 /* Design-Tokens – übernommen aus der bestehenden Umfrage (docs/plattform-architektur.md §7.2) */
 :root {
+  color-scheme: light;
   --cream: #faf8f3;
   --cream-mid: #f0ebe0;
   --cream-deep: #e2d9c8;

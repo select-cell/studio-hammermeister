@@ -253,6 +253,29 @@
   white-space: nowrap;
 }
 
+/* Titel des Verhaltens: steht über dem Video, damit man vor dem Ansehen weiß, worum es geht */
+.um-verhalten-kopf {
+  margin: 0 0 0.8rem;
+  padding: 0 0.15rem;
+}
+
+.um-verhalten-nr {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 2px;
+}
+
+.um-verhalten-titel {
+  font-family: var(--font-kopf);
+  font-weight: 400;
+  font-size: 19px;
+  color: var(--text);
+  line-height: 1.35;
+}
+
 /* Video */
 .um-video {
   background: #1a1208;
@@ -594,15 +617,6 @@
   opacity: 0.38;
   pointer-events: none;
   filter: blur(1px);
-}
-
-.um-bkarte-titel {
-  font-family: var(--font-kopf);
-  font-weight: 400;
-  font-size: 17px;
-  color: var(--text);
-  margin-bottom: 1.25rem;
-  line-height: 1.4;
 }
 
 .um-trenner {

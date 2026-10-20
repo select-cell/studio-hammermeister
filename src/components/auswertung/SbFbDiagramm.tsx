@@ -15,16 +15,16 @@ function TooltipInhalt({ active, payload }: TooltipProps) {
     <div className="au-tooltip">
       <strong>{d.titel}</strong>
       <span style={{ color: FARBE.sb }}>Selbstbild: {fmt(d.sb)}</span>
-      <span style={{ color: FARBE.fb }}>Fremdbild: {fmt(d.fb)}</span>
+      {d.fb !== null && <span style={{ color: FARBE.fb }}>Fremdbild: {fmt(d.fb)}</span>}
     </div>
   )
 }
 
 const kurz = (text: string) => (text.length > 14 ? `${text.slice(0, 13)}…` : text)
 
-/** Gruppiertes Balkendiagramm: Kupfer = Selbstbild, Blau = Fremdbild (§5.6). */
-export default function SbFbDiagramm({ daten, beschreibung }: { daten: BalkenDatum[]; beschreibung: string }) {
-  if (!daten.some((d) => d.sb !== null || d.fb !== null)) return <Leer text="Für diesen Monat liegen noch keine Werte vor." />
+/** Gruppiertes Balkendiagramm: Kupfer = Selbstbild, Blau = Fremdbild (§5.6). Ohne Fremdbild (Mitarbeiter) nur Kupfer. */
+export default function SbFbDiagramm({ daten, beschreibung, mitFremdbild = true }: { daten: BalkenDatum[]; beschreibung: string; mitFremdbild?: boolean }) {
+  if (!daten.some((d) => d.sb !== null || (mitFremdbild && d.fb !== null))) return <Leer text="Für diesen Monat liegen noch keine Werte vor." />
   const lang = daten.some((d) => d.name.length > 6)
   return (
     <div className="au-diagramm" role="img" aria-label={beschreibung}>
@@ -46,7 +46,7 @@ export default function SbFbDiagramm({ daten, beschreibung }: { daten: BalkenDat
           <Tooltip content={<TooltipInhalt />} cursor={{ fill: FARBE.cursor }} />
           <Legend iconType="circle" itemSorter={null} wrapperStyle={{ fontSize: 12 }} />
           <Bar dataKey="sb" name="Selbstbild" fill={FARBE.sb} radius={[4, 4, 0, 0]} isAnimationActive={false} />
-          <Bar dataKey="fb" name="Fremdbild" fill={FARBE.fb} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          {mitFremdbild && <Bar dataKey="fb" name="Fremdbild" fill={FARBE.fb} radius={[4, 4, 0, 0]} isAnimationActive={false} />}
         </BarChart>
       </ResponsiveContainer>
     </div>

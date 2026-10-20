@@ -70,7 +70,7 @@ function Kommentar({
   )
 }
 
-/** Eine Verhaltens-Seite: Video, Bewertungsstufen, Selbstbild und Fremdbild aller Kolleg:innen. */
+/** Eine Verhaltens-Seite: Titel des Verhaltens, Video, Bewertungsstufen, Selbstbild und Fremdbild aller Kolleg:innen. */
 export default function VerhaltenSeite(p: Props) {
   const { verhalten: v, antworten } = p
   const gesehen = !!antworten.videoGesehen[v.nr]
@@ -92,6 +92,11 @@ export default function VerhaltenSeite(p: Props) {
           </div>
         </div>
       )}
+
+      <div className="um-verhalten-kopf">
+        <div className="um-verhalten-nr">Verhalten {v.nr}</div>
+        <h2 className="um-verhalten-titel">{v.titel}</h2>
+      </div>
 
       <VideoBox
         key={v.nr}
@@ -115,8 +120,6 @@ export default function VerhaltenSeite(p: Props) {
       )}
 
       <div className={`um-bkarte${gesperrt ? ' gesperrt' : ''}`}>
-        <h2 className="um-bkarte-titel">{v.titel}</h2>
-
         <div>
           <div className="um-pill um-pill-sb">
             <span className="um-pill-punkt" />

@@ -33,7 +33,7 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `009`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`), 006 in zwei Teilen (`006a`, `006b`) und 008 mit einer Nachbesserung (`008b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). **`010` ist noch nicht eingespielt:** Das Werkzeug wartet bei Anweisungen mit `delete` auf eine Bestätigung und bricht dann ab. Die Datei einmal im SQL-Editor ausführen (siehe „Testzugang und Testdaten“). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `009` sowie `011`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`), 006 in zwei Teilen (`006a`, `006b`) und 008 mit einer Nachbesserung (`008b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). **`010` ist noch nicht eingespielt:** Das Werkzeug wartet bei Anweisungen mit `delete` auf eine Bestätigung und bricht dann ab. Die Datei einmal im SQL-Editor ausführen (siehe „Testzugang und Testdaten“). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
@@ -55,6 +55,7 @@ Gut zu wissen:
    10. `supabase/migrations/008_abgabe_status.sql`
    11. `supabase/migrations/009_teilnehmer_haben_salon.sql`
    12. `supabase/migrations/010_testdaten_entfernen.sql`
+   13. `supabase/migrations/011_ergebnisse_nur_selbstbild.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -111,12 +112,15 @@ Alle Zahlen rechnet die Datenbank (Migration `006_auswertungen.sql`); das Fronte
 
 | Seite | Wer | Inhalt |
 |---|---|---|
-| `/app/ergebnisse` | Teilnehmer | eigene Kennzahlen, Selbst- vs. Fremdbild, Top/Flop, Detailtabelle, Verlauf, Monats-Detail |
+| `/app/ergebnisse` | Mitarbeiter | nur die eigenen Antworten: Selbstbild je Säule/Verhalten, Top/Flop nach Selbstbild, Detailtabelle, Verlauf, Monats-Detail mit eigenen Kommentaren |
+| `/app/ergebnisse` | Verantwortlicher, Admin | eigene Kennzahlen mit Selbst- und Fremdbild, Differenz, Top/Flop, Detailtabelle, Verlauf, Monats-Detail |
 | `/app/team` | Teilnehmer | Team nur als Durchschnitt, ohne einzelne Personen |
 | `/app/team` | Verantwortlicher, Admin | Team-Dashboard: Ansicht-Umschalter Team ↔ Person, Rangliste, Differenz pro Person, Heatmap, Detailtabelle mit Spalte je Person |
 | `/app/mitglieder`, `/app/mitglieder/:id` | Verantwortlicher, Admin | Liste und individuelle Auswertung je Person |
 
 Die Monatsauswahl steht oben auf jeder Seite. Voreingestellt ist der **neueste Monat mit Abgaben** (die Umfrage für M bewertet M, deshalb ist M schon im laufenden Monat auswertbar). Ohne Säulen gruppiert die Plattform „je Verhalten“; ohne Rituale fehlen Tab und Linie.
+
+**Mitarbeiter sehen nur ihre eigenen Antworten (Migration 011).** Wie die Kolleg:innen sie bewertet haben (Fremdbild, Differenz, Kommentare, Einzelnoten), steht in „Meine Ergebnisse“ nur für Verantwortliche und Admin, auch bei ihnen selbst. Das entscheidet die Datenbank: `meine_ergebnisse()` liefert Mitarbeitern die Auswertung aus `auswertung_selbstbild()`, die nur Zeilen mit `art = 'selbstbild'` liest. Die Antwort trägt `nur_selbstbild: true`, die Oberfläche zeigt dann nur Selbstbild und Ausfülldauer. Wer zum Verantwortlichen wird, sieht ab dem nächsten Laden alles, wer zurückgestuft wird, nur noch das Selbstbild. Die Seite „Team“ zeigt weiter nur Team-Schnitte (Ø Selbstbild und Ø Fremdbild des ganzen Teams, keine einzelne Person).
 
 **Wer sieht die Absender der Kommentare und Einzelnoten?** Das entscheidet nur die Datenbank (`absender_sichtbar_fuer()`), das Frontend zeigt Namen nur, wenn die Antwort sie enthält:
 
