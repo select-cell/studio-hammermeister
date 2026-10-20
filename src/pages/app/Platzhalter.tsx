@@ -30,14 +30,3 @@ export function BereichPlatzhalter({ id }: { id: string }) {
   if (!person || !bereich) return <Navigate to="/app" replace />
   return <Platzhalter titel={bereich.titel(person)} text={bereich.beschreibung(person)} phase={bereich.phase} />
 }
-
-/** /app/mitglieder/:id – die individuelle Auswertung kommt mit Phase 3. */
-export function MitgliedPlatzhalter() {
-  return (
-    <Platzhalter
-      titel="Mitglied"
-      text="Die individuelle Auswertung eines Teammitglieds mit Verlauf, Monats-Detail und Kommentaren."
-      phase={3}
-    />
-  )
-}

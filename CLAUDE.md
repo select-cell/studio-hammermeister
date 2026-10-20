@@ -14,6 +14,8 @@ Bauanleitung: `docs/plattform-architektur.md` (maßgeblich für Rollen, Datenmod
 - Rohdaten-Tabellen (`umfrage_*`) und Ansichten (`v_*`) sind für `anon` und `authenticated` gesperrt.
 - Die alte `umfrage_einreichen()` ist für alle Nutzer gesperrt (sie nähme Namen aus dem Payload). Abgegeben wird nur über `umfrage_einreichen_v2()`; wer abgibt, kommt aus `auth.uid()`.
 - Seed der Umfrage-Inhalte: `003_seed_hammermeister_inhalte.sql` wird mit `node scripts/erzeuge-seed-inhalte.mjs` aus `referenz/umfrage-hammermeister.html` erzeugt und nicht von Hand bearbeitet. Wer Migrationen über das Werkzeug einspielt, vergleicht danach Fingerabdrücke (md5 über `pg_get_functiondef`, Spalten, Constraints, Seed) gegen einen lokalen Lauf der Dateien.
+- Auswertungen (Migration 006): Wer Absender sieht, entscheidet nur `absender_sichtbar_fuer()` (Mitarbeiter nie; Verantwortlicher bei anderen ja, bei sich nur mit `salons.verantwortlicher_sieht_eigene_absender`; Admin immer). Das Frontend zeigt `von` nur, wenn die Antwort es enthält, und filtert nie selbst.
+- Diagramme mit Recharts (`isAnimationActive={false}`), Farben aus `src/components/auswertung/farben.ts`; Stile der Auswertungen mit Präfix `au-` in `src/styles/auswertung.css`.
 ## Regeln
 
 - Sprache der Oberfläche, Kommentare und Commit-Texte: Deutsch (Du-Form, Salon-Ton). Bezeichner im Code folgen dem vorhandenen deutschen Stil (`istLeitung`, `personStatus`).

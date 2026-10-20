@@ -1,0 +1,751 @@
+/* Auswertungen (Phase 3) – Präfix „au-“. Farben und Radien kommen aus tokens.css. */
+
+/* ── Seitenkopf & Monatsauswahl ───────────────────────────── */
+.au-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.au-titel {
+  font-family: var(--font-kopf);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.au-monat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.au-monat-label {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.au-monat-feld,
+.au-sortierung select {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  min-height: 34px;
+}
+
+.au-monat-feld {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 720px) {
+  .au-kopf {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .au-monat-feld {
+    flex: none;
+    min-width: 170px;
+  }
+}
+
+.au-laedt {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.au-fehler {
+  max-width: 480px;
+}
+
+/* ── Bausteine ────────────────────────────────────────────── */
+.au-abschnitt {
+  min-width: 0;
+}
+
+.au-leer {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 1rem;
+  text-align: center;
+  background: var(--cream);
+  border-radius: var(--r-md);
+}
+
+/* Tabs / Umschalter */
+.au-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  margin: 0 -2px 0.85rem;
+  scrollbar-width: thin;
+}
+
+.au-tabs-klein {
+  margin-bottom: 0.6rem;
+}
+
+.au-tab {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  background: var(--white);
+  border: 1.5px solid var(--border2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.au-tab:hover {
+  border-color: var(--accent);
+}
+
+.au-tab[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.au-tabs-klein .au-tab {
+  font-size: 12px;
+  padding: 4px 11px;
+}
+
+.au-sortierung {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 0.6rem;
+}
+
+/* Kennzahl-Kacheln */
+.au-kacheln {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 720px) {
+  .au-kacheln {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.au-kachel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.au-kachel-sb {
+  border-top: 3px solid var(--chart-sb);
+}
+
+.au-kachel-fb {
+  border-top: 3px solid var(--chart-fb);
+}
+
+.au-kachel-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.au-kachel-wert {
+  font-family: var(--font-kopf);
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.au-kachel-sub {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.au-ton-gut {
+  color: var(--green);
+}
+
+.au-ton-schlecht {
+  color: var(--red);
+}
+
+/* Diagramme */
+.au-diagramm {
+  width: 100%;
+  min-width: 0;
+}
+
+.au-diagramm .recharts-wrapper {
+  font-family: var(--font-text);
+}
+
+.au-tooltip {
+  background: var(--white);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh);
+  padding: 8px 12px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 240px;
+}
+
+.au-legende {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+}
+
+.au-legende-eintrag {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.au-punkt {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.au-punkt-gut,
+.au-punkt-hoch {
+  background: var(--chart-rituale);
+}
+
+.au-punkt-schlecht,
+.au-punkt-niedrig {
+  background: var(--red-v);
+}
+
+.au-punkt-mittel {
+  background: #e0a63a;
+}
+
+/* Top / Flop */
+.au-topflop {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .au-topflop {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.au-topflop-titel {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.au-topflop-top .au-topflop-titel {
+  color: var(--green);
+}
+
+.au-topflop-flop .au-topflop-titel {
+  color: var(--red);
+}
+
+.au-topflop-liste {
+  list-style: none;
+}
+
+.au-topflop-liste li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.au-topflop-liste li:last-child {
+  border-bottom: none;
+}
+
+.au-topflop-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.au-topflop-name {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.au-topflop-saeule {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.au-topflop-wert {
+  font-family: var(--font-kopf);
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.au-topflop-top .au-topflop-wert {
+  color: var(--green);
+}
+
+.au-topflop-flop .au-topflop-wert {
+  color: var(--red);
+}
+
+/* Rangliste */
+.au-rangliste {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.au-rang {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--white);
+}
+
+.au-rang-gewaehlt {
+  border-color: var(--accent);
+  background: rgba(196, 132, 90, 0.07);
+}
+
+.au-rang-knopf {
+  display: grid;
+  grid-template-columns: 32px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--r-md);
+}
+
+button.au-rang-knopf {
+  cursor: pointer;
+}
+
+button.au-rang-knopf:hover {
+  background: var(--cream-mid);
+}
+
+.au-platz {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--cream-mid);
+  color: var(--text2);
+}
+
+.au-platz-1 {
+  background: #f1d27a;
+  color: #5a4306;
+}
+
+.au-platz-2 {
+  background: #dcdfe3;
+  color: #3f454c;
+}
+
+.au-platz-3 {
+  background: #e6bf9a;
+  color: #5e3412;
+}
+
+.au-rang-name {
+  font-weight: 500;
+  min-width: 0;
+}
+
+.au-rang-wert {
+  font-family: var(--font-kopf);
+  font-size: 17px;
+}
+
+.au-rang-diff {
+  font-size: 13px;
+  min-width: 52px;
+  text-align: right;
+}
+
+/* ── Tabellen (Detailtabelle, Heatmap) ────────────────────── */
+.au-tabelle-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  -webkit-overflow-scrolling: touch;
+}
+
+.au-tabelle {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.au-tabelle th,
+.au-tabelle td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.au-tabelle thead th {
+  position: sticky;
+  top: 0;
+  background: var(--cream-mid);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.au-tabelle tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.au-tabelle .au-erste {
+  min-width: 150px;
+  max-width: 220px;
+  font-weight: 400;
+  position: sticky;
+  left: 0;
+  background: var(--white);
+  z-index: 1;
+}
+
+.au-tabelle thead .au-erste {
+  background: var(--cream-mid);
+  z-index: 2;
+}
+
+.au-tabelle .au-zahl {
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.au-tabelle .au-team {
+  border-left: 2px solid var(--border2);
+  font-weight: 500;
+}
+
+.au-gruppe th {
+  background: var(--cream);
+  color: var(--accent-h);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 10px;
+}
+
+.au-nr {
+  display: inline-block;
+  min-width: 1.5em;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Heatmap: auf dem Handy eine Zeile je Verhalten (voller Titel als Tooltip), damit die Personen-Spalten Platz haben */
+.au-heatmap .au-erste {
+  width: 170px;
+  min-width: 170px;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 720px) {
+  .au-tabelle .au-erste {
+    min-width: 220px;
+    max-width: 380px;
+  }
+
+  .au-heatmap .au-erste {
+    width: auto;
+    min-width: 260px;
+    max-width: 380px;
+    white-space: normal;
+  }
+}
+
+/* Score-Niveau (hoch ≥ Schwelle, mittel, niedrig) */
+.au-niv-hoch {
+  color: var(--green);
+  background: var(--gbg);
+}
+
+.au-niv-mittel {
+  color: var(--yel);
+  background: var(--ybg);
+}
+
+.au-niv-niedrig {
+  color: var(--red);
+  background: var(--rbg);
+}
+
+.au-niv-leer {
+  color: var(--muted);
+}
+
+/* Heatmap: kräftigere Flächen als in der Tabelle */
+.au-hm {
+  font-weight: 500;
+}
+
+.au-hm.au-niv-hoch {
+  background: #cfe4bb;
+}
+
+.au-hm.au-niv-mittel {
+  background: #f5dfae;
+}
+
+.au-hm.au-niv-niedrig {
+  background: #f3c4c3;
+}
+
+/* ── Rituale ──────────────────────────────────────────────── */
+.au-rituale {
+  display: grid;
+  gap: 1rem;
+}
+
+.au-ritual-titel {
+  font-family: var(--font-kopf);
+  font-weight: 400;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.au-ritual-zeile {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.au-ritual-zeile dt {
+  color: var(--text2);
+}
+
+.au-ritual-zeile dd {
+  font-weight: 500;
+  text-align: right;
+}
+
+.au-ritual-zeile small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ── Entwicklung des Monats ───────────────────────────────── */
+.au-nennungen {
+  list-style: none;
+}
+
+.au-nennungen li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.au-nennungen li:last-child {
+  border-bottom: none;
+}
+
+/* ── Monats-Detail ────────────────────────────────────────── */
+.au-verhalten-liste {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.au-verhalten {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.75rem 0.9rem;
+  background: var(--white);
+}
+
+.au-verhalten-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (min-width: 640px) {
+  .au-verhalten-kopf {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.au-verhalten-saeule {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.au-scores {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.au-score {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 9px;
+  border-radius: 10px;
+  background: var(--cream-mid);
+  white-space: nowrap;
+}
+
+.au-score-sb {
+  background: rgba(196, 132, 90, 0.16);
+  color: var(--accent-h);
+}
+
+.au-score-fb {
+  background: var(--fbbg);
+  color: var(--fb);
+}
+
+.au-kommentar {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--fb);
+  background: var(--fbbg);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.au-kommentar-sb {
+  border-left-color: var(--accent);
+  background: rgba(196, 132, 90, 0.08);
+}
+
+.au-kommentar-kopf {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.au-einzelnoten {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ── Mitglieder-Liste ─────────────────────────────────────── */
+.au-mitglieder {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.au-mitglied {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--white);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.au-mitglied:hover {
+  border-color: var(--accent);
+}
+
+.au-mitglied-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+}
+
+.au-mitglied-name small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.au-mitglied-zahlen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+@media (min-width: 560px) {
+  .au-mitglied-zahlen {
+    flex-direction: row;
+    gap: 16px;
+  }
+}

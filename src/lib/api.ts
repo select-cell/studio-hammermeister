@@ -1,5 +1,6 @@
 // Gebündelter Datenzugriff: dünne Wrapper um Supabase. Berechnungen gehören in SQL-Funktionen, nicht hierher.
 import { supabase } from './supabase'
+import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
 
@@ -63,4 +64,35 @@ export async function umfrageEinreichen(nutzlast: Nutzlast): Promise<EinreichErg
   if (!error) return { art: 'ok', id: String(data) }
   if (error.code === '23505') return { art: 'bereits', meldung: error.message }
   return { art: 'fehler', meldung: error.message }
+}
+
+// ── Auswertungen ──────────────────────────────────────────────────────────
+// Gerechnet wird in der Datenbank (Migration 006). Wer die Absender sehen darf, entscheidet allein die Datenbank.
+
+/** Eigene Ergebnisse aller Monate (nur Teilnehmer der Teamumfrage). */
+export async function ladeMeineErgebnisse(): Promise<PersonErgebnisse> {
+  const { data, error } = await supabase.rpc('meine_ergebnisse')
+  if (error) throw error
+  return data as PersonErgebnisse
+}
+
+/** Team-Schnitte aller Monate – ohne einzelne Personen. */
+export async function ladeTeamErgebnisse(): Promise<TeamErgebnisse> {
+  const { data, error } = await supabase.rpc('team_ergebnisse')
+  if (error) throw error
+  return data as TeamErgebnisse
+}
+
+/** Ergebnisse einer Person (nur Verantwortlicher und Admin). */
+export async function ladePersonErgebnisse(personId: string): Promise<PersonErgebnisse> {
+  const { data, error } = await supabase.rpc('person_ergebnisse', { p_person: personId })
+  if (error) throw error
+  return data as PersonErgebnisse
+}
+
+/** Team-Dashboard eines Monats ('YYYY-MM'); ohne Angabe der neueste Monat mit Abgaben (nur Verantwortlicher und Admin). */
+export async function ladeTeamDashboard(monat?: string): Promise<TeamDashboard> {
+  const { data, error } = await supabase.rpc('team_dashboard', { p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as TeamDashboard
 }

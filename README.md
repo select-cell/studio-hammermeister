@@ -12,7 +12,7 @@ Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen
 |---|---|---|
 | 1 | Fundament: Login per Magic Link, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Auth-Einstellungen, E-Mail-Versand, Personen (siehe „Fertig, wenn“) |
 | 2 | Monatsumfrage in der Plattform | gebaut, getestet und eingespielt. Offen: Durchspielen mit echten Logins (siehe „Fertig, wenn“ Phase 2) |
-| 3 | Auswertungen | offen |
+| 3 | Auswertungen | gebaut, getestet und eingespielt (Datenbank `006`, Seiten Ergebnisse, Team, Mitglieder). Offen: Durchspielen mit echten Logins und echten Daten (siehe „Fertig, wenn“ Phase 3) |
 | 4 | Abgabe-Status & Reminder | offen |
 | 5 | Chef-, Gäste- und Verantwortlichen-Umfrage | offen |
 | 6 | Jarvis | offen |
@@ -33,7 +33,7 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `005`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`) und 005 in zwei Teilen (`005a`, `005b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `006`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
@@ -50,6 +50,7 @@ Gut zu wissen:
    5. `supabase/migrations/003_seed_hammermeister_inhalte.sql` (erzeugt aus `referenz/umfrage-hammermeister.html` mit `node scripts/erzeuge-seed-inhalte.mjs`)
    6. `supabase/migrations/004_abgaben_ids.sql`
    7. `supabase/migrations/005_umfrage_funktionen.sql`
+   8. `supabase/migrations/006_auswertungen.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → URL Configuration**
@@ -90,12 +91,46 @@ Gut zu wissen:
 
 Michael Hammermeister bekommt beides.
 
-**Aktueller Stand der Personen:** Die sechs Teammitglieder sind mit Platzhalter-Adressen `…@platzhalter.invalid` angelegt (diese Endung kann keine Mails empfangen). Der Admin ist mit `select@voidos.de` angelegt und bereits mit seinem Login verknüpft. Eine echte Adresse nachtragen, danach im Dashboard einladen:
+**Wichtig für Michael:** Welche Leitungs-Bereiche und welche Absender er sieht, hängt allein an der `rolle`, die ihm in `personen` zugeteilt ist. Als `mitarbeiter` sieht er weder das Team-Dashboard noch die Mitglieder noch Absender, als `verantwortlicher` alles davon (Absender bei sich selbst nur mit dem Schalter, siehe „Auswertungen“).
+
+**Aktueller Stand der Personen:** Die sechs Teammitglieder sind mit Platzhalter-Adressen `…@platzhalter.invalid` angelegt (diese Endung kann keine Mails empfangen). Der Admin ist mit `select@voidos.de` angelegt und bereits mit seinem Login verknüpft. Michael Hammermeister steht derzeit mit der Rolle `mitarbeiter` in der Tabelle (Teilnehmer, aber ohne Leitungs-Bereiche und ohne Absender). Mit `rolle = 'verantwortlicher'` bekommt er Team-Dashboard, Mitglieder und die Absender der Ergebnisse anderer. Die Rolle ändert allein der Admin:
+
+```sql
+update public.personen set rolle = 'verantwortlicher' where name = 'Michael Hammermeister';
+```
+
+Eine echte Adresse nachtragen, danach im Dashboard einladen:
 
 ```sql
 update public.personen
    set email = 'echte@adresse.de'
  where email = 'lena.reifschneider@platzhalter.invalid';
+```
+
+## Auswertungen (Phase 3)
+
+Alle Zahlen rechnet die Datenbank (Migration `006_auswertungen.sql`); das Frontend formatiert, sortiert und zeichnet nur. Die Schwellen (0,3 / 2,5 / 3,5) stehen in `salons`.
+
+| Seite | Wer | Inhalt |
+|---|---|---|
+| `/app/ergebnisse` | Teilnehmer | eigene Kennzahlen, Selbst- vs. Fremdbild, Top/Flop, Detailtabelle, Verlauf, Monats-Detail |
+| `/app/team` | Teilnehmer | Team nur als Durchschnitt, ohne einzelne Personen |
+| `/app/team` | Verantwortlicher, Admin | Team-Dashboard: Ansicht-Umschalter Team ↔ Person, Rangliste, Differenz pro Person, Heatmap, Detailtabelle mit Spalte je Person |
+| `/app/mitglieder`, `/app/mitglieder/:id` | Verantwortlicher, Admin | Liste und individuelle Auswertung je Person |
+
+Die Monatsauswahl steht oben auf jeder Seite. Voreingestellt ist der **neueste Monat mit Abgaben** (die Umfrage für M bewertet M, deshalb ist M schon im laufenden Monat auswertbar). Ohne Säulen gruppiert die Plattform „je Verhalten“; ohne Rituale fehlen Tab und Linie.
+
+**Wer sieht die Absender der Kommentare und Einzelnoten?** Das entscheidet nur die Datenbank (`absender_sichtbar_fuer()`), das Frontend zeigt Namen nur, wenn die Antwort sie enthält:
+
+| Rolle | Absender |
+|---|---|
+| Mitarbeiter | nie, auch nicht bei den eigenen Ergebnissen |
+| Verantwortlicher | bei den Ergebnissen anderer: ja. Bei den Ergebnissen über sich selbst: nur mit dem Schalter unten |
+| Admin | immer |
+
+```sql
+-- Verantwortlicher sieht auch bei sich selbst, wer was geschrieben hat (Standard: aus)
+update public.salons set verantwortlicher_sieht_eigene_absender = true;
 ```
 
 ## Umfrage-Inhalte pflegen
@@ -140,6 +175,15 @@ In beiden Fällen die Netlify-Adresse in Supabase als Site URL und Redirect URL 
 
 Beides ist gegen die echte Datenbank und im Browser geprüft (mit simuliertem Login). Offen ist das Durchspielen mit echten Logins, sobald die E-Mail-Adressen da sind.
 
+## Fertig, wenn (Phase 3)
+
+- Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und das Team nur als Schnitt.
+- Michael sieht alles im Detail, inklusive sich selbst als Teammitglied (als Verantwortlicher).
+- Alle Seiten funktionieren ohne Säulen und ohne Rituale.
+- Die Zahlen stimmen mit den Views `v_selbst_vs_fremdbild` und `v_person_saeule` überein.
+
+Geprüft: Datenbank lokal (PGlite, 100 Prüfungen inkl. Vergleich mit den Views) und in der echten Datenbank (Funktionen per Fingerabdruck identisch, Rechte-Szenarien als zurückgerollte Transaktionen); Oberfläche im Browser gegen Antworten der echten SQL-Funktionen (alle Seiten, alle Rollen, mit und ohne Säulen/Rituale, ohne Daten, Fehlerfälle, Handy-Breite). Offen: Durchspielen mit echten Logins und echten Daten.
+
 ## Projektstruktur
 
 ```
@@ -148,11 +192,12 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, useLaden.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
+  components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
   pages/              Start, Login, Callback, app/…
-  styles/             tokens.css, base.css, umfrage.css
+  styles/             tokens.css, base.css, umfrage.css, auswertung.css
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```

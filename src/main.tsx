@@ -4,6 +4,7 @@ import App from './App'
 import './styles/tokens.css'
 import './styles/base.css'
 import './styles/umfrage.css'
+import './styles/auswertung.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

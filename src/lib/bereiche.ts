@@ -16,6 +16,11 @@ export interface Bereich {
   beschreibung: (p: Person) => string
 }
 
+/** Bereiche bis zu dieser Bauphase sind fertig; alle anderen zeigen „Kommt bald“. */
+export const FERTIG_BIS_PHASE = 3
+
+export const istFertig = (b: Bereich): boolean => b.phase <= FERTIG_BIS_PHASE
+
 export const PHASEN: Record<number, string> = {
   2: 'Monatsumfrage',
   3: 'Auswertungen',
