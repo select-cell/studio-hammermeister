@@ -414,6 +414,7 @@ Radien 8/12/16/20px, weicher Schatten, Karten auf Creme-Hintergrund
 ```
 
 - Farbcode Selbstbild = Akzent (Kupfer), Fremdbild = Blau (`--fb`), wie in der Umfrage.
+- **Nachtmodus** (Wunsch des Auftraggebers, 20.10.2026): dunkle Palette in `tokens.css` unter `data-theme="dark"`; Umschalter Automatisch / Dunkel / Hell im Kopf der Seite, Wahl je Browser. Farben stehen nur in den Tokens.
 - Mobil zuerst: Das Team nutzt die Plattform vor allem am Handy.
 
 ### 7.3 Umfrage in der Plattform

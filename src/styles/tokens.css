@@ -22,10 +22,38 @@
   --fb: #4a7fa5;
   --fbbg: rgba(74, 127, 165, 0.08);
 
+  /* Textfarbe für Links und Hervorhebungen (im Nachtmodus heller) */
+  --link: #a86840;
+
   /* Diagramme (Phase 3): Selbstbild Kupfer, Fremdbild Blau, Rituale Grün */
   --chart-sb: #c4845a;
   --chart-fb: #4a7fa5;
   --chart-rituale: #4caf50;
+  --chart-achse: #9b8e7e;
+  --chart-gitter: rgba(92, 61, 30, 0.12);
+  --chart-cursor: rgba(196, 132, 90, 0.08);
+  --chart-korridor: rgba(76, 175, 80, 0.12);
+
+  /* Heatmap und Hinweisflächen */
+  --hm-hoch: #cfe4bb;
+  --hm-mittel: #f5dfae;
+  --hm-niedrig: #f3c4c3;
+  --rot-hell: #fff4f4;
+  --gruen-hell: #f2fbf2;
+  --ueberfaellig-bg: #fffafa;
+
+  /* Bewertungsfelder der Umfrage (Stufe 1–5) */
+  --kb1-bg: #fcebeb;
+  --kb1-fg: #a32d2d;
+  --kb2-bg: #faeeda;
+  --kb2-fg: #854f0b;
+  --kb3-bg: #fff8ee;
+  --kb3-fg: #7a5c10;
+  --kb4-bg: #eaf3de;
+  --kb4-fg: #3b6d11;
+  --kb5-bg: linear-gradient(135deg, #fff8ee, #fdf0dc);
+  --kb5-fg: #7a5c10;
+  --kb5-rand: #d4a850;
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -35,4 +63,55 @@
 
   --font-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-kopf: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+}
+
+/* Nachtmodus: dieselben Namen, dunkle Werte. Gesetzt wird data-theme="dark" am <html>
+   (siehe index.html und src/lib/darstellung.ts: Standard „automatisch“ folgt dem Gerät). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --cream: #15110c;
+  --cream-mid: #231c13;
+  --cream-deep: #3a2f21;
+  --white: #1f1912; /* Flächen: Karten, Felder, Kopfzeile */
+  --text: #f3ebde;
+  --text2: #c7b9a4;
+  --muted: #9a8d7b;
+  --border: rgba(243, 235, 222, 0.12);
+  --border2: rgba(243, 235, 222, 0.24);
+  --link: #e2a679;
+
+  --green: #8fce6b;
+  --gbg: rgba(111, 191, 85, 0.16);
+  --red: #f19a99;
+  --rbg: rgba(226, 75, 74, 0.18);
+  --yel: #ebb865;
+  --ybg: rgba(224, 166, 58, 0.17);
+  --fb: #74a8cc;
+  --fbbg: rgba(116, 168, 204, 0.14);
+  --sh: 0 2px 10px rgba(0, 0, 0, 0.45);
+
+  --chart-achse: #a89b88;
+  --chart-gitter: rgba(243, 235, 222, 0.13);
+  --chart-cursor: rgba(196, 132, 90, 0.16);
+  --chart-korridor: rgba(76, 175, 80, 0.18);
+
+  --hm-hoch: rgba(76, 175, 80, 0.32);
+  --hm-mittel: rgba(224, 166, 58, 0.3);
+  --hm-niedrig: rgba(226, 75, 74, 0.34);
+  --rot-hell: rgba(226, 75, 74, 0.14);
+  --gruen-hell: rgba(76, 175, 80, 0.14);
+  --ueberfaellig-bg: rgba(226, 75, 74, 0.1);
+
+  --kb1-bg: rgba(226, 75, 74, 0.2);
+  --kb1-fg: #f19a99;
+  --kb2-bg: rgba(224, 166, 58, 0.2);
+  --kb2-fg: #ebb865;
+  --kb3-bg: rgba(224, 195, 120, 0.16);
+  --kb3-fg: #e6cd8a;
+  --kb4-bg: rgba(111, 191, 85, 0.2);
+  --kb4-fg: #8fce6b;
+  --kb5-bg: linear-gradient(135deg, rgba(224, 195, 120, 0.22), rgba(224, 166, 58, 0.14));
+  --kb5-fg: #f0d58f;
+  --kb5-rand: #b98f3f;
 }

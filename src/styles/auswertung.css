@@ -477,7 +477,7 @@ button.au-rang-knopf:hover {
 
 .au-gruppe th {
   background: var(--cream);
-  color: var(--accent-h);
+  color: var(--link);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -542,15 +542,15 @@ button.au-rang-knopf:hover {
 }
 
 .au-hm.au-niv-hoch {
-  background: #cfe4bb;
+  background: var(--hm-hoch);
 }
 
 .au-hm.au-niv-mittel {
-  background: #f5dfae;
+  background: var(--hm-mittel);
 }
 
 .au-hm.au-niv-niedrig {
-  background: #f3c4c3;
+  background: var(--hm-niedrig);
 }
 
 /* ── Rituale ──────────────────────────────────────────────── */
@@ -659,7 +659,7 @@ button.au-rang-knopf:hover {
 
 .au-score-sb {
   background: rgba(196, 132, 90, 0.16);
-  color: var(--accent-h);
+  color: var(--link);
 }
 
 .au-score-fb {

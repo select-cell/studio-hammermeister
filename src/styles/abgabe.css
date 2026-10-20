@@ -121,6 +121,15 @@
   margin-top: 3px;
 }
 
+/* Beim Sprung zur Karte soll die feste Kopfzeile den Kartenkopf nicht verdecken */
+#abgabe-status {
+  scroll-margin-top: 4.5rem;
+}
+
+#abgabe-status:focus {
+  outline: none;
+}
+
 /* Popup */
 .ab-popup {
   border: none;

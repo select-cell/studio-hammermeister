@@ -18,7 +18,9 @@ export default function ReminderPopup({ eintraege, onSchliessen }: { eintraege: 
 
   const zumStatus = () => {
     schliessen()
-    document.getElementById('abgabe-status')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const karte = document.getElementById('abgabe-status')
+    karte?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    karte?.focus({ preventScroll: true })
   }
 
   // Klick auf den abgedunkelten Rand schließt ebenfalls

@@ -25,7 +25,7 @@ body {
 }
 
 a {
-  color: var(--accent-h);
+  color: var(--link);
 }
 
 code {
@@ -206,7 +206,7 @@ code {
 }
 
 .nav a.active {
-  color: var(--accent-h);
+  color: var(--link);
   background: rgba(196, 132, 90, 0.12);
 }
 
@@ -217,6 +217,36 @@ code {
   margin-top: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
+}
+
+.nav-nutzer-zeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Umschalter hell/dunkel: schlicht wie der Link daneben, damit die Kopfzeile nicht breiter wird */
+.darstellung-schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text2);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 4px 2px;
+  cursor: pointer;
+}
+
+.darstellung-schalter:hover {
+  color: var(--link);
+}
+
+.darstellung-schalter svg {
+  width: 14px;
+  height: 14px;
 }
 
 .nav-nutzer-text {
@@ -252,7 +282,7 @@ code {
 .nav .nav-nutzer-link:hover,
 .nav .nav-nutzer-link.active {
   background: none;
-  color: var(--accent-h);
+  color: var(--link);
 }
 
 .avatar {
@@ -299,6 +329,15 @@ code {
 
   .nav-nutzer-text {
     flex: none;
+  }
+
+  /* Im schmalen Desktop-Kopf nur das Symbol; der Name steht im Tooltip und für Screenreader */
+  .darstellung-text {
+    display: none;
+  }
+
+  .darstellung-schalter {
+    padding: 2px;
   }
 }
 
@@ -511,7 +550,7 @@ code {
 
 .karte-ueberfaellig {
   border-color: rgba(163, 45, 45, 0.35);
-  background: linear-gradient(180deg, #fffafa, var(--white));
+  background: linear-gradient(180deg, var(--ueberfaellig-bg), var(--white));
 }
 
 .hervorhebung {

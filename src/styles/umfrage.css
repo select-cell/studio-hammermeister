@@ -286,7 +286,7 @@
 .um-video-titel {
   font-family: var(--font-kopf);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.62); /* war 0.3: auf dem dunklen Video-Feld kaum lesbar */
   text-align: center;
   padding: 8px 2rem 0;
   line-height: 1.4;
@@ -476,11 +476,11 @@
   flex-shrink: 0;
 }
 
-.um-kb-1 { background: #fcebeb; color: #a32d2d; }
-.um-kb-2 { background: #faeeda; color: #854f0b; }
-.um-kb-3 { background: #fff8ee; color: #7a5c10; }
-.um-kb-4 { background: #eaf3de; color: #3b6d11; }
-.um-kb-5 { background: linear-gradient(135deg, #fff8ee, #fdf0dc); color: #7a5c10; border: 1px solid #d4a850; }
+.um-kb-1 { background: var(--kb1-bg); color: var(--kb1-fg); }
+.um-kb-2 { background: var(--kb2-bg); color: var(--kb2-fg); }
+.um-kb-3 { background: var(--kb3-bg); color: var(--kb3-fg); }
+.um-kb-4 { background: var(--kb4-bg); color: var(--kb4-fg); }
+.um-kb-5 { background: var(--kb5-bg); color: var(--kb5-fg); border: 1px solid var(--kb5-rand); }
 
 .um-krit-kopftext {
   flex: 1;
@@ -671,13 +671,13 @@
 
 .um-rbtn.rl {
   border-color: var(--red-v);
-  background: #fff4f4;
+  background: var(--rot-hell);
   box-shadow: 0 0 0 2px rgba(226, 75, 74, 0.08);
 }
 
 .um-rbtn.rh {
   border-color: var(--green-v);
-  background: #f2fbf2;
+  background: var(--gruen-hell);
   box-shadow: 0 0 0 2px rgba(74, 175, 80, 0.08);
 }
 
@@ -787,13 +787,13 @@
 
 .um-fb-btn.rl {
   border-color: var(--red-v);
-  background: #fff4f4;
+  background: var(--rot-hell);
   color: var(--red);
 }
 
 .um-fb-btn.rh {
   border-color: var(--green-v);
-  background: #f2fbf2;
+  background: var(--gruen-hell);
   color: var(--green);
 }
 

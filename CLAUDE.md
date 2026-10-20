@@ -17,6 +17,7 @@ Bauanleitung: `docs/plattform-architektur.md` (maßgeblich für Rollen, Datenmod
 - Seed der Umfrage-Inhalte: `003_seed_hammermeister_inhalte.sql` wird mit `node scripts/erzeuge-seed-inhalte.mjs` aus `referenz/umfrage-hammermeister.html` erzeugt und nicht von Hand bearbeitet. Wer Migrationen über das Werkzeug einspielt, vergleicht danach Fingerabdrücke (md5 über `pg_get_functiondef`, Spalten, Constraints, Seed) gegen einen lokalen Lauf der Dateien.
 - Auswertungen (Migration 006): Wer Absender sieht, entscheidet nur `absender_sichtbar_fuer()` (Mitarbeiter nie; Verantwortlicher bei anderen ja, bei sich nur mit `salons.verantwortlicher_sieht_eigene_absender`; Admin immer). Das Frontend zeigt `von` nur, wenn die Antwort es enthält, und filtert nie selbst.
 - Reminder (Migration 008): überfällig heißt `heute − Fristende > salons.reminder_tage_nach_frist` (Frist 31.10., Standard 3 → ab 4.11.). `abgabe_status()` und `ueberfaellige_abgaben()` nehmen `p_heute` zum Testen; im Frontend simuliert `/app?heute=YYYY-MM-DD` das Datum (nur Leitung, mit Hinweis). Das weggeklickte Popup merkt sich nur `sessionStorage`.
+- Teilnehmer gehören immer zu einem Salon (Migration 009: Trigger setzt ihn, Constraint `personen_teilnehmer_hat_salon`). Das gilt auch für den Admin, wenn er `nimmt_an_teamumfrage` bekommt; sonst meldete die Plattform „Erledigt“ statt „offen“. Testdaten räumt `testdaten_entfernen()` (010) ab; das Supabase-Werkzeug führt Anweisungen mit `delete` nicht aus (wartet auf Bestätigung), solche Migrationen läuft der Auftraggeber im SQL-Editor.
 - Diagramme mit Recharts (`isAnimationActive={false}`), Farben aus `src/components/auswertung/farben.ts`; Stile der Auswertungen mit Präfix `au-` in `src/styles/auswertung.css`.
 ## Regeln
 
@@ -27,4 +28,4 @@ Bauanleitung: `docs/plattform-architektur.md` (maßgeblich für Rollen, Datenmod
 - Bausteine müssen mit fehlenden Inhalten umgehen (ohne Säulen, ohne Rituale, ohne Kriterien), siehe §5.1.
 - Datenbankänderungen nur als nummerierte Migration in `supabase/migrations/`, idempotent, und im Repo versioniert. Das ursprüngliche `umfrage_schema.sql` und `ausfuelldauer.sql` werden nicht verändert.
 - Datenzugriff gebündelt in `src/lib/api.ts` (dünne Wrapper um `supabase.rpc`).
-- Design-Tokens in `src/styles/tokens.css`; kein UI-Framework. Mobil zuerst.
+- Design-Tokens in `src/styles/tokens.css`; kein UI-Framework. Mobil zuerst. **Keine festen Farben in Komponenten oder Stilen** (Hex/rgba nur für Dinge, die in beiden Darstellungen gleich bleiben, z. B. dunkle Video-Felder): Es gibt einen Nachtmodus (`data-theme="dark"` am `<html>`, `src/lib/darstellung.ts`), der nur über die Tokens mitwechselt.

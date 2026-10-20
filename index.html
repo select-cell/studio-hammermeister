@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#FAF8F3" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Darstellung (hell/dunkel/automatisch) vor dem ersten Bild setzen, damit nichts hell aufblitzt.
+      // Dieselbe Regel wie src/lib/darstellung.ts; ohne Speicher oder Skript bleibt es hell.
+      try {
+        var wahl = localStorage.getItem('hm-darstellung')
+        var dunkel = wahl === 'dunkel' || (wahl !== 'hell' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dunkel ? 'dark' : 'light'
+        if (dunkel) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#15110C')
+      } catch (e) {}
+    </script>
     <title>Hammermeister</title>
     <link
       rel="icon"

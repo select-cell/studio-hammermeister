@@ -33,7 +33,7 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 ## Supabase-Projekt
 
-Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `008`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`) und 006 in zwei Teilen (`006a`, `006b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und die Migrationen `001` bis `009`. Das Supabase-Werkzeug hat 001 in drei Teilen (`001a`–`001c`), 005 in zwei Teilen (`005a`, `005b`), 006 in zwei Teilen (`006a`, `006b`) und 008 mit einer Nachbesserung (`008b`) eingespielt; der Inhalt ist identisch mit den Dateien (per Fingerabdruck geprüft). **`010` ist noch nicht eingespielt:** Das Werkzeug wartet bei Anweisungen mit `delete` auf eine Bestätigung und bricht dann ab. Die Datei einmal im SQL-Editor ausführen (siehe „Testzugang und Testdaten“). Der Salon Hammermeister, die 17 Verhalten mit 85 Bewertungsstufen, die sechs Teammitglieder (mit Platzhalter-Adressen) und der Admin sind angelegt.
 
 Gut zu wissen:
 - Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
@@ -53,6 +53,8 @@ Gut zu wissen:
    8. `supabase/migrations/006_auswertungen.sql`
    9. `supabase/migrations/007_login_nur_bestaetigt.sql`
    10. `supabase/migrations/008_abgabe_status.sql`
+   11. `supabase/migrations/009_teilnehmer_haben_salon.sql`
+   12. `supabase/migrations/010_testdaten_entfernen.sql`
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -167,6 +169,33 @@ update public.salons set reminder_tage_nach_frist = 5;
 
 **Zum Testen mit simuliertem Datum:** Als Verantwortlicher oder Admin `/app?heute=2026-11-04` aufrufen. Beide Funktionen (`abgabe_status`, `ueberfaellige_abgaben`) rechnen dann mit diesem Tag; ein gelber Hinweis zeigt die Testansicht an, es wird nichts verändert. Ungültige Angaben werden ignoriert, für Teammitglieder hat der Parameter keine Wirkung. Der 3.11. zeigt noch kein Popup, der 4.11. zeigt es.
 
+## Testzugang und Testdaten
+
+**Admin als Teilnehmer.** Setzt man beim Admin `nimmt_an_teamumfrage` auf `true` (Table Editor), bekommt er automatisch den Salon (Migration 009; ein Teilnehmer ohne Salon ist nicht mehr möglich). Seine Umfrage ist dann offen („Deine Umfrage für Oktober“ mit „Umfrage starten“), im Abgabe-Status steht er als „noch offen“ und wird nach der Frist wie alle anderen erinnert. Vorher meldete die Karte fälschlich „Erledigt“. Die anderen Teilnehmer bewerten den Admin dann mit, und seine Werte fließen in Teamschnitt und Rangliste ein.
+
+**Testzugang.** Aktuell angelegt: `tobischw546@gmail.com` als „Testaccount“ (Mitarbeiter, nimmt an der Umfrage teil). So geht es für einen weiteren Testzugang:
+
+1. Zeile in `personen`: `insert into public.personen (name, email, rolle, nimmt_an_teamumfrage) values ('Testaccount 2', 'adresse@beispiel.de', 'mitarbeiter', true);` (der Salon wird automatisch gesetzt)
+2. Authentication → Users → Add user → Create new user mit Passwort, „Auto Confirm User“ anhaken. Die Verknüpfung entsteht automatisch.
+
+**Testdaten wieder entfernen.** Testwerte würden sonst in Teamschnitten und Ranglisten stehen bleiben. Die Wartungsfunktion aus Migration 010 entfernt sie restlos und ist nur im SQL-Editor aufrufbar (nicht über die Plattform). Einmalig die Datei `supabase/migrations/010_testdaten_entfernen.sql` im SQL-Editor ausführen, danach:
+
+```sql
+-- Mitarbeiter-Testzugang: Daten UND Person entfernen
+select public.testdaten_entfernen('tobischw546@gmail.com');
+
+-- Admin: nur die Testdaten entfernen, die Person bleibt
+select public.testdaten_entfernen('select@voidos.de', false);
+-- und die Teilnahme wieder ausschalten, wenn gewünscht
+update public.personen set nimmt_an_teamumfrage = false where rolle = 'admin';
+```
+
+Entfernt werden die Abgaben der Person samt Bewertungen, alle Bewertungen, die andere über sie abgegeben haben, und ihre Nennungen als „Entwicklung des Monats“. Die Antwort zeigt die Anzahl. Den Login des Testzugangs danach unter Authentication → Users löschen. Verantwortliche und Admin werden nie gelöscht.
+
+## Nachtmodus
+
+Neben „Passwort ändern“ im Kopf der Seite (am Handy im Menü) schaltet ein Symbol zwischen **Automatisch** (folgt dem Gerät), **Dunkel** und **Hell** um. Die Wahl gilt nur für diesen Browser. Technisch setzt `index.html` schon vor dem ersten Bild `data-theme` am `<html>` (kein Aufblitzen in Hell), `src/styles/tokens.css` enthält die dunkle Palette. **Farben stehen nur in `tokens.css`**, nicht fest in Komponenten, damit der Nachtmodus überall mitwechselt.
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -199,7 +228,7 @@ Geprüft: Datenbank lokal (PGlite, 100 Prüfungen inkl. Vergleich mit den Views)
 
 - Bei fehlender Abgabe erscheint ab Tag 3 nach Fristende (bei Frist 31.10. also ab dem 4.11.) das Popup. Geprüft mit simuliertem Datum.
 
-Geprüft: Datenbank lokal (PGlite, 62 Prüfungen: Schwelle, Zeitzonen, mehrere Monate, Salon-Trennung, Rechte) und in der echten Datenbank (zurückgerollte Transaktion); Oberfläche im Browser gegen Antworten der echten SQL-Funktionen (Popup, Status-Karte, Testdatum, alle Rollen, Fehlerfälle, Handy-Breite). Offen: Durchspielen mit echten Abgaben.
+Geprüft: Datenbank lokal (PGlite, 68 Prüfungen: Schwelle, Zeitzonen, mehrere Monate, Salon-Trennung, Rechte) und in der echten Datenbank (zurückgerollte Transaktion); Oberfläche im Browser gegen Antworten der echten SQL-Funktionen (Popup, Status-Karte, Testdatum, alle Rollen, Fehlerfälle, Handy-Breite). Offen: Durchspielen mit echten Abgaben.
 
 ## Projektstruktur
 
@@ -209,9 +238,9 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, useLaden.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
-  components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status)
+  components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status), DarstellungSchalter
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)

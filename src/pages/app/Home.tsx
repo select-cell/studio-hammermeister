@@ -45,7 +45,8 @@ function Abgaben() {
           }}
         />
       )}
-      <StatusKarte heute={heute} ueberfaellige={ueber.daten} />
+      {/* key: Beim Wechsel des Testdatums beginnt die Karte neu (sonst bliebe ein gewählter Testmonat stehen) */}
+      <StatusKarte key={heute ?? ''} heute={heute} ueberfaellige={ueber.daten} ueberfaelligeFehler={ueber.fehler} onUeberfaelligeNeuLaden={ueber.neuLaden} />
     </>
   )
 }

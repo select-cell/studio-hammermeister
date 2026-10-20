@@ -39,14 +39,25 @@ function PersonZeile({ p }: { p: StatusPerson }) {
  * Abgabe-Status für Verantwortliche und Admin (§6): wer hat für den Monat schon abgegeben, wer ist überfällig.
  * Dauerhaft auf /app; das Popup (ReminderPopup) weist zusätzlich beim Öffnen darauf hin.
  */
-export default function StatusKarte({ heute, ueberfaellige }: { heute: string | null; ueberfaellige: Ueberfaellige | null }) {
+export default function StatusKarte({
+  heute,
+  ueberfaellige,
+  ueberfaelligeFehler = false,
+  onUeberfaelligeNeuLaden,
+}: {
+  heute: string | null
+  ueberfaellige: Ueberfaellige | null
+  /** Die Reminder-Abfrage ist fehlgeschlagen: ohne Hinweis sähe die Karte fälschlich nach „alles in Ordnung“ aus */
+  ueberfaelligeFehler?: boolean
+  onUeberfaelligeNeuLaden?: () => void
+}) {
   const [monat, setMonat] = useState<string | null>(null)
   const l = useLaden(() => ladeAbgabeStatus(monat ?? undefined, heute ?? undefined), `${monat ?? ''}|${heute ?? ''}`)
   const s = l.daten
   const eintraege = ueberfaellige?.eintraege ?? []
 
   return (
-    <section className="karte" id="abgabe-status" aria-labelledby="abgabe-status-titel" aria-busy={l.laedt}>
+    <section className="karte" id="abgabe-status" tabIndex={-1} aria-labelledby="abgabe-status-titel" aria-busy={l.laedt}>
       <div className="karte-kopf">
         <h2 className="karte-titel" id="abgabe-status-titel">
           Abgabe-Status{s?.monat ? ` ${monatName(s.monat)}` : ''}
@@ -81,6 +92,17 @@ export default function StatusKarte({ heute, ueberfaellige }: { heute: string | 
       {s && (
         <div className={l.laedt ? 'au-laedt' : undefined}>
           {l.fehler && <p className="hinweis hinweis-fehler">Der Monat konnte nicht geladen werden.</p>}
+
+          {ueberfaelligeFehler && !ueberfaellige && (
+            <p className="hinweis hinweis-fehler" role="alert">
+              Die überfälligen Abgaben konnten nicht geladen werden – es kann also etwas fehlen, das hier nicht steht.{' '}
+              {onUeberfaelligeNeuLaden && (
+                <button type="button" className="btn btn-sekundaer btn-klein" onClick={onUeberfaelligeNeuLaden}>
+                  Erneut versuchen
+                </button>
+              )}
+            </p>
+          )}
 
           {eintraege.length > 0 && (
             <div className="ab-ueberfaellig" role="status">

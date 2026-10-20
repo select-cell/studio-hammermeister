@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { SALON_NAME } from '../config'
 import { sichtbareBereiche } from '../lib/bereiche'
 import { initiale, rolleLabel } from '../lib/rechte'
+import DarstellungSchalter from './DarstellungSchalter'
 import Logo from './Logo'
 
 /** Rahmen für alles unter /app: eine Navigation für beide Merkmale (Teilnehmer + Leitung). */
@@ -49,9 +50,12 @@ export default function Layout() {
               <span className="nav-nutzer-text">
                 <strong>{person.name}</strong>
                 <small>{rolleLabel[person.rolle]}</small>
-                <NavLink to="/app/passwort" className="nav-nutzer-link" onClick={schliessen}>
-                  Passwort ändern
-                </NavLink>
+                <span className="nav-nutzer-zeile">
+                  <NavLink to="/app/passwort" className="nav-nutzer-link" onClick={schliessen}>
+                    Passwort ändern
+                  </NavLink>
+                  <DarstellungSchalter />
+                </span>
               </span>
               <button type="button" className="btn btn-sekundaer btn-klein" onClick={() => void abmelden()}>
                 Abmelden
