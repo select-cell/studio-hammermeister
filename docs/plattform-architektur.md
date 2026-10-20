@@ -53,7 +53,7 @@ Wir bauen eine Web-Plattform, auf der
 
 | Rolle | Wer | Nimmt an Teamumfrage teil | Sieht |
 |---|---|---|---|
-| `mitarbeiter` | Antonella, Jaroslaw, Behzad, Olena, Lena | Ja: Selbstbild und Fremdbild aller anderen Teilnehmer | Eigene Ergebnisse (Selbstbild, Fremdbild-Schnitt, Kommentare **ohne** Namen der Absender) und Team-Ergebnisse (nur Schnitte, keine Einzelpersonen) |
+| `mitarbeiter` | Antonella, Jaroslaw, Behzad, Olena, Lena | Ja: Selbstbild und Fremdbild aller anderen Teilnehmer | Eigene Ergebnisse (Selbstbild, Fremdbild-Schnitt, Differenz und der eigene Kommentar; **ohne** die Kommentare der Kolleg:innen, Migration 012, siehe §5.6) und Team-Ergebnisse (nur Schnitte, keine Einzelpersonen) |
 | `verantwortlicher` | Michael Hammermeister (Chef des Salons) | **Ja**, er ist bei Hammermeister **zugleich Teil des Teams**: Er bewertet und wird bewertet | Alles, was ein Teammitglied sieht (eigene Umfrage, eigene Ergebnisse), **plus** alles im Salon: Team, jedes Teammitglied im Detail inkl. Einzelbewertungen, Abgabe-Status, Reminder, später Chef- und Gästeumfrage |
 | `admin` | Plattformbetreiber | Nein | Alles (gleiche Sicht wie Verantwortlicher). Pflegt Personen und Inhalte in Supabase. |
 
@@ -492,7 +492,7 @@ Jede Phase ist für sich nutzbar und wird vor der nächsten getestet.
   3. Rangliste, Heatmap, Ansicht-Umschalter Team ↔ Person
   4. Verlauf und Monats-Detail mit Kommentaren
 - **Fertig, wenn:**
-  - Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und das Team nur als Schnitt.
+  - Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und ohne die Kommentare der Kolleg:innen, und das Team nur als Schnitt.
   - Michael sieht alles im Detail, inklusive sich selbst als Teammitglied.
   - Alle Seiten funktionieren ohne Säulen und ohne Rituale.
   - Die Zahlen stimmen mit den Views `v_selbst_vs_fremdbild` und `v_person_saeule` überein.
@@ -521,7 +521,7 @@ Vorbild ist der Jarvis aus dem alten Board, aber sicher umgebaut.
 - Frontend → Supabase Edge Function `jarvis` → n8n-Webhook → Antwort zurück.
 - Die **Webhook-URL** liegt als Secret in der Edge Function. Sie steht nicht mehr im Browser und ist nicht mehr per Zahnrad einstellbar.
 - Die Edge Function baut den **Kontext** serverseitig aus den Ergebnis-Funktionen, mit der Session des Nutzers. Jarvis bekommt dadurch ausschließlich, was die Person ohnehin sehen darf:
-  - **Teammitglied (auch Michael für sich selbst):** nur eigene Ergebnisse (SB, FB, Differenz, Top/Flop 5, Verlauf, Kommentare ohne Absender, Ausfülldauer) plus Team-Schnitte
+  - **Teammitglied (auch Michael für sich selbst):** nur eigene Ergebnisse (SB, FB, Differenz, Top/Flop 5, Verlauf, eigener Kommentar, Ausfülldauer; die Kommentare der Kolleg:innen nur bei Rolle Verantwortlicher/Admin, so liefert es `meine_ergebnisse`) plus Team-Schnitte
   - **Verantwortlicher / Admin:** der volle Kontext wie im alten Board, mit `meta` (Skala, Datenstart, Verhaltens-Liste), `overview` (Monat, Rangliste, Team-Schnitte, Ausfülldauern), `personSummaries` (je Person SB/FB/Differenz, alle Verhalten, Top/Flop 5) und `personDetail` (je Monat Schnitt, Einzelwerte, Kommentare)
   - zusätzlich die aktuelle Ansicht (welche Seite, welche Person, welcher Monat), damit Jarvis weiß, worüber gerade gesprochen wird
 - Format an n8n wie bisher: `{ message, context }`. Antwort aus `output` / `message` / `text`. Der bestehende n8n-Workflow kann so weiterverwendet werden.

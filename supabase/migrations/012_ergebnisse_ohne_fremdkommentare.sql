@@ -101,5 +101,12 @@ grant execute on function public.meine_ergebnisse(date, date) to authenticated;
 
 -- 3. Die strengere Funktion aus 011 wird nicht mehr verwendet ──────────────────
 
-comment on function public.auswertung_selbstbild(uuid, date, date) is
-  'Nicht mehr verwendet (seit Migration 012 ruft meine_ergebnisse sie nicht mehr auf). Für alle Nutzer gesperrt; kann entfernt werden.';
+-- Nur wenn es sie noch gibt: Wurde sie schon entfernt, läuft 012 trotzdem sauber ein zweites Mal.
+do $$
+begin
+  if to_regprocedure('public.auswertung_selbstbild(uuid,date,date)') is not null then
+    comment on function public.auswertung_selbstbild(uuid, date, date) is
+      'Nicht mehr verwendet (seit Migration 012 ruft meine_ergebnisse sie nicht mehr auf). Für alle Nutzer gesperrt; kann entfernt werden.';
+  end if;
+end;
+$$;

@@ -52,7 +52,7 @@ export default function MonatsDetail({
           <p className="text-gedimmt text-klein">
             {ohneFremdkommentare
               ? mitKommentar === 0
-                ? 'In diesem Monat hast du keine Kommentare geschrieben.'
+                ? 'In diesem Monat gibt es keinen Kommentar von dir zu deinem Selbstbild.'
                 : `${mitKommentar} von ${verhalten.length} Verhalten mit deinem Kommentar.`
               : mitKommentar === 0
                 ? 'In diesem Monat gibt es keine Kommentare.'

@@ -222,7 +222,7 @@ Beides ist gegen die echte Datenbank und im Browser geprüft (mit simuliertem Lo
 
 ## Fertig, wenn (Phase 3)
 
-- Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und das Team nur als Schnitt.
+- Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und ohne die Kommentare der Kolleg:innen, und das Team nur als Schnitt.
 - Michael sieht alles im Detail, inklusive sich selbst als Teammitglied (als Verantwortlicher).
 - Alle Seiten funktionieren ohne Säulen und ohne Rituale.
 - Die Zahlen stimmen mit den Views `v_selbst_vs_fremdbild` und `v_person_saeule` überein.

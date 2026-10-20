@@ -94,7 +94,6 @@ export default function VerhaltenSeite(p: Props) {
       )}
 
       <div className="um-verhalten-kopf">
-        <div className="um-verhalten-nr">Verhalten {v.nr}</div>
         <h2 className="um-verhalten-titel">{v.titel}</h2>
       </div>
 
