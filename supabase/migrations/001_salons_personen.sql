@@ -89,8 +89,7 @@ begin
 end;
 $$;
 
-drop trigger if exists personen_vorbereiten on public.personen;
-create trigger personen_vorbereiten
+create or replace trigger personen_vorbereiten
   before insert or update of email, name, auth_user_id on public.personen
   for each row execute function public.personen_vorbereiten();
 
@@ -110,8 +109,7 @@ begin
 end;
 $$;
 
-drop trigger if exists auth_nutzer_verknuepfen on auth.users;
-create trigger auth_nutzer_verknuepfen
+create or replace trigger auth_nutzer_verknuepfen
   after insert or update of email on auth.users
   for each row execute function public.auth_nutzer_verknuepfen();
 
@@ -172,23 +170,32 @@ alter table public.personen enable row level security;
 revoke all on public.salons, public.personen from anon, authenticated;
 grant select on public.salons, public.personen to authenticated;
 
--- salons: den eigenen Salon lesen (Admin: alle)
-drop policy if exists salons_lesen on public.salons;
-create policy salons_lesen on public.salons
-  for select to authenticated
-  using (id = public.mein_salon_id() or public.ist_admin());
+-- Policies ohne DROP anlegen: so bleibt die Datei mehrfach ausführbar und läuft auch über das
+-- Supabase-Werkzeug, das bei DROP-Anweisungen auf eine Bestätigung wartet. Spätere Änderungen
+-- an einer Policy kommen als eigene Migration (alter policy ...).
+do $$
+begin
+  -- salons: den eigenen Salon lesen (Admin: alle)
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'salons' and policyname = 'salons_lesen') then
+    create policy salons_lesen on public.salons
+      for select to authenticated
+      using (id = public.mein_salon_id() or public.ist_admin());
+  end if;
 
--- personen: die eigene Zeile lesen
-drop policy if exists personen_eigene_lesen on public.personen;
-create policy personen_eigene_lesen on public.personen
-  for select to authenticated
-  using (auth_user_id = (select auth.uid()));
+  -- personen: die eigene Zeile lesen
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'personen' and policyname = 'personen_eigene_lesen') then
+    create policy personen_eigene_lesen on public.personen
+      for select to authenticated
+      using (auth_user_id = (select auth.uid()));
+  end if;
 
--- personen: Verantwortliche und Admin lesen alle Personen des eigenen Salons (Admin: alle)
-drop policy if exists personen_salon_lesen on public.personen;
-create policy personen_salon_lesen on public.personen
-  for select to authenticated
-  using (public.ist_admin() or (public.ist_leitung() and salon_id = public.mein_salon_id()));
+  -- personen: Verantwortliche und Admin lesen alle Personen des eigenen Salons (Admin: alle)
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'personen' and policyname = 'personen_salon_lesen') then
+    create policy personen_salon_lesen on public.personen
+      for select to authenticated
+      using (public.ist_admin() or (public.ist_leitung() and salon_id = public.mein_salon_id()));
+  end if;
+end $$;
 
 
 -- 5. ich(): die eigene Person fürs Frontend ──────────────────────────────────

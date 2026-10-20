@@ -10,7 +10,7 @@ Web-Plattform für das Team von Studio Hammermeister: Alle Teammitglieder loggen
 
 | Phase | Inhalt | Stand |
 |---|---|---|
-| 1 | Fundament: Login per Magic Link, Rollen, Begrüßungsbereiche, Platzhalter | gebaut, siehe „Fertig, wenn“ unten |
+| 1 | Fundament: Login per Magic Link, Rollen, Begrüßungsbereiche, Platzhalter | Frontend und Datenbank gebaut, getestet und eingespielt. Offen: Auth-Einstellungen, E-Mail-Versand, Personen (siehe „Fertig, wenn“) |
 | 2 | Monatsumfrage in der Plattform | offen |
 | 3 | Auswertungen | offen |
 | 4 | Abgabe-Status & Reminder | offen |
@@ -31,7 +31,16 @@ Weitere Befehle: `npm run build` (Typprüfung + Produktions-Build nach `dist/`),
 
 **`.env`:** `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` aus Supabase → Project Settings → API. Der `service_role`-Key gehört **nie** ins Frontend, in die `.env` oder in dieses Repo.
 
-## Supabase einrichten (neues, eigenes Projekt)
+## Supabase-Projekt
+
+Die Datenbank liegt im Projekt **„select-cell's Project“** (Ref `obsakxdjfpaoajwsteiv`, `https://obsakxdjfpaoajwsteiv.supabase.co`). Eingespielt sind `umfrage_schema.sql`, `ausfuelldauer.sql` und `001_salons_personen.sql` (dort in drei Teilen als `001a`–`001c`; der Inhalt ist identisch mit der Datei). Der Salon Hammermeister existiert, es gibt noch keine Personen.
+
+Gut zu wissen:
+- Das Projekt war vorher ein CRM-Projekt. Übrig sind die beiden Funktionen `set_updated_at` und `log_stage_change`; die Plattform braucht sie nicht.
+- Die Auth-Einstellungen (Sign-ups, Site URL, SMTP, Vorlagen) gelten für das ganze Projekt. Im Projekt existiert bereits ein Login. Er ist keiner Person zugeordnet und kommt in der Plattform nicht über „Dein Zugang ist noch nicht freigeschaltet“ hinaus, solange er nicht als Person angelegt wird.
+- Das Projekt „Plattform Salon Dawiid“ ist eine andere Instanz und wird nicht angefasst.
+
+## Supabase einrichten (neues Projekt, Schritt für Schritt)
 
 1. Im SQL-Editor nacheinander ausführen:
    1. `supabase/umfrage_schema.sql`

@@ -6,6 +6,13 @@ Bauanleitung: `docs/plattform-architektur.md` (maßgeblich für Rollen, Datenmod
 
 - `npm run dev` · `npm run build` (Typprüfung + Build) · `npm run typecheck` · `npm test`
 
+## Supabase
+
+- **Die Datenbank dieser Plattform** ist das Projekt „select-cell's Project“, Ref `obsakxdjfpaoajwsteiv`. Das Projekt „Plattform Salon Dawiid“ (`hgtvlcucxzksvmvgvbgo`) ist eine andere Instanz und wird nie angefasst.
+- Das Supabase-Werkzeug (MCP) wartet bei `DROP …`-Anweisungen (auch `drop trigger/policy if exists`) auf eine Bestätigung und läuft dann nach 60 s in ein Zeitlimit. Migrationen deshalb ohne `DROP` schreiben: `create or replace`, `if not exists`, Policies über `alter policy` oder ein `do`-Block mit `pg_policies`-Prüfung. Zeitlimit heißt nicht „kaputt“: erst den Zustand prüfen, dann in kleineren Teilen wiederholen.
+- Diese Sandbox erreicht `*.supabase.co` nicht (Netzwerkregel, 403). Datenbank-Prüfungen laufen deshalb über das Werkzeug. Für Tests mit Daten am Ende einer Anweisung `raise exception` auslösen: das rollt alles zurück.
+- Rohdaten-Tabellen (`umfrage_*`) und Ansichten (`v_*`) sind für `anon` und `authenticated` gesperrt.
+
 ## Regeln
 
 - Sprache der Oberfläche, Kommentare und Commit-Texte: Deutsch (Du-Form, Salon-Ton). Bezeichner im Code folgen dem vorhandenen deutschen Stil (`istLeitung`, `personStatus`).
