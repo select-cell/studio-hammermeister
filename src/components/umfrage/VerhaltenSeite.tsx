@@ -1,4 +1,4 @@
-import { useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { initiale } from '../../lib/rechte'
 import {
   PFLICHT_AB,
@@ -15,6 +15,7 @@ import {
   type Ziel,
 } from '../../lib/umfrage'
 import BewertungsDialog from './BewertungsDialog'
+import { scrollArt } from './markiere'
 import VideoBox from './VideoBox'
 
 interface Props {
@@ -50,7 +51,7 @@ const reiheId = (z: Ziel) => (z.art === 'selbst' ? 'um-sb-reihe' : `um-fb-reihe-
 function fokussiereReihe(z: Ziel): void {
   const knopf = document.getElementById(reiheId(z))?.querySelector<HTMLButtonElement>('button:not(:disabled)')
   if (!knopf) return
-  knopf.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  knopf.scrollIntoView({ behavior: scrollArt(), block: 'center' })
   knopf.focus({ preventScroll: true })
 }
 
@@ -79,7 +80,14 @@ export default function VerhaltenSeite(p: Props) {
   const sbFest = istBestaetigt(sb)
   const [auswahl, setAuswahl] = useState<{ ziel: Ziel; wert: number } | null>(null)
   const ausloeser = useRef<HTMLElement | null>(null)
+  const titel = useRef<HTMLHeadingElement>(null)
   const absendenGesperrt = p.istLetzte && !p.alleFertig
+
+  // Bei jeder neuen Seite (auch nach dem automatischen Weiterspringen) steht der Fokus auf dem Titel:
+  // Tastatur und Screenreader beginnen oben und hören, welches Verhalten jetzt dran ist.
+  useEffect(() => {
+    titel.current?.focus({ preventScroll: true })
+  }, [])
 
   const oeffne = (e: MouseEvent<HTMLButtonElement>, ziel: Ziel, wert: number) => {
     ausloeser.current = e.currentTarget
@@ -122,7 +130,9 @@ export default function VerhaltenSeite(p: Props) {
       )}
 
       <div className="um-verhalten-kopf">
-        <h2 className="um-verhalten-titel">{v.titel}</h2>
+        <h2 ref={titel} tabIndex={-1} className="um-verhalten-titel">
+          {v.titel}
+        </h2>
       </div>
 
       <VideoBox
@@ -157,11 +167,16 @@ export default function VerhaltenSeite(p: Props) {
                 type="button"
                 disabled={gesperrt || sbFest}
                 aria-pressed={sb.note === i}
+                aria-label={`${i} ${stufenName(v.kriterien, i)}`}
                 className={`um-rbtn${klasse(sb.note === i, i)}`}
                 onClick={(e) => oeffne(e, { art: 'selbst' }, i)}
               >
-                <span className="um-rnum">{i}</span>
-                <span className="um-rlbl">{mitTrennstellen(stufenName(v.kriterien, i))}</span>
+                <span className="um-rnum" aria-hidden="true">
+                  {i}
+                </span>
+                <span className="um-rlbl" aria-hidden="true">
+                  {mitTrennstellen(stufenName(v.kriterien, i))}
+                </span>
               </button>
             ))}
           </div>
@@ -176,7 +191,7 @@ export default function VerhaltenSeite(p: Props) {
             <span className="um-pill-punkt" />
             Fremdbild
           </div>
-          <div className="um-fb" id="um-fb-bereich">
+          <div className="um-fb">
             {p.kollegen.map((k) => {
               const f = fremdVon(antworten, v.nr, k.id)
               const fest = istBestaetigt(f)
@@ -196,11 +211,16 @@ export default function VerhaltenSeite(p: Props) {
                           type="button"
                           disabled={gesperrt || fest}
                           aria-pressed={f.note === i}
+                          aria-label={`${i} ${stufenName(v.kriterien, i)}`}
                           className={`um-fb-btn${klasse(f.note === i, i)}`}
                           onClick={(e) => oeffne(e, { art: 'fremd', kollegeId: k.id }, i)}
                         >
-                          <span className="um-fb-num">{i}</span>
-                          <span className="um-fb-lbl">{mitTrennstellen(stufenName(v.kriterien, i))}</span>
+                          <span className="um-fb-num" aria-hidden="true">
+                            {i}
+                          </span>
+                          <span className="um-fb-lbl" aria-hidden="true">
+                            {mitTrennstellen(stufenName(v.kriterien, i))}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -233,7 +253,7 @@ export default function VerhaltenSeite(p: Props) {
       )}
 
       {p.istLetzte && p.luecke && (
-        <div className="um-luecke" id="um-luecke" role="alert">
+        <div className="um-luecke" id="um-luecke" role="alert" tabIndex={-1}>
           <span>{p.luecke.text}</span>
           <button type="button" className="btn btn-sekundaer btn-klein" onClick={p.luecke.onGehe}>
             Dorthin

@@ -1,5 +1,6 @@
 // Typen und reine Logik der Monatsumfrage: Validierung, Payload, Zwischenstand, Video-Quelle.
-// Fachlich 1:1 wie referenz/umfrage-hammermeister.html, nur ohne Namensauswahl (der Feedbackgeber ist der Login).
+// Fachlich wie referenz/umfrage-hammermeister.html, nur ohne Namensauswahl (der Feedbackgeber ist der Login)
+// und mit „Locked In“: Jede Bewertung zählt erst nach der Bestätigung im Popup und ist danach gesperrt.
 
 export const PFLICHT_AB = 4 // ab dieser Bewertung ist ein Kommentar Pflicht
 export const UMFRAGE_VERSION = 'plattform-1'
@@ -315,10 +316,12 @@ export interface Entwurf {
 
 export const entwurfSchluessel = (nutzerId: string, monat: string): string => `hammermeister-umfrage:${nutzerId}:${monat}`
 
-function istEntwurf(x: unknown): x is Entwurf {
+type EntwurfRoh = Omit<Entwurf, 'v'> & { v: number }
+
+function istEntwurf(x: unknown): x is EntwurfRoh {
   if (!x || typeof x !== 'object') return false
-  const e = x as Partial<Entwurf>
-  return e.v === 2 && typeof e.gestartetAm === 'string' && !!e.schritt && typeof e.schritt.art === 'string' && !!e.antworten && typeof e.antworten === 'object'
+  const e = x as Partial<EntwurfRoh>
+  return typeof e.v === 'number' && typeof e.gestartetAm === 'string' && !!e.schritt && typeof e.schritt.art === 'string' && !!e.antworten && typeof e.antworten === 'object'
 }
 
 export function ladeEntwurf(schluessel: string): Entwurf | null {
@@ -326,7 +329,12 @@ export function ladeEntwurf(schluessel: string): Entwurf | null {
     const roh = window.localStorage.getItem(schluessel)
     if (!roh) return null
     const e: unknown = JSON.parse(roh)
-    return istEntwurf(e) ? e : null
+    if (!istEntwurf(e)) return null
+    if (e.v === 2) return e as Entwurf
+    // Version 1 (vor „Locked In“): Entwicklung, Rituale, „Video gesehen“ und Startzeit bleiben erhalten.
+    // Die damaligen Bewertungen waren nie bestätigt und müssen noch einmal bestätigt werden.
+    if (e.v === 1) return { v: 2, gestartetAm: e.gestartetAm, schritt: e.schritt, antworten: { ...e.antworten, selbst: {}, fremd: {} } }
+    return null
   } catch {
     return null
   }
@@ -382,8 +390,12 @@ export function bereinigeEntwurf(e: Entwurf, inhalt: UmfrageInhalt): Entwurf {
     videoGesehen: Object.fromEntries(Object.entries(a.videoGesehen ?? {}).filter(([k]) => nrs.has(Number(k)))),
   }
 
-  let schritt = e.schritt
-  if (schritt.art === 'ritual' && schritt.index >= inhalt.rituale.length) schritt = { art: 'entwicklung' }
-  if (schritt.art === 'verhalten' && schritt.index >= inhalt.verhalten.length) schritt = { art: 'entwicklung' }
+  // Nur ein Schritt, den es wirklich gibt; alles andere (auch von Hand veränderte Werte) beginnt bei der Entwicklungsfrage
+  const gueltig = (i: unknown, n: number) => typeof i === 'number' && Number.isInteger(i) && i >= 0 && i < n
+  const s = e.schritt as { art: string; index?: unknown }
+  let schritt: Schritt = { art: 'entwicklung' }
+  if (s.art === 'front' || s.art === 'entwicklung') schritt = { art: s.art }
+  else if (s.art === 'ritual' && gueltig(s.index, inhalt.rituale.length)) schritt = { art: 'ritual', index: s.index as number }
+  else if (s.art === 'verhalten' && gueltig(s.index, inhalt.verhalten.length)) schritt = { art: 'verhalten', index: s.index as number }
   return { ...e, schritt, antworten }
 }

@@ -22,7 +22,7 @@ export interface VerhaltenWert {
   anzahl_fremdbilder: number
   sb_kommentar: string | null
   kommentare: Kommentar[]
-  /** alle Einzelnoten mit Absender; null, wenn die Absender nicht sichtbar sind */
+  /** alle Einzelbewertungen mit Absender; null, wenn die Absender nicht sichtbar sind */
   fremdbilder: { von: string; note: number }[] | null
 }
 

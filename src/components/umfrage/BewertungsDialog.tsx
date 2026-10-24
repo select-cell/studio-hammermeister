@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from 'react'
 import { kommentarPflicht, stufenName, type Kriterium } from '../../lib/umfrage'
 
+/** So lange nach dem Öffnen ignoriert das Popup Klicks und Eingaben auf seine Knöpfe: Ein Doppeltipp auf die Zahl soll nicht gleich „Locked In“ auslösen. */
+const SCHUTZZEIT_MS = 350
+
 interface Props {
   /** „Selbstbild“ oder „Fremdbild“ */
   art: 'Selbstbild' | 'Fremdbild'
@@ -27,6 +30,7 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
   const feld = useRef<HTMLTextAreaElement>(null)
   const knopf = useRef<HTMLButtonElement>(null)
   const mausAmRand = useRef(false)
+  const geoeffnetUm = useRef(0)
   const [kommentar, setKommentar] = useState('')
 
   const pflicht = kommentarPflicht(wert)
@@ -35,7 +39,10 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
   const name = stufenName(kriterien, wert)
   const hatText = !!k && (!!k.leitsatz || k.punkte.length > 0)
 
+  const zuFruh = () => performance.now() - geoeffnetUm.current < SCHUTZZEIT_MS
+
   useEffect(() => {
+    geoeffnetUm.current = performance.now()
     const d = dialog.current
     if (d && !d.open) d.showModal()
     // Anfangsfokus: bei Kommentarpflicht ins Feld, sonst auf „Locked In“
@@ -69,16 +76,20 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
 
   const absenden = (e: FormEvent) => {
     e.preventDefault()
-    if (frei) onLockedIn(kommentar.trim())
+    if (frei && !zuFruh()) onLockedIn(kommentar.trim())
   }
 
-  // Klick auf den abgedunkelten Rand bricht ab. Nur, wenn auch das Drücken dort begann:
-  // Wer im Textfeld Text markiert und außerhalb loslässt, soll seinen Kommentar nicht verlieren.
+  const abbrechen = () => {
+    if (!zuFruh()) onAbbrechen()
+  }
+
+  // Klick auf den abgedunkelten Rand bricht ab. Nur, wenn auch das Drücken dort begann (wer im Textfeld Text
+  // markiert und außerhalb loslässt, soll nichts verlieren) und solange noch kein Kommentar getippt ist.
   const maus = (e: MouseEvent<HTMLDialogElement>) => {
     mausAmRand.current = e.target === dialog.current
   }
   const klick = (e: MouseEvent<HTMLDialogElement>) => {
-    if (mausAmRand.current && e.target === dialog.current) onAbbrechen()
+    if (mausAmRand.current && e.target === dialog.current && kommentar.trim() === '') abbrechen()
     mausAmRand.current = false
   }
 
@@ -86,7 +97,7 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
     <dialog
       ref={dialog}
       className="um-dialog"
-      aria-labelledby="um-dialog-titel"
+      aria-labelledby="um-dialog-art um-dialog-titel"
       aria-describedby="um-dialog-hinweis"
       onCancel={(e) => {
         e.preventDefault() // Esc: selbst abbrechen, damit nichts anderes passiert
@@ -102,7 +113,7 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
             {wert}
           </span>
           <div className="um-dialog-wer">
-            <div className="um-dialog-art">
+            <div id="um-dialog-art" className="um-dialog-art">
               {art} · {person}
             </div>
             <div className="um-dialog-frage">{frage}</div>
@@ -136,6 +147,7 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
             id="um-dialog-ta"
             ref={feld}
             className="um-ta"
+            aria-required={pflicht}
             placeholder={pflicht ? 'Bitte konkret beschreiben…' : 'Zusätzliche Anmerkungen…'}
             value={kommentar}
             onChange={(e) => setKommentar(e.target.value)}
@@ -147,7 +159,7 @@ export default function BewertungsDialog({ art, person, frage, wert, kriterien, 
         </p>
 
         <div className="um-dialog-knoepfe">
-          <button type="button" className="btn btn-sekundaer" onClick={onAbbrechen}>
+          <button type="button" className="btn btn-sekundaer" onClick={abbrechen}>
             Abbrechen
           </button>
           <button type="submit" ref={knopf} className="btn btn-primaer" disabled={!frei}>

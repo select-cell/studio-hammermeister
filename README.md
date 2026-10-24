@@ -124,7 +124,7 @@ Die Monatsauswahl steht oben auf jeder Seite. Voreingestellt ist der **neueste M
 
 **Mitarbeiter sehen die Kommentare der Kollegen nicht (Migration 012).** In „Meine Ergebnisse“ bleibt für Mitarbeiter alles wie bisher: Selbstbild, Ø Fremdbild, Differenz, Top/Flop, Detailtabelle, Verlauf, Rituale, Ausfülldauer und der eigene Kommentar. Nur die Kommentare, die einzelne Kollegen über sie geschrieben haben, fehlen. Die Kommentare (und mit dem Schalter unten die Absender) sehen nur Verantwortliche und Admin, auch bei sich selbst. Das entscheidet die Datenbank: `meine_ergebnisse()` leert für Mitarbeiter über `ohne_fremdkommentare()` die Listen `kommentare` und `fremdbilder` und setzt `ohne_fremdkommentare: true`; die Oberfläche nennt dann den Grund. Wer zum Verantwortlichen wird, sieht ab dem nächsten Laden alles, wer zurückgestuft wird, nur noch die eigene Sicht. Die Seite „Team“ bleibt unverändert (Team-Schnitte, keine Kommentare). Migration 011 (`auswertung_selbstbild`) war die erste, strengere Fassung und wird nicht mehr verwendet; sie kann im SQL-Editor mit `drop function public.auswertung_selbstbild(uuid, date, date);` entfernt werden.
 
-**Wer sieht die Absender der Kommentare und Einzelnoten?** Das entscheidet nur die Datenbank (`absender_sichtbar_fuer()`), das Frontend zeigt Namen nur, wenn die Antwort sie enthält:
+**Wer sieht die Absender der Kommentare und Einzelbewertungen?** Das entscheidet nur die Datenbank (`absender_sichtbar_fuer()`), das Frontend zeigt Namen nur, wenn die Antwort sie enthält:
 
 | Rolle | Absender |
 |---|---|

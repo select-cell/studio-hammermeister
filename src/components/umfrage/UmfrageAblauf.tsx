@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { umfrageEinreichen } from '../../lib/api'
 import { SALON_NAME } from '../../config'
 import { monatName } from '../../lib/monat'
@@ -31,7 +31,7 @@ import EntwicklungSeite from './EntwicklungSeite'
 import Fortschritt from './Fortschritt'
 import Frontblatt from './Frontblatt'
 import Kontext from './Kontext'
-import { fokussiere, markiere } from './markiere'
+import { fokussiere, markiere, scrollArt } from './markiere'
 import RitualSeite from './RitualSeite'
 import VerhaltenSeite from './VerhaltenSeite'
 import Zusammenfassung from './Zusammenfassung'
@@ -68,6 +68,10 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   const [ergebnis, setErgebnis] = useState<Ergebnis | null>(null)
   const [neuFrage, setNeuFrage] = useState(false)
 
+  // Der Schritt von jetzt, auch für verzögerte Aufrufe (nach „Locked In“ springt die Seite erst nach dem Speichern weiter)
+  const schrittJetzt = useRef(schritt)
+  schrittJetzt.current = schritt
+
   const gesamt = gesamtSchritte(inhalt)
   const rituale = inhalt.rituale
   const verhalten = inhalt.verhalten
@@ -80,7 +84,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
 
   // Bei jedem Seitenwechsel nach oben
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: scrollArt() })
   }, [schritt, ergebnis])
 
   const geheZu = (s: Schritt) => {
@@ -145,6 +149,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
     // Letzte Seite: abgesendet wird erst, wenn die ganze Umfrage vollständig ist
     if (umfrageLuecke(inhalt, antworten)) {
       markiere('um-luecke')
+      document.getElementById('um-luecke')?.focus({ preventScroll: true })
       return
     }
     void absenden()
@@ -153,8 +158,16 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   // Alle Felder einer Seite sind bestätigt (nach dem letzten „Locked In“): von selbst zur nächsten Seite.
   // Nach der allerletzten Bewertung wird nicht automatisch gesendet: Der Fokus geht auf „Absenden“.
   function seiteFertig(index: number) {
+    const jetzt = schrittJetzt.current
+    if (jetzt.art !== 'verhalten' || jetzt.index !== index) return // inzwischen woanders: nicht mehr springen
     if (index < verhalten.length - 1) geheZu({ art: 'verhalten', index: index + 1 })
     else fokussiere('um-absenden')
+  }
+
+  // Eine gehaltene Enter-Taste wiederholt sich und würde sonst Knopf für Knopf weiterklicken (Locked In, ganz am Ende sogar Absenden).
+  // Wiederholungen von Enter auf Knöpfen werden verworfen: Jede Bestätigung braucht einen eigenen Tastendruck.
+  const wiederholung = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.repeat && e.key === 'Enter' && e.target instanceof HTMLButtonElement) e.preventDefault()
   }
 
   async function absenden() {
@@ -226,7 +239,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
           : ''
 
   return (
-    <div className="um">
+    <div className="um" onKeyDownCapture={wiederholung}>
       <Fortschritt schritt={schrittNummer(schritt, inhalt)} gesamt={gesamt} />
 
       {wiederhergestellt && schritt.art !== 'front' && (

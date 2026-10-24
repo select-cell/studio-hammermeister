@@ -145,10 +145,6 @@
   background: var(--white);
 }
 
-.um-ta.err {
-  border-color: var(--red-v);
-}
-
 .um-nav {
   display: flex;
   align-items: center;
@@ -159,10 +155,6 @@
 
 .um-nav .btn-primaer {
   flex: 1;
-}
-
-.um-nav-ende {
-  flex: 0 1 auto;
 }
 
 /* Entwicklung des Monats */
@@ -257,6 +249,10 @@
 .um-verhalten-kopf {
   margin: 0 0 0.8rem;
   padding: 0 0.15rem;
+}
+
+.um-verhalten-titel:focus {
+  outline: none;
 }
 
 .um-verhalten-titel {
@@ -471,24 +467,21 @@
   background: rgba(26, 18, 8, 0.5);
 }
 
-/* Die Beschreibung der Stufe scrollt, wenn der Platz knapp wird; Kopf, Kommentar und Knöpfe bleiben sichtbar. */
+/* Reicht der Platz nicht (kleine Handys, Querformat, Zoom), scrollt das ganze Blatt: Die Beschreibung der Stufe
+   wird nie abgeschnitten, und die Knöpfe bleiben unten stehen. */
 .um-dialog-innen {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  padding: 1.25rem 1.3rem 1.15rem;
+  padding: 1.25rem 1.3rem 0;
   max-height: calc(100vh - 2rem);
   max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .um-dialog-innen > * {
   flex-shrink: 0;
-}
-
-.um-dialog-innen > .um-dialog-stufe {
-  flex-shrink: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .um-dialog-kopf {
@@ -504,16 +497,18 @@
 .um-dialog-art {
   font-size: 10.5px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--text2);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   margin-bottom: 2px;
+  overflow-wrap: anywhere;
 }
 
 .um-dialog-frage {
   font-size: 13px;
   color: var(--text2);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .um-dialog-titel {
@@ -573,6 +568,11 @@
 .um-dialog-knoepfe {
   display: flex;
   gap: 8px;
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem 0 1.15rem;
+  background: var(--white);
+  border-top: 1px solid var(--border);
 }
 
 .um-dialog-knoepfe .btn-primaer {
@@ -591,7 +591,31 @@
   .um-dialog-innen {
     max-height: 92vh;
     max-height: 92dvh;
+  }
+  .um-dialog-knoepfe {
     padding-bottom: calc(1.15rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Niedrige Fenster (Querformat, Zoom): enger setzen, damit mehr vom Text zu sehen ist */
+@media (max-height: 560px) {
+  .um-dialog-innen {
+    gap: 0.6rem;
+    padding-top: 0.9rem;
+  }
+  .um-dialog-titel {
+    font-size: 18px;
+  }
+  .um-dialog .um-ta {
+    min-height: 60px;
+  }
+  .um-dialog-hinweis {
+    font-size: 11.5px;
+    padding: 0.4rem 0.6rem;
+  }
+  .um-dialog-knoepfe {
+    padding-top: 0.55rem;
+    padding-bottom: 0.8rem;
   }
 }
 
@@ -759,13 +783,13 @@
 
 .um-rlbl {
   font-size: 9px;
-  color: var(--muted);
+  color: var(--text2);
   text-align: center;
   line-height: 1.25;
 }
 
 @media (max-width: 480px) {
-  .um-rlbl { font-size: 8px; }
+  .um-rlbl { font-size: 8.5px; }
   .um-rbtn { padding: 0.6rem 0.15rem; }
   .um-bkarte { padding: 1.2rem 1.1rem; }
 }
@@ -816,6 +840,8 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .um-fb-reihe {
@@ -858,7 +884,7 @@
   font-family: var(--font-text);
   font-size: 8.5px;
   line-height: 1.15;
-  color: var(--muted);
+  color: var(--text2);
   text-align: center;
   hyphens: manual; /* umgebrochen wird nur an den Trennstellen aus mitTrennstellen() */
 }
@@ -867,7 +893,6 @@
 @media (max-width: 480px) {
   .um-fb { padding: 0.8rem 0.7rem; }
   .um-fb-reihe { gap: 4px; }
-  .um-fb-lbl { font-size: 8px; }
 }
 
 .um-fb-btn.rl {
@@ -933,11 +958,7 @@
   padding: 0.4rem 0.65rem;
 }
 
-/* Kommentar */
-.um-kommentar {
-  animation: um-einblenden 0.2s ease;
-}
-
+/* Kommentarfeld im Bewertungs-Popup */
 .um-kommentar-label {
   font-size: 11px;
   color: var(--text2);

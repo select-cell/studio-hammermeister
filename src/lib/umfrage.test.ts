@@ -368,17 +368,42 @@ describe('Zwischenstand bereinigen', () => {
     expect(b.fremd[fremdKey(1, 'k1')]).toBeUndefined()
     expect(b.fremd[fremdKey(1, 'k2')]).toEqual({ note: 5, kommentar: 'ok' })
   })
-  it('ein Zwischenstand aus der Zeit vor „Locked In“ (Version 1) wird nicht übernommen', () => {
-    const alt = JSON.stringify({ v: 1, gestartetAm: 'x', schritt: { art: 'entwicklung' }, antworten: vollstaendig() })
+  it('ein Zwischenstand aus der Zeit vor „Locked In“ (Version 1) bleibt erhalten, nur die nie bestätigten Bewertungen fallen weg', () => {
+    const a = vollstaendig()
+    const alt = JSON.stringify({ v: 1, gestartetAm: 'start', schritt: { art: 'verhalten', index: 1 }, antworten: a })
     const speicher = new Map<string, string>([['k', alt]])
     ;(globalThis as { window?: unknown }).window = { localStorage: { getItem: (k: string) => speicher.get(k) ?? null } }
     try {
-      expect(ladeEntwurf('k')).toBeNull()
+      const e = ladeEntwurf('k')
+      expect(e?.v).toBe(2)
+      expect(e?.gestartetAm).toBe('start')
+      expect(e?.schritt).toEqual({ art: 'verhalten', index: 1 })
+      expect(e?.antworten.entwicklungPersonId).toBe('k1')
+      expect(e?.antworten.rituale).toEqual(a.rituale)
+      expect(e?.antworten.videoGesehen).toEqual(a.videoGesehen)
+      expect(e?.antworten.selbst).toEqual({})
+      expect(e?.antworten.fremd).toEqual({})
       speicher.set('k', JSON.stringify({ v: 2, gestartetAm: 'x', schritt: { art: 'entwicklung' }, antworten: vollstaendig() }))
-      expect(ladeEntwurf('k')?.v).toBe(2)
+      expect(ladeEntwurf('k')?.antworten.selbst[1]).toEqual({ note: 3, kommentar: '' })
+      speicher.set('k', JSON.stringify({ v: 3, gestartetAm: 'x', schritt: { art: 'entwicklung' }, antworten: vollstaendig() }))
+      expect(ladeEntwurf('k')).toBeNull()
+      speicher.set('k', 'kein json')
+      expect(ladeEntwurf('k')).toBeNull()
     } finally {
       delete (globalThis as { window?: unknown }).window
     }
+  })
+  it('ein von Hand veränderter Schritt führt nie zu einer leeren Seite', () => {
+    const mit = (schritt: unknown) => bereinigeEntwurf(entwurf(vollstaendig(), schritt as Entwurf['schritt']), inhalt).schritt
+    expect(mit({ art: 'verhalten', index: -1 })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'verhalten' })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'verhalten', index: 1.5 })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'verhalten', index: '1' })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'ritual', index: -3 })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'unbekannt' })).toEqual({ art: 'entwicklung' })
+    expect(mit({ art: 'verhalten', index: 1 })).toEqual({ art: 'verhalten', index: 1 })
+    expect(mit({ art: 'ritual', index: 0 })).toEqual({ art: 'ritual', index: 0 })
+    expect(mit({ art: 'front' })).toEqual({ art: 'front' })
   })
   it('setzt einen ungültigen Schritt auf die Entwicklungsfrage zurück', () => {
     expect(bereinigeEntwurf(entwurf(vollstaendig(), { art: 'verhalten', index: 5 }), inhalt).schritt).toEqual({ art: 'entwicklung' })
