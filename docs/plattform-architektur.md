@@ -41,8 +41,8 @@ Wir bauen eine Web-Plattform, auf der
 
 - Ablauf und Schritte
 - Video-Pflicht vor der Bewertung; der Titel des Verhaltens steht über dem Video (Anpassung vom 20.10.2026, vorher stand er über den Bewertungen)
-- aufklappbare Bewertungsstufen 1–5 mit Prozentangaben
-- Kommentarpflicht ab Note 4
+- Bewertungsstufen 1–5 mit Prozentangaben (seit 23.10.2026 nicht mehr als Aufklapp-Liste, sondern im „Locked-In“-Popup, siehe §7.3)
+- Kommentarpflicht ab Bewertung 4
 - Entwicklung des Monats
 - Rituale: Der Rahmen kann sie, Hammermeister hat aktuell keine
 - Zusammenfassung
@@ -261,7 +261,7 @@ Die heutigen Inhalte aus `CONFIG.verhalten` und `CONFIG.rituale` der Referenzdat
 **Wichtig für das Frontend:** Alle Bausteine müssen mit fehlenden Inhalten umgehen können:
 - **Ohne Säulen:** Gruppierungen und Säulen-Diagramme fallen auf „je Verhalten“ bzw. „Gesamt“ zurück.
 - **Ohne Rituale:** Der Rituale-Tab, die Rituale-Linie im Verlauf und die Rituale-Kennzahlen werden ausgeblendet.
-- **Ohne Kriterien:** Der Block mit den Bewertungsstufen wird ausgeblendet.
+- **Ohne Kriterien:** Das Popup zeigt nur die Zahl und das Kommentarfeld; die Stufennamen unter den Zahlen fallen auf die Standardnamen zurück.
 
 Sobald die Inhalte nachgereicht sind, erscheinen diese Teile automatisch. Dafür sind keine Code-Änderungen nötig.
 
@@ -309,7 +309,7 @@ Alle mit `security definer`, `set search_path = public`. Jede prüft am Anfang d
 - Der Feedbackgeber kommt aus `auth.uid()`, **nie** aus dem Payload. Dadurch kann niemand im Namen einer anderen Person abgeben.
 - `monat` muss in `meine_offenen_monate()` enthalten sein. Keine Zukunft, kein doppeltes Abgeben.
 - Bewertete Personen müssen genau die aktiven Teamumfrage-Teilnehmer sein, über ihre IDs. Dazu kommt das eigene Selbstbild.
-- Die bestehenden Prüfungen bleiben: Note 1–5, Kommentarpflicht ab Note 4, Entwicklung des Monats nicht an sich selbst.
+- Die bestehenden Prüfungen bleiben: Bewertung 1–5, Kommentarpflicht ab Bewertung 4, Entwicklung des Monats nicht an sich selbst.
 - Alles in einer Transaktion, wie bisher.
 
 **Grant:** `execute` nur an `authenticated`.
@@ -329,8 +329,8 @@ Alle mit `security definer`, `set search_path = public`. Jede prüft am Anfang d
 
 Rechenbasis für alle Auswertungen. Die Feinheiten zu Selbst- und Fremdbild folgen, sobald alle Daten da sind. Die Berechnungen deshalb an **einer** Stelle halten, also in SQL-Funktionen und nicht im Frontend.
 
-- **Selbstbild** = eigene Note je Verhalten und Monat
-- **Fremdbild** = Durchschnitt der Noten der Kollegen je Verhalten und Monat
+- **Selbstbild** = eigene Bewertung je Verhalten und Monat
+- **Fremdbild** = Durchschnitt der Bewertungen der Kollegen je Verhalten und Monat
 - **Abweichung** = Selbstbild − Fremdbild
   - positiv = man schätzt sich besser ein, als andere einen sehen
   - negativ = man unterschätzt sich
@@ -428,7 +428,15 @@ Fachlich 1:1 wie die Referenzdatei. Unterschiede:
 - Monat kommt aus der Route und wird angezeigt („Umfrage Oktober 2026“).
 - Einreichen über `umfrage_einreichen_v2`.
 - **Ausfülldauer:** Beim Öffnen der Umfrage wird der Startzeitpunkt festgehalten und mitgeschickt (`gestartet_am`). Die Funktion berechnet daraus `ausfuelldauer_sek`. Unplausible Werte (unter 1 Minute oder über 24 Stunden, z. B. Umfrage über Nacht offen) werden als `null` gespeichert und fließen nicht in die Schnitte ein.
-- Zwischenstand optional in `localStorage` sichern, damit beim versehentlichen Schließen nichts verloren geht.
+- Zwischenstand in `localStorage` sichern, damit beim versehentlichen Schließen nichts verloren geht. Er enthält nur bestätigte Bewertungen (Format Version 2; ältere Zwischenstände werden verworfen).
+- **„Locked In“ (Anpassung vom 23.10.2026, Vorlage `locked-in-uebertragung.md`):** Jede einzelne Bewertung wird bestätigt, bevor sie zählt. Der Ablauf im Browser:
+  1. Ein Klick auf eine Zahl öffnet ein Popup mit der vollständigen Beschreibung genau dieser Stufe (Überschrift „Bewertung 4 · Profi · 75–100%“, Leitsatz, alle Stichpunkte) und dem Kommentarfeld. Ab Bewertung 4 ist der Kommentar Pflicht, solange er leer ist, bleibt „Locked In“ gesperrt. Darunter ist er freiwillig. Es gibt keine Wartezeit.
+  2. Abbrechen, Esc und ein Klick neben das Popup verwerfen die Wahl, es wird nichts gespeichert.
+  3. „Locked In“ sperrt die Bewertung: Zahlen deaktiviert, gewählte Zahl hervorgehoben, Kennzeichen „Locked In“, Kommentar als Text. Das gilt auch nach „Zurück“ und nach dem Neuladen.
+  4. Danach springt die Seite zur ersten noch offenen Person (zuerst man selbst, dann die Kollegen in fester Reihenfolge), nach der letzten Person der Seite automatisch zum nächsten Verhalten. Nach der allerletzten Bewertung wird **nicht** automatisch gesendet: Der Fokus steht auf „Absenden“.
+  5. **Absenden geht erst, wenn alle Verhalten durchbewertet sind** (außerdem Entwicklung des Monats und Pflicht-Fragen der Rituale). Steht an früherer Stelle noch etwas offen, nennt ein Hinweis die Stelle und führt dorthin. Zusätzlich prüft der Server wie bisher Vollständigkeit und Kommentarpflicht.
+  - Unter den Zahlen stehen die Stufennamen (Bewusstsein, Aufbau, Stabilität, Profi, High Performer). In der ganzen Oberfläche heißt es „Bewertung“, nicht „Note“.
+  - Die Sperre gilt nur in der Oberfläche; Datenbank, Server und Absende-Format sind unverändert (die Spalte heißt weiter `note`). „Neu beginnen“ im Zwischenstand-Hinweis bleibt, fragt aber nach, weil dabei alle bestätigten Bewertungen verloren gehen.
 
 ### 7.4 Ordnerstruktur
 

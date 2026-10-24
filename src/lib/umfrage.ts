@@ -1,10 +1,10 @@
 // Typen und reine Logik der Monatsumfrage: Validierung, Payload, Zwischenstand, Video-Quelle.
 // Fachlich 1:1 wie referenz/umfrage-hammermeister.html, nur ohne Namensauswahl (der Feedbackgeber ist der Login).
 
-export const PFLICHT_AB = 4 // ab dieser Note ist ein Kommentar Pflicht
+export const PFLICHT_AB = 4 // ab dieser Bewertung ist ein Kommentar Pflicht
 export const UMFRAGE_VERSION = 'plattform-1'
-export const STUFEN_NAMEN = ['1 – Bewusstsein', '2 – Aufbau', '3 – Stabilität', '4 – Profi', '5 – High Performer']
-export const BEWERTUNG_LABELS = ['Nicht sichtbar', 'Selten sichtbar', 'Oft sichtbar', 'Immer sichtbar', 'Vorbildlich']
+/** Namen der fünf Stufen: stehen unter den Zahlen und im Popup, wenn für ein Verhalten nichts anderes hinterlegt ist. */
+export const STUFEN_KURZNAMEN = ['Bewusstsein', 'Aufbau', 'Stabilität', 'Profi', 'High Performer']
 
 // ── Inhalt (kommt aus umfrage_inhalt()) ───────────────────────────────────
 
@@ -15,6 +15,19 @@ export interface Kriterium {
   leitsatz: string | null
   punkte: string[]
 }
+
+/** Name einer Stufe ohne die vorangestellte Zahl („4 – Profi“ → „Profi“); ohne Eintrag der Standardname. */
+export function stufenName(kriterien: Kriterium[], stufe: number): string {
+  const roh = kriterien.find((k) => k.stufe === stufe)?.bezeichnung?.replace(/^\s*\d+\s*[–-]\s*/, '').trim()
+  return roh || STUFEN_KURZNAMEN[stufe - 1] || ''
+}
+
+/**
+ * Stufenname für die schmalen Knöpfe: lange Wörter bekommen Trennstellen (unsichtbare Weichtrennzeichen),
+ * damit sie auf kleinen Handys an einer sinnvollen Stelle umbrechen statt mitten im Wort.
+ */
+export const mitTrennstellen = (name: string): string =>
+  name.replace(/Bewusstsein/g, 'Bewusst\u00ADsein').replace(/Performer/g, 'Per\u00ADformer').replace(/Stabilität/g, 'Stabi\u00ADlität').replace(/Aufbau/g, 'Auf\u00ADbau')
 
 export interface Verhalten {
   id: string
@@ -66,10 +79,14 @@ export interface OffenerMonat {
 
 // ── Antworten ─────────────────────────────────────────────────────────────
 
+/** Eine bestätigte Bewertung („Locked In“). Gespeichert wird nur Bestätigtes: note = null heißt noch offen. */
 export interface Bewertung {
   note: number | null
   kommentar: string
 }
+
+/** Wer bewertet wird: man selbst oder ein Kollege. */
+export type Ziel = { art: 'selbst' } | { art: 'fremd'; kollegeId: string }
 
 export type RitualAntwort = string | number | null
 
@@ -97,6 +114,36 @@ export const fremdKey = (verhaltenNr: number, kollegeId: string): string => `${v
 const leer = (): Bewertung => ({ note: null, kommentar: '' })
 export const selbstVon = (a: Antworten, nr: number): Bewertung => a.selbst[nr] ?? leer()
 export const fremdVon = (a: Antworten, nr: number, kollegeId: string): Bewertung => a.fremd[fremdKey(nr, kollegeId)] ?? leer()
+export const bewertungVon = (a: Antworten, nr: number, z: Ziel): Bewertung => (z.art === 'selbst' ? selbstVon(a, nr) : fremdVon(a, nr, z.kollegeId))
+export const istBestaetigt = (b: Bewertung): boolean => b.note !== null
+
+/** Ab dieser Bewertung ist der Kommentar Pflicht. */
+export const kommentarPflicht = (note: number): boolean => note >= PFLICHT_AB
+
+/** Trägt eine bestätigte Bewertung ein. Was schon bestätigt ist, bleibt unverändert (Sperre nach „Locked In“). */
+export function bestaetige(a: Antworten, nr: number, z: Ziel, note: number, kommentar: string): Antworten {
+  if (istBestaetigt(bewertungVon(a, nr, z))) return a
+  if (!Number.isInteger(note) || note < 1 || note > 5) return a
+  const text = kommentar.trim()
+  if (kommentarPflicht(note) && !text) return a
+  const neu: Bewertung = { note, kommentar: text }
+  return z.art === 'selbst'
+    ? { ...a, selbst: { ...a.selbst, [nr]: neu } }
+    : { ...a, fremd: { ...a.fremd, [fremdKey(nr, z.kollegeId)]: neu } }
+}
+
+/** Alle Bewertungsfelder einer Seite in fester Reihenfolge: zuerst man selbst, dann die Kollegen. */
+export const zieleDerSeite = (kollegen: Kollege[]): Ziel[] => [{ art: 'selbst' }, ...kollegen.map((k): Ziel => ({ art: 'fremd', kollegeId: k.id }))]
+
+/** Das erste Feld ohne bestätigte Bewertung, außer dem gerade bestätigten; null, wenn die Seite fertig ist. */
+export function naechstesOffenes(v: Verhalten, kollegen: Kollege[], a: Antworten, ausser?: Ziel): Ziel | null {
+  const gleich = (x: Ziel, y: Ziel) => x.art === y.art && (x.art === 'selbst' || (y.art === 'fremd' && x.kollegeId === y.kollegeId))
+  for (const z of zieleDerSeite(kollegen)) {
+    if (ausser && gleich(z, ausser)) continue
+    if (!istBestaetigt(bewertungVon(a, v.nr, z))) return z
+  }
+  return null
+}
 
 // ── Validierung (Reihenfolge wie in der Umfrage) ──────────────────────────
 
@@ -161,6 +208,23 @@ export function schrittNummer(s: Schritt, inhalt: UmfrageInhalt): number {
   }
 }
 
+/**
+ * Die erste Stelle der ganzen Umfrage, an der noch etwas fehlt (Entwicklung des Monats, Rituale, Verhalten),
+ * sonst null. Abgesendet wird erst, wenn hier null herauskommt: alle Verhalten sind durchbewertet.
+ */
+export function umfrageLuecke(inhalt: UmfrageInhalt, a: Antworten): { schritt: Schritt; text: string } | null {
+  if (!entwicklungFertig(a)) return { schritt: { art: 'entwicklung' }, text: 'Die Entwicklung des Monats ist noch nicht ausgefüllt.' }
+  for (let i = 0; i < inhalt.rituale.length; i++) {
+    if (ritualProblem(inhalt.rituale[i], a) !== null) return { schritt: { art: 'ritual', index: i }, text: `Bei Ritual ${i + 1} fehlt noch eine Pflichtantwort.` }
+  }
+  for (let i = 0; i < inhalt.verhalten.length; i++) {
+    if (verhaltenProblem(inhalt.verhalten[i], inhalt.kollegen, a)) {
+      return { schritt: { art: 'verhalten', index: i }, text: `Verhalten ${i + 1} ist noch nicht vollständig bewertet.` }
+    }
+  }
+  return null
+}
+
 // ── Payload für umfrage_einreichen_v2 ─────────────────────────────────────
 
 export interface Nutzlast {
@@ -188,10 +252,12 @@ export function baueNutzlast(p: {
   for (const v of inhalt.verhalten) {
     const s = selbstVon(a, v.nr)
     if (s.note === null) throw new Error(`Selbstbild für Verhalten ${v.nr} fehlt`)
+    if (kommentarPflicht(s.note) && !s.kommentar.trim()) throw new Error(`Kommentar zum Selbstbild für Verhalten ${v.nr} fehlt`)
     bewertungen.push({ verhalten_nr: v.nr, bewertete_person_id: p.personId, note: s.note, kommentar: s.kommentar.trim() })
     for (const k of inhalt.kollegen) {
       const f = fremdVon(a, v.nr, k.id)
       if (f.note === null) throw new Error(`Fremdbild für Verhalten ${v.nr} und ${k.name} fehlt`)
+      if (kommentarPflicht(f.note) && !f.kommentar.trim()) throw new Error(`Kommentar zum Fremdbild für Verhalten ${v.nr} und ${k.name} fehlt`)
       bewertungen.push({ verhalten_nr: v.nr, bewertete_person_id: k.id, note: f.note, kommentar: f.kommentar.trim() })
     }
   }
@@ -241,7 +307,7 @@ export const zeitText = (sek: number): string => `${Math.floor(sek / 60)}:${Stri
 // ── Zwischenstand (localStorage) ──────────────────────────────────────────
 
 export interface Entwurf {
-  v: 1
+  v: 2
   gestartetAm: string
   schritt: Schritt
   antworten: Antworten
@@ -252,7 +318,7 @@ export const entwurfSchluessel = (nutzerId: string, monat: string): string => `h
 function istEntwurf(x: unknown): x is Entwurf {
   if (!x || typeof x !== 'object') return false
   const e = x as Partial<Entwurf>
-  return e.v === 1 && typeof e.gestartetAm === 'string' && !!e.schritt && typeof e.schritt.art === 'string' && !!e.antworten && typeof e.antworten === 'object'
+  return e.v === 2 && typeof e.gestartetAm === 'string' && !!e.schritt && typeof e.schritt.art === 'string' && !!e.antworten && typeof e.antworten === 'object'
 }
 
 export function ladeEntwurf(schluessel: string): Entwurf | null {
@@ -282,9 +348,19 @@ export function loescheEntwurf(schluessel: string): void {
   }
 }
 
+/** Nur eine vollständig bestätigte Bewertung bleibt im Zwischenstand (Wert 1 bis 5, ab 4 mit Kommentar). */
+function istGueltigeBewertung(b: unknown): b is Bewertung {
+  if (!b || typeof b !== 'object') return false
+  const { note, kommentar } = b as Partial<Bewertung>
+  if (typeof note !== 'number' || !Number.isInteger(note) || note < 1 || note > 5) return false
+  if (typeof kommentar !== 'string') return false
+  return !kommentarPflicht(note) || kommentar.trim().length > 0
+}
+
 /**
  * Passt einen gespeicherten Zwischenstand an den aktuellen Inhalt an: Antworten zu Verhalten oder
- * Personen, die es nicht mehr gibt, fallen weg, und der Schritt bleibt im gültigen Bereich.
+ * Personen, die es nicht mehr gibt, fallen weg, ebenso alles, was nicht bestätigt sein kann, und der
+ * Schritt bleibt im gültigen Bereich.
  */
 export function bereinigeEntwurf(e: Entwurf, inhalt: UmfrageInhalt): Entwurf {
   const nrs = new Set(inhalt.verhalten.map((v) => v.nr))
@@ -296,11 +372,11 @@ export function bereinigeEntwurf(e: Entwurf, inhalt: UmfrageInhalt): Entwurf {
     entwicklungPersonId: a.entwicklungPersonId && kollegen.has(a.entwicklungPersonId) ? a.entwicklungPersonId : null,
     entwicklungBegruendung: typeof a.entwicklungBegruendung === 'string' ? a.entwicklungBegruendung : '',
     rituale: Object.fromEntries(Object.entries(a.rituale ?? {}).filter(([k]) => ritualKeys.has(k))),
-    selbst: Object.fromEntries(Object.entries(a.selbst ?? {}).filter(([k]) => nrs.has(Number(k)))),
+    selbst: Object.fromEntries(Object.entries(a.selbst ?? {}).filter(([k, b]) => nrs.has(Number(k)) && istGueltigeBewertung(b))),
     fremd: Object.fromEntries(
-      Object.entries(a.fremd ?? {}).filter(([k]) => {
+      Object.entries(a.fremd ?? {}).filter(([k, b]) => {
         const [nr, id] = k.split(':')
-        return nrs.has(Number(nr)) && kollegen.has(id)
+        return nrs.has(Number(nr)) && kollegen.has(id) && istGueltigeBewertung(b)
       }),
     ),
     videoGesehen: Object.fromEntries(Object.entries(a.videoGesehen ?? {}).filter(([k]) => nrs.has(Number(k)))),

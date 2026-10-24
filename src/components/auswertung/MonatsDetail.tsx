@@ -8,7 +8,7 @@ function KommentarZeile({ k }: { k: Kommentar }) {
   return (
     <blockquote className="au-kommentar">
       <span className="au-kommentar-kopf">
-        {k.von ? `${k.von} · ` : 'Kollege · '}Note {k.note}
+        {k.von ? `${k.von} · ` : 'Kollege · '}Bewertung {k.note}
       </span>
       {k.text}
     </blockquote>
@@ -98,7 +98,7 @@ export default function MonatsDetail({
                   ))}
                   {v.fremdbilder && v.fremdbilder.length > 0 && (
                     <p className="au-einzelnoten">
-                      Einzelnoten:{' '}
+                      Einzelbewertungen:{' '}
                       {v.fremdbilder.map((f, i) => (
                         <span key={f.von}>
                           {i > 0 && ' · '}

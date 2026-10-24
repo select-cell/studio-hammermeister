@@ -1,15 +1,20 @@
+import { useRef, useState, type MouseEvent } from 'react'
 import { initiale } from '../../lib/rechte'
 import {
-  BEWERTUNG_LABELS,
   PFLICHT_AB,
   fremdVon,
+  istBestaetigt,
+  mitTrennstellen,
+  naechstesOffenes,
   selbstVon,
+  stufenName,
   type Antworten,
   type Bewertung,
   type Kollege,
   type Verhalten,
+  type Ziel,
 } from '../../lib/umfrage'
-import Kriterien from './Kriterien'
+import BewertungsDialog from './BewertungsDialog'
 import VideoBox from './VideoBox'
 
 interface Props {
@@ -19,63 +24,86 @@ interface Props {
   kollegen: Kollege[]
   antworten: Antworten
   platzhalterSekunden: number
-  /** Der Nutzer hat schon „Weiter“ versucht: fehlende Pflicht-Kommentare werden angezeigt. */
+  /** Der Nutzer hat schon „Weiter“ versucht: fehlende Bewertungen werden angezeigt. */
   versucht: boolean
   sendet: boolean
   sendeFehler: string | null
   istLetzte: boolean
+  /** Die ganze Umfrage ist vollständig bewertet: erst dann lässt sich absenden. */
+  alleFertig: boolean
+  /** Diese Seite ist fertig, aber an anderer Stelle fehlt noch etwas (nur auf der letzten Seite von Bedeutung). */
+  luecke: { text: string; onGehe: () => void } | null
   onVideoGesehen: () => void
-  onSelbst: (patch: Partial<Bewertung>) => void
-  onFremd: (kollegeId: string, patch: Partial<Bewertung>) => void
+  /** Eine Bewertung wurde mit „Locked In“ bestätigt. */
+  onBewerte: (ziel: Ziel, note: number, kommentar: string) => void
+  /** Alle Felder dieser Seite sind bestätigt: weiter zur nächsten Seite bzw. zum Absenden. */
+  onSeiteFertig: () => void
   onZurueck: () => void
   onWeiter: () => void
 }
 
 const klasse = (gewaehlt: boolean, note: number) => (gewaehlt ? (note >= PFLICHT_AB ? ' rh' : ' rl') : '')
 
-function Kommentar({
-  id,
-  note,
-  wert,
-  fehlt,
-  klein,
-  onChange,
-}: {
-  id: string
-  note: number
-  wert: string
-  fehlt: boolean
-  klein?: boolean
-  onChange: (text: string) => void
-}) {
-  const pflicht = note >= PFLICHT_AB
+const reiheId = (z: Ziel) => (z.art === 'selbst' ? 'um-sb-reihe' : `um-fb-reihe-${z.kollegeId}`)
+
+/** Setzt den Fokus auf die erste Zahl eines Bewertungsfelds und holt es ins Bild. */
+function fokussiereReihe(z: Ziel): void {
+  const knopf = document.getElementById(reiheId(z))?.querySelector<HTMLButtonElement>('button:not(:disabled)')
+  if (!knopf) return
+  knopf.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  knopf.focus({ preventScroll: true })
+}
+
+/** Das Kennzeichen und der Kommentar einer bestätigten Bewertung. */
+function Bestaetigt({ b, klein }: { b: Bewertung; klein?: boolean }) {
   return (
-    <div className="um-kommentar" style={klein ? { marginTop: '.4rem' } : undefined}>
-      <label className="um-kommentar-label" htmlFor={id} style={klein ? { fontSize: 10 } : undefined}>
-        <span className={pflicht ? 'um-pflicht' : 'um-freiwillig'}>{pflicht ? 'Pflichtfeld' : 'Optional'}</span>
-        {klein
-          ? pflicht ? 'Was ist dir aufgefallen?' : 'Anmerkung (optional)'
-          : pflicht ? 'Was genau ist dir aufgefallen?' : 'Möchtest du etwas ergänzen?'}
-      </label>
-      <textarea
-        id={id}
-        className={`um-ta${fehlt ? ' err' : ''}`}
-        style={klein ? { minHeight: 60, fontSize: 16 } : undefined}
-        placeholder={klein ? (pflicht ? 'Bitte konkret…' : 'Optional…') : pflicht ? 'Bitte konkret beschreiben…' : 'Zusätzliche Anmerkungen…'}
-        value={wert}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {fehlt && <div className="um-fehlertext">{klein ? 'Kommentar erforderlich.' : 'Bitte einen Kommentar hinterlassen.'}</div>}
+    <div className={`um-fest${klein ? ' klein' : ''}`}>
+      <span className="um-fest-marke">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        Locked In
+      </span>
+      {b.kommentar && <blockquote className="um-fest-text">{b.kommentar}</blockquote>}
     </div>
   )
 }
 
-/** Eine Verhaltens-Seite: Titel des Verhaltens, Video, Bewertungsstufen, Selbstbild und Fremdbild aller Kollegen. */
+/** Eine Verhaltens-Seite: Titel, Video, Selbstbild und Fremdbild aller Kollegen. Jede Bewertung wird im Popup bestätigt. */
 export default function VerhaltenSeite(p: Props) {
   const { verhalten: v, antworten } = p
   const gesehen = !!antworten.videoGesehen[v.nr]
   const gesperrt = !gesehen
   const sb = selbstVon(antworten, v.nr)
+  const sbFest = istBestaetigt(sb)
+  const [auswahl, setAuswahl] = useState<{ ziel: Ziel; wert: number } | null>(null)
+  const ausloeser = useRef<HTMLElement | null>(null)
+  const absendenGesperrt = p.istLetzte && !p.alleFertig
+
+  const oeffne = (e: MouseEvent<HTMLButtonElement>, ziel: Ziel, wert: number) => {
+    ausloeser.current = e.currentTarget
+    setAuswahl({ ziel, wert })
+  }
+
+  // Abbrechen, Esc oder Klick daneben: nichts wird gespeichert, der Fokus geht zurück auf die Zahl
+  const abbrechen = () => {
+    setAuswahl(null)
+    const el = ausloeser.current
+    window.setTimeout(() => el?.focus(), 0)
+  }
+
+  // „Locked In“: speichern, dann zum ersten noch offenen Feld, sonst weiter
+  const lockedIn = (kommentar: string) => {
+    if (!auswahl) return
+    const { ziel, wert } = auswahl
+    setAuswahl(null)
+    p.onBewerte(ziel, wert, kommentar)
+    const naechstes = naechstesOffenes(v, p.kollegen, antworten, ziel)
+    window.setTimeout(() => (naechstes ? fokussiereReihe(naechstes) : p.onSeiteFertig()), 0)
+  }
+
+  const nameVon = (z: Ziel) => (z.art === 'selbst' ? 'du selbst' : (p.kollegen.find((k) => k.id === z.kollegeId)?.name ?? ''))
 
   return (
     <div className="um-seite">
@@ -106,8 +134,6 @@ export default function VerhaltenSeite(p: Props) {
         onGesehen={p.onVideoGesehen}
       />
 
-      <Kriterien kriterien={v.kriterien} />
-
       {gesperrt && (
         <div className="um-gesperrt-hinweis" role="status">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -124,30 +150,23 @@ export default function VerhaltenSeite(p: Props) {
             <span className="um-pill-punkt" />
             Selbstbild
           </div>
-          <div className="um-reihe" id="um-sb-reihe" role="group" aria-label="Selbstbild: Note 1 bis 5">
+          <div className={`um-reihe${sbFest ? ' fest' : ''}`} id="um-sb-reihe" role="group" aria-label="Selbstbild: Bewertung 1 bis 5">
             {[1, 2, 3, 4, 5].map((i) => (
               <button
                 key={i}
                 type="button"
-                disabled={gesperrt}
+                disabled={gesperrt || sbFest}
                 aria-pressed={sb.note === i}
                 className={`um-rbtn${klasse(sb.note === i, i)}`}
-                onClick={() => p.onSelbst({ note: i })}
+                onClick={(e) => oeffne(e, { art: 'selbst' }, i)}
               >
                 <span className="um-rnum">{i}</span>
-                <span className="um-rlbl">{BEWERTUNG_LABELS[i - 1]}</span>
+                <span className="um-rlbl">{mitTrennstellen(stufenName(v.kriterien, i))}</span>
               </button>
             ))}
           </div>
-          {sb.note !== null && (
-            <Kommentar
-              id="um-sb-ta"
-              note={sb.note}
-              wert={sb.kommentar}
-              fehlt={p.versucht && sb.note >= PFLICHT_AB && !sb.kommentar.trim()}
-              onChange={(kommentar) => p.onSelbst({ kommentar })}
-            />
-          )}
+          {sbFest && <Bestaetigt b={sb} />}
+          {!sbFest && p.versucht && <div className="um-fehlertext">Bitte wähle eine Bewertung und bestätige sie mit „Locked In“.</div>}
         </div>
 
         <div className="um-trenner" />
@@ -160,37 +179,33 @@ export default function VerhaltenSeite(p: Props) {
           <div className="um-fb" id="um-fb-bereich">
             {p.kollegen.map((k) => {
               const f = fremdVon(antworten, v.nr, k.id)
+              const fest = istBestaetigt(f)
               return (
                 <div className="um-fb-zeile" key={k.id}>
-                  <span className="um-fb-av" aria-hidden="true">
-                    {initiale(k.name)}
-                  </span>
-                  <div className="um-fb-info">
+                  <div className="um-fb-kopf">
+                    <span className="um-fb-av" aria-hidden="true">
+                      {initiale(k.name)}
+                    </span>
                     <div className="um-fb-name">{k.name}</div>
-                    <div className="um-fb-reihe" role="group" aria-label={`Fremdbild ${k.name}: Note 1 bis 5`}>
+                  </div>
+                  <div className="um-fb-info">
+                    <div className={`um-fb-reihe${fest ? ' fest' : ''}`} id={`um-fb-reihe-${k.id}`} role="group" aria-label={`Fremdbild ${k.name}: Bewertung 1 bis 5`}>
                       {[1, 2, 3, 4, 5].map((i) => (
                         <button
                           key={i}
                           type="button"
-                          disabled={gesperrt}
+                          disabled={gesperrt || fest}
                           aria-pressed={f.note === i}
                           className={`um-fb-btn${klasse(f.note === i, i)}`}
-                          onClick={() => p.onFremd(k.id, { note: i })}
+                          onClick={(e) => oeffne(e, { art: 'fremd', kollegeId: k.id }, i)}
                         >
-                          {i}
+                          <span className="um-fb-num">{i}</span>
+                          <span className="um-fb-lbl">{mitTrennstellen(stufenName(v.kriterien, i))}</span>
                         </button>
                       ))}
                     </div>
-                    {f.note !== null && (
-                      <Kommentar
-                        id={`um-fb-ta-${k.id}`}
-                        note={f.note}
-                        wert={f.kommentar}
-                        fehlt={p.versucht && f.note >= PFLICHT_AB && !f.kommentar.trim()}
-                        klein
-                        onChange={(kommentar) => p.onFremd(k.id, { kommentar })}
-                      />
-                    )}
+                    {fest && <Bestaetigt b={f} klein />}
+                    {!fest && p.versucht && <div className="um-fehlertext">Bitte bewerten und mit „Locked In“ bestätigen.</div>}
                   </div>
                 </div>
               )
@@ -199,17 +214,52 @@ export default function VerhaltenSeite(p: Props) {
         </div>
       </div>
 
+      {auswahl && (
+        <BewertungsDialog
+          art={auswahl.ziel.art === 'selbst' ? 'Selbstbild' : 'Fremdbild'}
+          person={nameVon(auswahl.ziel)}
+          frage={v.titel}
+          wert={auswahl.wert}
+          kriterien={v.kriterien}
+          onLockedIn={lockedIn}
+          onAbbrechen={abbrechen}
+        />
+      )}
+
       {p.sendeFehler && (
         <div className="um-sendefehler" role="alert">
           {p.sendeFehler} Deine Eingaben sind noch da – bitte einfach erneut auf „Absenden“ tippen.
         </div>
       )}
 
+      {p.istLetzte && p.luecke && (
+        <div className="um-luecke" id="um-luecke" role="alert">
+          <span>{p.luecke.text}</span>
+          <button type="button" className="btn btn-sekundaer btn-klein" onClick={p.luecke.onGehe}>
+            Dorthin
+          </button>
+        </div>
+      )}
+
+      {absendenGesperrt && (
+        <p className="um-absenden-hinweis" id="um-absenden-hinweis">
+          Absenden geht erst, wenn alle Verhalten bewertet sind.
+        </p>
+      )}
+
       <div className="um-nav">
         <button type="button" className="btn btn-sekundaer" disabled={p.sendet} onClick={p.onZurueck}>
           Zurück
         </button>
-        <button type="button" className="btn btn-primaer" disabled={p.sendet} onClick={p.onWeiter}>
+        <button
+          type="button"
+          id={p.istLetzte ? 'um-absenden' : undefined}
+          className="btn btn-primaer"
+          disabled={p.sendet}
+          aria-disabled={absendenGesperrt || undefined}
+          aria-describedby={absendenGesperrt ? 'um-absenden-hinweis' : undefined}
+          onClick={p.onWeiter}
+        >
           {p.sendet ? (
             <>
               <span className="spinner spinner-hell" aria-hidden="true" /> Wird gespeichert…

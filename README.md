@@ -221,6 +221,8 @@ Für den Login muss die Netlify-Adresse nirgends in Supabase eingetragen werden.
 
 Beides ist gegen die echte Datenbank und im Browser geprüft (mit simuliertem Login). Offen ist das Durchspielen mit echten Logins, sobald die E-Mail-Adressen da sind.
 
+**So läuft die Bewertung („Locked In“):** Ein Klick auf eine Zahl öffnet ein Popup mit der Beschreibung genau dieser Stufe und dem Kommentarfeld (ab Bewertung 4 Pflicht). Erst „Locked In“ zählt die Bewertung und sperrt sie, auch nach „Zurück“ und Neuladen. Abbrechen, Esc und ein Klick daneben verwerfen die Wahl. Danach springt die Umfrage zur nächsten offenen Person und zum nächsten Verhalten. Abgesendet wird erst, wenn alle Verhalten durchbewertet sind; nach der letzten Bewertung steht der Fokus auf „Absenden“, gesendet wird nicht von selbst. Die Sperre gilt nur im Browser, Datenbank und Absende-Format sind unverändert.
+
 ## Fertig, wenn (Phase 3)
 
 - Ein Teammitglied sieht seine Ergebnisse ohne Absender-Namen und ohne die Kommentare der Kollegen, und das Team nur als Schnitt.

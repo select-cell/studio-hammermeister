@@ -87,7 +87,7 @@ export default function Zusammenfassung({
                   <tr>
                     <th>Person</th>
                     <th>Art</th>
-                    <th style={{ textAlign: 'center' }}>Note</th>
+                    <th style={{ textAlign: 'center' }}>Bewertung</th>
                     <th>Kommentar</th>
                   </tr>
                 </thead>

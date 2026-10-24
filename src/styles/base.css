@@ -702,7 +702,9 @@ code {
   border-color: var(--accent);
 }
 
-.btn:disabled {
+.btn:disabled,
+.btn[aria-disabled='true'],
+.btn[aria-disabled='true']:hover {
   background: var(--cream-deep);
   color: var(--muted);
   border-color: transparent;

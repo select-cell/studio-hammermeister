@@ -6,6 +6,7 @@ import type { Person } from '../../lib/types'
 import {
   baueNutzlast,
   bereinigeEntwurf,
+  bestaetige,
   entwicklungFertig,
   entwurfSchluessel,
   gesamtSchritte,
@@ -15,17 +16,16 @@ import {
   ritualKey,
   ritualProblem,
   schrittNummer,
-  selbstVon,
-  fremdVon,
   speichereEntwurf,
+  umfrageLuecke,
   verhaltenProblem,
   type Antworten,
-  type Bewertung,
   type Nutzlast,
   type RitualAntwort,
   type Schritt,
   type UmfrageInhalt,
   type VerhaltenProblem,
+  type Ziel,
 } from '../../lib/umfrage'
 import EntwicklungSeite from './EntwicklungSeite'
 import Fortschritt from './Fortschritt'
@@ -66,6 +66,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   const [sendet, setSendet] = useState(false)
   const [sendeFehler, setSendeFehler] = useState<string | null>(null)
   const [ergebnis, setErgebnis] = useState<Ergebnis | null>(null)
+  const [neuFrage, setNeuFrage] = useState(false)
 
   const gesamt = gesamtSchritte(inhalt)
   const rituale = inhalt.rituale
@@ -74,7 +75,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   // Zwischenstand sichern
   useEffect(() => {
     if (ergebnis || schritt.art === 'front' || !gestartetAm) return
-    speichereEntwurf(schluessel, { v: 1, gestartetAm, schritt, antworten })
+    speichereEntwurf(schluessel, { v: 2, gestartetAm, schritt, antworten })
   }, [ergebnis, schritt, gestartetAm, antworten, schluessel])
 
   // Bei jedem Seitenwechsel nach oben
@@ -90,10 +91,8 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   }
 
   // ── Antworten ändern ────────────────────────────────────────────────────
-  const setSelbst = (nr: number, patch: Partial<Bewertung>) =>
-    setAntworten((a) => ({ ...a, selbst: { ...a.selbst, [nr]: { ...selbstVon(a, nr), ...patch } } }))
-  const setFremd = (nr: number, kollegeId: string, patch: Partial<Bewertung>) =>
-    setAntworten((a) => ({ ...a, fremd: { ...a.fremd, [`${nr}:${kollegeId}`]: { ...fremdVon(a, nr, kollegeId), ...patch } } }))
+  // Eine Bewertung wird nur mit „Locked In“ eingetragen und lässt sich danach nicht mehr ändern (bestaetige ignoriert Bestätigtes).
+  const bewerte = (nr: number, ziel: Ziel, note: number, kommentar: string) => setAntworten((a) => bestaetige(a, nr, ziel, note, kommentar))
   const setVideoGesehen = (nr: number) => setAntworten((a) => (a.videoGesehen[nr] ? a : { ...a, videoGesehen: { ...a.videoGesehen, [nr]: true } }))
   const setRitual = (ritualId: string, frageNr: number, wert: RitualAntwort) =>
     setAntworten((a) => ({ ...a, rituale: { ...a.rituale, [ritualKey(ritualId, frageNr)]: wert } }))
@@ -125,11 +124,10 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
       case 'selbst':
         return markiere('um-sb-reihe')
       case 'selbstKommentar':
-        return fokussiere('um-sb-ta')
+        return markiere('um-sb-reihe')
       case 'fremd':
-        return markiere('um-fb-bereich')
       case 'fremdKommentar':
-        return fokussiere(`um-fb-ta-${p.kollegeId}`)
+        return markiere(`um-fb-reihe-${p.kollegeId}`)
     }
   }
 
@@ -140,12 +138,28 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
       markiereProblem(problem)
       return
     }
+    if (index < verhalten.length - 1) {
+      geheZu({ art: 'verhalten', index: index + 1 })
+      return
+    }
+    // Letzte Seite: abgesendet wird erst, wenn die ganze Umfrage vollständig ist
+    if (umfrageLuecke(inhalt, antworten)) {
+      markiere('um-luecke')
+      return
+    }
+    void absenden()
+  }
+
+  // Alle Felder einer Seite sind bestätigt (nach dem letzten „Locked In“): von selbst zur nächsten Seite.
+  // Nach der allerletzten Bewertung wird nicht automatisch gesendet: Der Fokus geht auf „Absenden“.
+  function seiteFertig(index: number) {
     if (index < verhalten.length - 1) geheZu({ art: 'verhalten', index: index + 1 })
-    else void absenden()
+    else fokussiere('um-absenden')
   }
 
   async function absenden() {
     if (sendet) return
+    if (umfrageLuecke(inhalt, antworten)) return // Vorher nicht: erst wenn alle Verhalten durchbewertet sind
     setSendet(true)
     setSendeFehler(null)
     let nutzlast: Nutzlast
@@ -174,6 +188,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
     setAntworten(leereAntworten())
     setGestartetAm(null)
     setWiederhergestellt(false)
+    setNeuFrage(false)
     geheZu({ art: 'front' })
   }
 
@@ -198,6 +213,9 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
     )
   }
 
+  // Erst wenn alle Verhalten (und alles davor) ausgefüllt sind, lässt sich absenden
+  const luecke = umfrageLuecke(inhalt, antworten)
+
   const kontextZaehler =
     schritt.art === 'entwicklung'
       ? `Schritt 1 von ${gesamt}`
@@ -214,9 +232,21 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
       {wiederhergestellt && schritt.art !== 'front' && (
         <div className="um-status ok" role="status">
           Dein Zwischenstand wurde wiederhergestellt. Du machst dort weiter, wo du aufgehört hast.{' '}
-          <button type="button" className="btn btn-sekundaer btn-klein" onClick={neuBeginnen}>
-            Neu beginnen
-          </button>
+          {neuFrage ? (
+            <>
+              <strong>Alle bestätigten Bewertungen gehen dabei verloren.</strong>{' '}
+              <button type="button" className="btn btn-sekundaer btn-klein" onClick={neuBeginnen}>
+                Ja, neu beginnen
+              </button>{' '}
+              <button type="button" className="btn btn-sekundaer btn-klein" onClick={() => setNeuFrage(false)}>
+                Abbrechen
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn btn-sekundaer btn-klein" onClick={() => setNeuFrage(true)}>
+              Neu beginnen
+            </button>
+          )}
         </div>
       )}
 
@@ -264,9 +294,11 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
               sendet={sendet}
               sendeFehler={sendeFehler}
               istLetzte={index === verhalten.length - 1}
+              alleFertig={luecke === null}
+              luecke={luecke && !(luecke.schritt.art === 'verhalten' && luecke.schritt.index === index) ? { text: luecke.text, onGehe: () => geheZu(luecke.schritt) } : null}
               onVideoGesehen={() => setVideoGesehen(v.nr)}
-              onSelbst={(patch) => setSelbst(v.nr, patch)}
-              onFremd={(kollegeId, patch) => setFremd(v.nr, kollegeId, patch)}
+              onBewerte={(ziel, note, kommentar) => bewerte(v.nr, ziel, note, kommentar)}
+              onSeiteFertig={() => seiteFertig(index)}
               onZurueck={() => (index > 0 ? geheZu({ art: 'verhalten', index: index - 1 }) : zurueckVorVerhalten())}
               onWeiter={() => weiterVerhalten(index)}
             />
