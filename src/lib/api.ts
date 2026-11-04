@@ -3,6 +3,7 @@ import { aktuellerZugriffstoken, supabase, supabaseSchluessel, supabaseUrl } fro
 import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
+import type { KommentarAuswertung } from './kommentare'
 import type { PdfMonatsdaten, PdfPersonendaten, ProtokollEintrag } from './pdf'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
 import type { ZeitAuswertung } from './zeit'
@@ -228,4 +229,13 @@ export async function ladePdfProtokoll(limit = 100): Promise<ProtokollEintrag[]>
   const { data, error } = await supabase.rpc('pdf_export_protokoll', { p_limit: limit })
   if (error) throw error
   return (data as ProtokollEintrag[] | null) ?? []
+}
+
+// ── Kommentar-Auswertung (Migration 018, nur Verantwortliche und Admin) ────
+
+/** Kennzahlen je Absender und Monat ('YYYY-MM'; ohne Angabe der neueste mit Abgaben). Keine Kommentartexte. */
+export async function ladeKommentarAuswertung(monat?: string): Promise<KommentarAuswertung> {
+  const { data, error } = await supabase.rpc('kommentar_auswertung', { p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as KommentarAuswertung
 }

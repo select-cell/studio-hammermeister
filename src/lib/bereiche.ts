@@ -61,6 +61,15 @@ export const BEREICHE: Bereich[] = [
     beschreibung: () => 'Die individuelle Auswertung jedes Teammitglieds.',
   },
   {
+    id: 'leitung',
+    pfad: '/app/leitung',
+    bedingung: 'leitung',
+    phase: 3,
+    nav: 'Leitung',
+    titel: () => 'Leitung',
+    beschreibung: () => 'Kommentare, Monatsabschluss, Fokus-Verhalten, Agenda und Termine.',
+  },
+  {
     id: 'chefumfrage',
     pfad: '/app/chefumfrage',
     bedingung: 'teilnehmerOderLeitung',

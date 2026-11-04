@@ -61,6 +61,7 @@ Gut zu wissen:
    16. `supabase/migrations/014_profile_fotos.sql` und `015_profil_fotos_stillgelegt.sql` (Profile und Fotos wurden nicht gebraucht und mit 015 stillgelegt; nur der Vollständigkeit halber)
    17. `supabase/migrations/016_zeiterfassung.sql` (Zeiterfassung der Umfrage, siehe [`docs/zeiterfassung.md`](docs/zeiterfassung.md))
    18. `supabase/migrations/017_pdf_export.sql` (PDF-Export für die Leitung, siehe [`docs/pdf-export.md`](docs/pdf-export.md))
+   19. `supabase/migrations/018_kommentar_auswertung.sql` (Kommentar-Auswertung für die Leitung, siehe [`docs/kommentar-auswertung.md`](docs/kommentar-auswertung.md))
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -220,6 +221,10 @@ Die Umfrage misst die **aktive Zeit** (Seite sichtbar und bedient, Pausen zähle
 
 Verantwortliche und Admin laden im Team-Dashboard den **Monatsbericht** und in der Personenansicht den **Personenbericht** als PDF herunter (Kommentare ohne Absender). Mitarbeiter haben weder Knopf noch Zugriff; die Datenbank lehnt sie ab, und jeder Abruf steht im Export-Protokoll (für den Admin unter „Info und Datenschutz“). Das PDF entsteht im Browser mit den selbst gehosteten Schriften und dem Logo aus `src/assets/brand/`. Alles Weitere in [`docs/pdf-export.md`](docs/pdf-export.md).
 
+## Kommentar-Auswertung
+
+Unter **Leitung → Kommentare** sehen Verantwortliche und Admin, wer Kommentare schreibt, wie ausführlich und wer keine: Quote, Pflicht- und freiwillige Kommentare getrennt, Länge, kurze Kommentare, Wiederholungen, Verlauf. Es erscheinen nur Kennzahlen, nie Kommentartexte. Das Team wird auf „Info und Datenschutz“ und im Frontblatt der Umfrage darauf hingewiesen. Der Schalter `salons.eigene_analyse_nur_admin` (Standard aus) blendet einem Verantwortlichen die eigenen Werte aus. Alles Weitere in [`docs/kommentar-auswertung.md`](docs/kommentar-auswertung.md).
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -264,11 +269,12 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts, pdf.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts, pdf.ts, kommentare.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status), DarstellungSchalter
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
+  pages/app/leitung/  Werkzeuge der Leitung unter einem Menüpunkt (Kommentare; später Abschluss, Fokus, Agenda, Termine)
   pdf/                PDF-Berichte (react-pdf, wird erst beim Klick geladen): Monatsbericht, Personenbericht, Bausteine, Schriften, Logo
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
   styles/             tokens.css, base.css, umfrage.css, auswertung.css, abgabe.css

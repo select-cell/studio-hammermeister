@@ -65,6 +65,15 @@ export default function Info() {
       </section>
 
       <section className="karte info-abschnitt">
+        <h2 className="karte-titel">Kommentare in der Umfrage</h2>
+        <p>
+          Deine Kommentare sehen deine Kollegen nie mit deinem Namen. Die Verantwortlichen sehen aber, wie häufig und ausführlich Feedback-Kommentare
+          geschrieben werden: je Person die Zahl der Kommentare, ihre Länge und ob jemand zu einem Verhalten gar nichts geschrieben hat. Die Texte
+          selbst gehören dazu nicht.
+        </p>
+      </section>
+
+      <section className="karte info-abschnitt">
         <h2 className="karte-titel">Ausfüllzeit der Umfrage</h2>
         <p>
           Während du die Monatsumfrage ausfüllst, misst die Plattform, wie lange du aktiv dabei bist: Die Seite ist sichtbar und du bedienst

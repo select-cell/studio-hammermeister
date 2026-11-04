@@ -11,6 +11,7 @@ import './styles/base.css'
 import './styles/umfrage.css'
 import './styles/auswertung.css'
 import './styles/abgabe.css'
+import './styles/leitung.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -339,12 +339,13 @@ code {
   }
 
   .nav a {
-    padding: 6px 8px;
+    padding: 6px 5px;
+    font-size: 13.5px;
   }
 
   .nav-nutzer {
-    margin: 0 0 0 0.75rem;
-    padding: 0 0 0 0.75rem;
+    margin: 0 0 0 0.5rem;
+    padding: 0 0 0 0.5rem;
     border-top: none;
     border-left: 1px solid var(--border);
   }

@@ -2,8 +2,9 @@
 // wird nur geladen, wenn eine berechtigte Person auf „PDF“ klickt (dynamischer Import in PdfKnopf).
 import { pdf } from '@react-pdf/renderer'
 import { BRAND } from '../config/brand'
-import { ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
+import { ladeKommentarAuswertung, ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
 import { pdfDateiname } from '../lib/pdf'
+import KommentarAbschnitt from './KommentarAbschnitt'
 import { ladeLogo } from './logo'
 import Monatsbericht from './Monatsbericht'
 import Personenbericht from './Personenbericht'
@@ -28,7 +29,9 @@ export async function erzeugePdf(auftrag: PdfAuftrag): Promise<string> {
   const logo = await ladeLogo(BRAND.logo.hell)
   if (auftrag.art === 'monat') {
     const daten = await ladePdfMonatsbericht(auftrag.monat)
-    const blob = await pdf(<Monatsbericht daten={daten} logo={logo} />).toBlob()
+    // Kommentar-Kennzahlen je Person (ohne Texte); fehlen sie, entsteht der Bericht trotzdem
+    const kommentare = await ladeKommentarAuswertung(daten.monat).catch(() => null)
+    const blob = await pdf(<Monatsbericht daten={daten} logo={logo} zusatz={kommentare ? <KommentarAbschnitt daten={kommentare} /> : null} />).toBlob()
     const name = pdfDateiname(daten.salon.name, daten.monat, { monatsbericht: true })
     speichere(blob, name)
     return name

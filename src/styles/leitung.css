@@ -1,0 +1,51 @@
+/* Werkzeuge der Leitung (Erweiterungen C bis F) – Präfix „lt-“. Farben nur aus tokens.css. */
+
+.lt-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: 0 0 1.1rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.lt-nav-punkt {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  font-size: 13.5px;
+  color: var(--text2);
+  text-decoration: none;
+  background: transparent;
+}
+
+.lt-nav-punkt:hover {
+  background: var(--cream-mid);
+  color: var(--text);
+}
+
+.lt-nav-punkt.aktiv {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.lt-unter {
+  margin: .9rem 0 .35rem;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lt-liste {
+  margin: 0 0 .5rem;
+  padding-left: 1.1rem;
+}
+
+.lt-zeile-leer {
+  color: var(--muted);
+}
+
+/* Farbstärke nach Anteil (0 bis 60 Prozent der Akzentfarbe) */
+.lt-zelle {
+  background: color-mix(in srgb, var(--accent) calc(var(--anteil, 0) * 1%), transparent);
+}

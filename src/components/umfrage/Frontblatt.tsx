@@ -44,6 +44,10 @@ export default function Frontblatt({ salon, monatsname, onStart }: { salon: stri
           Denn Verhalten formt das Erlebnis – und das Erlebnis entscheidet darüber, welchen Wert Gäste sehen und welchen Preis sie bereit
           sind zu bezahlen.
         </p>
+        <p className="text-gedimmt text-klein" id="um-kommentar-hinweis">
+          Hinweis: Deine Kommentare sehen Kollegen nie mit deinem Namen. Die Verantwortlichen sehen, wie häufig und ausführlich Feedback-Kommentare
+          geschrieben werden.
+        </p>
       </div>
 
       <button type="button" className="btn btn-primaer btn-voll" onClick={onStart}>
