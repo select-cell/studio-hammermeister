@@ -62,6 +62,7 @@ Gut zu wissen:
    17. `supabase/migrations/016_zeiterfassung.sql` (Zeiterfassung der Umfrage, siehe [`docs/zeiterfassung.md`](docs/zeiterfassung.md))
    18. `supabase/migrations/017_pdf_export.sql` (PDF-Export für die Leitung, siehe [`docs/pdf-export.md`](docs/pdf-export.md))
    19. `supabase/migrations/018_kommentar_auswertung.sql` (Kommentar-Auswertung für die Leitung, siehe [`docs/kommentar-auswertung.md`](docs/kommentar-auswertung.md))
+   20. `supabase/migrations/019_monatsabschluss_analysen.sql` (Monatsabschluss und Einzelanalyse, siehe [`docs/einzelanalyse.md`](docs/einzelanalyse.md))
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -225,6 +226,10 @@ Verantwortliche und Admin laden im Team-Dashboard den **Monatsbericht** und in d
 
 Unter **Leitung → Kommentare** sehen Verantwortliche und Admin, wer Kommentare schreibt, wie ausführlich und wer keine: Quote, Pflicht- und freiwillige Kommentare getrennt, Länge, kurze Kommentare, Wiederholungen, Verlauf. Es erscheinen nur Kennzahlen, nie Kommentartexte. Das Team wird auf „Info und Datenschutz“ und im Frontblatt der Umfrage darauf hingewiesen. Der Schalter `salons.eigene_analyse_nur_admin` (Standard aus) blendet einem Verantwortlichen die eigenen Werte aus. Alles Weitere in [`docs/kommentar-auswertung.md`](docs/kommentar-auswertung.md).
 
+## Monatsabschluss und Einzelanalyse
+
+Unter **Leitung → Monatsabschluss** schließt die Leitung einen Monat ab (auch unvollständig) und lässt für jede Person eine Einzelanalyse erstellen: **Alle Zahlen kommen aus der Datenbank, die KI formuliert nur den Text**, und die Datenbank prüft selbst, ob jede Zahl im Text aus den Daten stammt (Faktencheck). Die Leitung liest, bearbeitet und gibt frei; erst eine freigegebene Analyse kommt in den Personenbericht als PDF. Die KI sieht keine Namen und keine Absender. **Damit es funktioniert, müssen in Supabase unter Edge Functions → Secrets `AI_PROVIDER` (`claude` oder `webhook`) und der Schlüssel bzw. die Webhook-Adresse hinterlegt werden** (siehe [`docs/einzelanalyse.md`](docs/einzelanalyse.md)); die Funktion `analyse-erstellen` ist bereits eingespielt.
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -269,7 +274,7 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts, pdf.ts, kommentare.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts, pdf.ts, kommentare.ts, abschluss.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status), DarstellungSchalter
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
@@ -278,5 +283,6 @@ src/
   pdf/                PDF-Berichte (react-pdf, wird erst beim Klick geladen): Monatsbericht, Personenbericht, Bausteine, Schriften, Logo
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
   styles/             tokens.css, base.css, umfrage.css, auswertung.css, abgabe.css
+supabase/functions/   Edge Functions (analyse-erstellen: KI-Einzelanalyse, mit Prompt und Tests)
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```

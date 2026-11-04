@@ -5,7 +5,10 @@ import { useAuth } from '../../../auth/AuthContext'
 export default function Leitung() {
   const { person } = useAuth()
   if (!person) return null
-  const punkte: { pfad: string; label: string }[] = [{ pfad: 'kommentare', label: 'Kommentare' }]
+  const punkte: { pfad: string; label: string }[] = [
+    { pfad: 'kommentare', label: 'Kommentare' },
+    { pfad: 'abschluss', label: 'Monatsabschluss' },
+  ]
   return (
     <>
       <nav className="lt-nav" aria-label="Leitung">

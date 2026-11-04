@@ -3,6 +3,8 @@ import { aktuellerZugriffstoken, supabase, supabaseSchluessel, supabaseUrl } fro
 import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
+import type { Analyse, AnalyseErgebnis, AbschlussInfo, AbschlussUebersicht } from './abschluss'
+import { AnalyseFehler, type AnalyseFehlerArt } from './abschluss'
 import type { KommentarAuswertung } from './kommentare'
 import type { PdfMonatsdaten, PdfPersonendaten, ProtokollEintrag } from './pdf'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
@@ -238,4 +240,59 @@ export async function ladeKommentarAuswertung(monat?: string): Promise<Kommentar
   const { data, error } = await supabase.rpc('kommentar_auswertung', { p_monat: monat ? `${monat}-01` : null })
   if (error) throw error
   return data as KommentarAuswertung
+}
+
+// ── Monatsabschluss und Einzelanalyse (Migration 019, nur Verantwortliche und Admin) ──
+
+/** Stand von Abschluss und Analysen eines Monats ('YYYY-MM'; ohne Angabe der neueste mit Abgaben). */
+export async function ladeAbschluss(monat?: string): Promise<AbschlussUebersicht> {
+  const { data, error } = await supabase.rpc('abschluss_uebersicht', { p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as AbschlussUebersicht
+}
+
+/** Schließt den Monat ab, auch wenn Abgaben fehlen. */
+export async function schliesseMonatAb(monat: string): Promise<AbschlussInfo & { monat: string }> {
+  const { data, error } = await supabase.rpc('monat_abschliessen', { p_monat: `${monat}-01` })
+  if (error) throw error
+  return data as AbschlussInfo & { monat: string }
+}
+
+export async function ladeAnalyse(personId: string, monat: string): Promise<Analyse | null> {
+  const { data, error } = await supabase.rpc('analyse_lesen', { p_person: personId, p_monat: `${monat}-01` })
+  if (error) throw error
+  return (data as Analyse | null) ?? null
+}
+
+export async function bearbeiteAnalyse(id: string, text: string): Promise<Analyse> {
+  const { data, error } = await supabase.rpc('analyse_bearbeiten', { p_id: id, p_text_md: text })
+  if (error) throw error
+  return data as Analyse
+}
+
+export async function gebeAnalyseFrei(id: string, frei: boolean): Promise<Analyse> {
+  const { data, error } = await supabase.rpc('analyse_freigeben', { p_id: id, p_freigabe: frei })
+  if (error) throw error
+  return data as Analyse
+}
+
+/**
+ * Lässt die KI die Einzelanalyse erstellen (Edge Function „analyse-erstellen“). Gleiche Eingabe wie zuvor: kein neuer KI-Aufruf,
+ * außer mit `neu`. Fehler kommen als AnalyseFehler mit einer Meldung, die die Oberfläche zeigen darf.
+ */
+export async function erstelleAnalyse(personId: string, monat: string, neu = false): Promise<AnalyseErgebnis> {
+  const { data, error } = await supabase.functions.invoke('analyse-erstellen', { body: { person_id: personId, monat, neu } })
+  if (!error) return data as AnalyseErgebnis
+  const kontext = (error as { context?: unknown }).context
+  if (kontext instanceof Response) {
+    if (kontext.status === 404) throw new AnalyseFehler('ki_nicht_eingerichtet', 'Die Analyse-Funktion ist noch nicht eingerichtet.')
+    try {
+      const b = (await kontext.json()) as { fehler?: string; meldung?: string }
+      throw new AnalyseFehler((b.fehler as AnalyseFehlerArt) ?? 'unbekannt', b.meldung ?? 'Die Analyse konnte nicht erstellt werden.')
+    } catch (e) {
+      if (e instanceof AnalyseFehler) throw e
+    }
+    throw new AnalyseFehler('unbekannt', 'Die Analyse konnte nicht erstellt werden.')
+  }
+  throw new AnalyseFehler('nicht_erreichbar', 'Die Analyse konnte nicht gestartet werden. Bitte prüfe die Internetverbindung.')
 }

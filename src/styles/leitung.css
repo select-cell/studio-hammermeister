@@ -49,3 +49,115 @@
 .lt-zelle {
   background: color-mix(in srgb, var(--accent) calc(var(--anteil, 0) * 1%), transparent);
 }
+
+/* ── Monatsabschluss und Analysen ─────────────────────────── */
+.lt-chip {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.7;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--cream-mid);
+}
+
+.lt-chip.ok {
+  color: var(--green);
+  background: var(--gbg);
+  border-color: transparent;
+}
+
+.lt-chip.warn {
+  color: var(--yel);
+  background: var(--ybg);
+  border-color: transparent;
+}
+
+.lt-fortschritt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: .8rem;
+  font-size: 13.5px;
+}
+
+.lt-fortschritt progress {
+  width: min(280px, 100%);
+  height: 10px;
+  accent-color: var(--accent);
+}
+
+.lt-personen {
+  list-style: none;
+  margin: .8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: .6rem;
+}
+
+.lt-person {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: .75rem .9rem;
+  background: var(--white);
+}
+
+.lt-person-kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .45rem;
+}
+
+.lt-detail {
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--border);
+}
+
+.lt-md h4 {
+  margin: .9rem 0 .25rem;
+  font-size: 14px;
+}
+
+.lt-md h4:first-child {
+  margin-top: 0;
+}
+
+.lt-md p,
+.lt-md li {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lt-md ul {
+  margin: 0 0 .4rem;
+  padding-left: 1.2rem;
+}
+
+.lt-label {
+  display: block;
+  margin-bottom: .3rem;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.lt-text {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: .6rem .7rem;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-sm);
+  background: var(--white);
+  color: var(--text);
+  resize: vertical;
+}
+
+.lt-fuss {
+  margin-top: .6rem;
+}

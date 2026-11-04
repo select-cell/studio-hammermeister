@@ -74,6 +74,19 @@ export default function Info() {
       </section>
 
       <section className="karte info-abschnitt">
+        <h2 className="karte-titel">Auswertung mit KI (nur Salonleitung)</h2>
+        <p>
+          Die Salonleitung kann sich für jede Person eine Einzelanalyse als Gesprächsgrundlage schreiben lassen. Alle Zahlen kommen aus der Datenbank, die
+          KI formuliert nur den Text; ein automatischer Faktencheck prüft, ob jede Zahl im Text aus den Daten stammt. Die Leitung liest jeden Entwurf und gibt
+          ihn frei, bevor er in einen Bericht kommt.
+        </p>
+        <p>
+          Dafür werden Feedbacktexte zur Auswertung an den eingestellten KI-Anbieter übertragen, ohne Namen (Personen werden durch Platzhalter wie „Kollege A“
+          ersetzt) und ohne Angabe, wer sie geschrieben hat. Mitarbeiter bekommen die Analysen nicht zum Download.
+        </p>
+      </section>
+
+      <section className="karte info-abschnitt">
         <h2 className="karte-titel">Ausfüllzeit der Umfrage</h2>
         <p>
           Während du die Monatsumfrage ausfüllst, misst die Plattform, wie lange du aktiv dabei bist: Die Seite ist sichtbar und du bedienst

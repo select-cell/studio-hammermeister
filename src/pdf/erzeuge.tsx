@@ -2,8 +2,9 @@
 // wird nur geladen, wenn eine berechtigte Person auf „PDF“ klickt (dynamischer Import in PdfKnopf).
 import { pdf } from '@react-pdf/renderer'
 import { BRAND } from '../config/brand'
-import { ladeKommentarAuswertung, ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
+import { ladeAnalyse, ladeKommentarAuswertung, ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
 import { pdfDateiname } from '../lib/pdf'
+import AnalyseAbschnitt from './AnalyseAbschnitt'
 import KommentarAbschnitt from './KommentarAbschnitt'
 import { ladeLogo } from './logo'
 import Monatsbericht from './Monatsbericht'
@@ -37,7 +38,9 @@ export async function erzeugePdf(auftrag: PdfAuftrag): Promise<string> {
     return name
   }
   const daten = await ladePdfPersonenbericht(auftrag.personId, auftrag.monat)
-  const blob = await pdf(<Personenbericht daten={daten} logo={logo} />).toBlob()
+  // Die Einzelanalyse kommt nur ins PDF, wenn sie freigegeben ist (und die Leitung sie sehen darf, siehe Schalter eigene_analyse_nur_admin)
+  const analyse = await ladeAnalyse(auftrag.personId, daten.monat).catch(() => null)
+  const blob = await pdf(<Personenbericht daten={daten} logo={logo} analyse={analyse && analyse.status === 'freigegeben' ? <AnalyseAbschnitt analyse={analyse} /> : null} />).toBlob()
   const name = pdfDateiname(daten.salon.name, daten.monat, { person: daten.person.name })
   speichere(blob, name)
   return name
