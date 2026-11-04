@@ -6,9 +6,11 @@ import type { Person, Rolle } from './types'
 // Michael Hammermeister hat beides. Der Schutz im Frontend ist nur Komfort;
 // die eigentliche Sicherheit liegt in RLS und den Datenbank-Funktionen.
 
-export type Bedingung = 'teilnehmer' | 'leitung' | 'teilnehmerOderLeitung'
+export type Bedingung = 'teilnehmer' | 'leitung' | 'teilnehmerOderLeitung' | 'admin'
 
 export const istLeitung = (p: Person): boolean => p.rolle === 'verantwortlicher' || p.rolle === 'admin'
+
+export const istAdmin = (p: Person): boolean => p.rolle === 'admin'
 
 export const istTeilnehmer = (p: Person): boolean => p.nimmt_an_teamumfrage
 
@@ -20,6 +22,8 @@ export function erfuellt(bedingung: Bedingung, p: Person): boolean {
       return istLeitung(p)
     case 'teilnehmerOderLeitung':
       return istTeilnehmer(p) || istLeitung(p)
+    case 'admin':
+      return istAdmin(p)
   }
 }
 

@@ -86,9 +86,9 @@ export const zahlText = (z: string): string => z.replace('.', ',')
 
 // ── Markdown (nur das, was die Analyse braucht) ────────────────────────────
 
-export type Block = { art: 'ueberschrift'; text: string } | { art: 'liste'; punkte: string[] } | { art: 'absatz'; text: string }
+export type Block = { art: 'ueberschrift'; text: string } | { art: 'liste'; punkte: string[] } | { art: 'absatz'; text: string } | { art: 'hinweis'; text: string }
 
-/** Zerlegt den Text der Analyse: „## Titel“, Listenpunkte mit „- “ und Absätze. Mehr kennt die Analyse nicht. */
+/** Zerlegt den Text der Analyse oder Agenda: „## Titel“, Listenpunkte mit „- “, Hinweise mit „> “ und Absätze. Mehr kennt der Text nicht. */
 export function markdownBloecke(text: string | null | undefined): Block[] {
   const bloecke: Block[] = []
   let liste: string[] | null = null
@@ -105,6 +105,7 @@ export function markdownBloecke(text: string | null | undefined): Block[] {
     const zeile = roh.trim()
     const kopf = zeile.match(/^#{1,6}\s+(.*)$/)
     const punkt = zeile.match(/^[-*•]\s+(.*)$/)
+    const hinweis = zeile.match(/^>\s*(.*)$/)
     if (!zeile) {
       absatzSchliessen()
       listeSchliessen()
@@ -112,6 +113,10 @@ export function markdownBloecke(text: string | null | undefined): Block[] {
       absatzSchliessen()
       listeSchliessen()
       bloecke.push({ art: 'ueberschrift', text: kopf[1] })
+    } else if (hinweis) {
+      absatzSchliessen()
+      listeSchliessen()
+      if (hinweis[1]) bloecke.push({ art: 'hinweis', text: hinweis[1] })
     } else if (punkt) {
       absatzSchliessen()
       ;(liste ??= []).push(punkt[1])

@@ -4,6 +4,7 @@ import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
 import type { Analyse, AnalyseErgebnis, AbschlussInfo, AbschlussUebersicht } from './abschluss'
+import type { Agenda, FokusListe, Rhythmus, Termin } from './agenda'
 import { AnalyseFehler, type AnalyseFehlerArt } from './abschluss'
 import type { KommentarAuswertung } from './kommentare'
 import type { PdfMonatsdaten, PdfPersonendaten, ProtokollEintrag } from './pdf'
@@ -295,4 +296,98 @@ export async function erstelleAnalyse(personId: string, monat: string, neu = fal
     throw new AnalyseFehler('unbekannt', 'Die Analyse konnte nicht erstellt werden.')
   }
   throw new AnalyseFehler('nicht_erreichbar', 'Die Analyse konnte nicht gestartet werden. Bitte prüfe die Internetverbindung.')
+}
+
+// ── Fokus-Verhalten, Agenda und Termine (Migration 020) ────────────────────
+// Fokus und Agenda: nur Verantwortliche und Admin. Termine: nur der Admin. Die Datenbank prüft die Rolle bei jedem Aufruf.
+
+export async function ladeFokus(): Promise<FokusListe> {
+  const { data, error } = await supabase.rpc('fokus_liste')
+  if (error) throw error
+  return data as FokusListe
+}
+
+/** Verhalten zum Fokus machen (mit Begründung, optional befristet bis `bis`: YYYY-MM-DD) oder aus dem Fokus nehmen. */
+export async function setzeFokus(verhaltenId: string, an: boolean, begruendung?: string, bis?: string): Promise<FokusListe> {
+  const { data, error } = await supabase.rpc('fokus_umschalten', { p_verhalten: verhaltenId, p_an: an, p_begruendung: begruendung ?? null, p_ab: null, p_bis: bis || null })
+  if (error) throw error
+  return data as FokusListe
+}
+
+/** Die Agenda eines Monats ('YYYY-MM'), `null` wenn es noch keine gibt. */
+export async function ladeAgenda(monat: string): Promise<Agenda | null> {
+  const { data, error } = await supabase.rpc('agenda_lesen', { p_monat: `${monat}-01` })
+  if (error) throw error
+  return (data as Agenda | null) ?? null
+}
+
+/** Baut die Agenda aus den Daten des Monats und speichert sie als Entwurf (ersetzt eine vorhandene). */
+export async function erzeugeAgenda(monat: string): Promise<Agenda> {
+  const { data, error } = await supabase.rpc('agenda_erzeugen', { p_monat: `${monat}-01` })
+  if (error) throw error
+  return data as Agenda
+}
+
+export async function bearbeiteAgenda(id: string, text: string): Promise<Agenda> {
+  const { data, error } = await supabase.rpc('agenda_bearbeiten', { p_id: id, p_text_md: text })
+  if (error) throw error
+  return data as Agenda
+}
+
+export async function gebeAgendaFrei(id: string, frei: boolean): Promise<Agenda> {
+  const { data, error } = await supabase.rpc('agenda_freigeben', { p_id: id, p_freigabe: frei })
+  if (error) throw error
+  return data as Agenda
+}
+
+export async function ladeTermine(): Promise<Termin[]> {
+  const { data, error } = await supabase.rpc('termine_liste')
+  if (error) throw error
+  return (data as Termin[] | null) ?? []
+}
+
+export interface TerminEingabe {
+  /** „YYYY-MM-DDTHH:MM“, Berliner Uhrzeit */
+  startetLokal: string
+  titel: string
+  /** 'YYYY-MM' oder leer (Monat vor dem Termin) */
+  bezugsmonat: string
+  vorlaufTage: number[]
+  vorlaufStunden: number[]
+  ccAdmin: boolean
+  aktiv: boolean
+}
+
+/** Neuer Termin (`id` leer) oder Termin ändern. */
+export async function speichereTermin(id: string | null, e: TerminEingabe): Promise<string> {
+  const { data, error } = await supabase.rpc('termin_speichern', {
+    p_id: id,
+    p_startet_lokal: e.startetLokal.length === 16 ? `${e.startetLokal}:00` : e.startetLokal,
+    p_titel: e.titel,
+    p_bezugsmonat: e.bezugsmonat ? `${e.bezugsmonat}-01` : null,
+    p_vorlauf_tage: e.vorlaufTage,
+    p_vorlauf_stunden: e.vorlaufStunden,
+    p_cc_admin: e.ccAdmin,
+    p_aktiv: e.aktiv,
+  })
+  if (error) throw error
+  return data as string
+}
+
+/** Mehrere Termine auf einmal; die Uhrzeit bleibt in Berliner Zeit gleich, auch über die Zeitumstellung. */
+export async function speichereTerminSerie(startLokal: string, titel: string, rhythmus: Rhythmus, anzahl: number, ccAdmin: boolean): Promise<number> {
+  const { data, error } = await supabase.rpc('termine_serie', {
+    p_start_lokal: startLokal.length === 16 ? `${startLokal}:00` : startLokal,
+    p_titel: titel,
+    p_rhythmus: rhythmus,
+    p_anzahl: anzahl,
+    p_cc_admin: ccAdmin,
+  })
+  if (error) throw error
+  return data as number
+}
+
+export async function entferneTermin(id: string): Promise<void> {
+  const { error } = await supabase.rpc('termin_entfernen', { p_id: id })
+  if (error) throw error
 }

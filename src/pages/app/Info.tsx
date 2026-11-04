@@ -87,6 +87,19 @@ export default function Info() {
       </section>
 
       <section className="karte info-abschnitt">
+        <h2 className="karte-titel">Agenda und Mails zum Teammeeting (nur Salonleitung)</h2>
+        <p>
+          Aus den Ergebnissen eines Monats entsteht eine Agenda für das Teammeeting (15 bis 20 Minuten). Sie enthält nur Zahlen und Themen des Teams,
+          keine Rangliste einzelner Personen und keine Kommentare mit Namen. Die Leitung kann die Agenda bearbeiten und freigeben.
+        </p>
+        <p>
+          Die Verantwortlichen bekommen die Agenda vor dem Termin und eine Erinnerung kurz davor per E-Mail. Die Mails enthalten keine Kommentare. Für den
+          Versand wird ein Mail-Dienst (Resend) genutzt: Dorthin gehen die E-Mail-Adressen der Verantwortlichen sowie Betreff und Text der Mail. Mitarbeiter
+          bekommen diese Mails nicht.
+        </p>
+      </section>
+
+      <section className="karte info-abschnitt">
         <h2 className="karte-titel">Ausfüllzeit der Umfrage</h2>
         <p>
           Während du die Monatsumfrage ausfüllst, misst die Plattform, wie lange du aktiv dabei bist: Die Seite ist sichtbar und du bedienst

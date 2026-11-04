@@ -2,8 +2,9 @@
 // wird nur geladen, wenn eine berechtigte Person auf „PDF“ klickt (dynamischer Import in PdfKnopf).
 import { pdf } from '@react-pdf/renderer'
 import { BRAND } from '../config/brand'
-import { ladeAnalyse, ladeKommentarAuswertung, ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
+import { ladeAgenda, ladeAnalyse, ladeKommentarAuswertung, ladePdfMonatsbericht, ladePdfPersonenbericht } from '../lib/api'
 import { pdfDateiname } from '../lib/pdf'
+import AgendaAbschnitt from './AgendaAbschnitt'
 import AnalyseAbschnitt from './AnalyseAbschnitt'
 import KommentarAbschnitt from './KommentarAbschnitt'
 import { ladeLogo } from './logo'
@@ -32,7 +33,15 @@ export async function erzeugePdf(auftrag: PdfAuftrag): Promise<string> {
     const daten = await ladePdfMonatsbericht(auftrag.monat)
     // Kommentar-Kennzahlen je Person (ohne Texte); fehlen sie, entsteht der Bericht trotzdem
     const kommentare = await ladeKommentarAuswertung(daten.monat).catch(() => null)
-    const blob = await pdf(<Monatsbericht daten={daten} logo={logo} zusatz={kommentare ? <KommentarAbschnitt daten={kommentare} /> : null} />).toBlob()
+    // Die Agenda kommt nur ins PDF, wenn sie freigegeben ist
+    const agenda = await ladeAgenda(daten.monat).catch(() => null)
+    const zusatz = (
+      <>
+        {kommentare ? <KommentarAbschnitt daten={kommentare} /> : null}
+        {agenda && agenda.status === 'freigegeben' ? <AgendaAbschnitt agenda={agenda} /> : null}
+      </>
+    )
+    const blob = await pdf(<Monatsbericht daten={daten} logo={logo} zusatz={zusatz} />).toBlob()
     const name = pdfDateiname(daten.salon.name, daten.monat, { monatsbericht: true })
     speichere(blob, name)
     return name

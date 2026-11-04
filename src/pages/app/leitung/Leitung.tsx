@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
+import { istAdmin } from '../../../lib/rechte'
 
 /** Die Werkzeuge der Leitung unter einem Menüpunkt: eigene Unter-Navigation, die Seiten stehen darunter. */
 export default function Leitung() {
@@ -8,6 +9,10 @@ export default function Leitung() {
   const punkte: { pfad: string; label: string }[] = [
     { pfad: 'kommentare', label: 'Kommentare' },
     { pfad: 'abschluss', label: 'Monatsabschluss' },
+    { pfad: 'fokus', label: 'Fokus' },
+    { pfad: 'agenda', label: 'Agenda' },
+    // Termine verwaltet nur der Admin; die Datenbank lehnt alle anderen ab
+    ...(istAdmin(person) ? [{ pfad: 'termine', label: 'Termine' }] : []),
   ]
   return (
     <>

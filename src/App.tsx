@@ -25,6 +25,9 @@ const MitgliedDetail = lazy(() => import('./pages/app/MitgliedDetail'))
 const Leitung = lazy(() => import('./pages/app/leitung/Leitung'))
 const Kommentare = lazy(() => import('./pages/app/leitung/Kommentare'))
 const Abschluss = lazy(() => import('./pages/app/leitung/Abschluss'))
+const Fokus = lazy(() => import('./pages/app/leitung/Fokus'))
+const AgendaSeite = lazy(() => import('./pages/app/leitung/Agenda'))
+const Termine = lazy(() => import('./pages/app/leitung/Termine'))
 
 const nachgeladen = (seite: JSX.Element) => (
   <Fehlergrenze>
@@ -70,6 +73,11 @@ export default function App() {
                   <Route index element={<Navigate to="kommentare" replace />} />
                   <Route path="kommentare" element={nachgeladen(<Kommentare />)} />
                   <Route path="abschluss/:monat?" element={nachgeladen(<Abschluss />)} />
+                  <Route path="fokus" element={nachgeladen(<Fokus />)} />
+                  <Route path="agenda/:monat?" element={nachgeladen(<AgendaSeite />)} />
+                  <Route element={<RequireZugriff bedingung="admin" />}>
+                    <Route path="termine" element={nachgeladen(<Termine />)} />
+                  </Route>
                 </Route>
                 <Route path="gaeste" element={<BereichPlatzhalter id="gaeste" />} />
                 <Route path="meine-umfrage" element={<BereichPlatzhalter id="meine-umfrage" />} />

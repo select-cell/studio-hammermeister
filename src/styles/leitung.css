@@ -161,3 +161,63 @@
 .lt-fuss {
   margin-top: .6rem;
 }
+
+.lt-md-hinweis {
+  margin: 0 0 .6rem;
+  padding: .45rem .7rem;
+  border-left: 3px solid var(--accent);
+  background: var(--cream-mid);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+
+.lt-form {
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--border);
+}
+
+.lt-form-raster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: .7rem .9rem;
+  margin-bottom: .7rem;
+}
+
+.lt-feld {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: .5rem .6rem;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-sm);
+  background: var(--white);
+  color: var(--text);
+}
+
+.lt-haken {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 14px;
+  margin: .2rem 0 .4rem;
+}
+
+.lt-mails {
+  list-style: none;
+  margin: .3rem 0 .5rem;
+  padding: 0;
+  font-size: 13.5px;
+}
+
+.lt-mail-ok {
+  color: var(--green);
+}
+
+.lt-mail-warn {
+  color: var(--text2);
+}
+
+.lt-mail-fehler {
+  color: var(--red);
+  font-weight: 600;
+}

@@ -15,6 +15,10 @@ export default function Markdown({ text }: { text: string | null | undefined }) 
               <li key={j}>{p}</li>
             ))}
           </ul>
+        ) : b.art === 'hinweis' ? (
+          <p key={i} className="lt-md-hinweis">
+            {b.text}
+          </p>
         ) : (
           <p key={i}>{b.text}</p>
         ),
