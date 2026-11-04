@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { SALON_NAME } from '../config'
 import { sichtbareBereiche } from '../lib/bereiche'
 import { initiale, rolleLabel } from '../lib/rechte'
 import DarstellungSchalter from './DarstellungSchalter'
-import Logo from './Logo'
+import BrandLogo from './BrandLogo'
 
 /** Rahmen für alles unter /app: eine Navigation für beide Merkmale (Teilnehmer + Leitung). */
 export default function Layout() {
@@ -20,8 +19,7 @@ export default function Layout() {
       <header className="app-kopf">
         <div className="app-kopf-innen">
           <Link to="/app" className="brand" onClick={schliessen}>
-            <Logo klein />
-            <span className="brand-name">{person.salon?.name ?? SALON_NAME}</span>
+            <BrandLogo variant="header" />
           </Link>
 
           <button
@@ -68,6 +66,10 @@ export default function Layout() {
       <main className="seite">
         <Outlet />
       </main>
+
+      <footer className="app-fuss">
+        <Link to="/app/info">Info und Datenschutz</Link>
+      </footer>
     </div>
   )
 }

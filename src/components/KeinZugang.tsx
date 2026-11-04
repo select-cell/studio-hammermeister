@@ -1,5 +1,5 @@
 import { useAuth } from '../auth/AuthContext'
-import Logo from './Logo'
+import BrandLogo from './BrandLogo'
 
 /** Eingeloggt, aber ohne nutzbaren Zugang (§4.2): Hinweis plus Abmelden. */
 export default function KeinZugang() {
@@ -20,7 +20,7 @@ export default function KeinZugang() {
     <div className="seite-zentriert">
       <div className="karte karte-schmal">
         <div className="seite-logo">
-          <Logo />
+          <BrandLogo variant="login" />
         </div>
         <h1 className="karte-titel">{titel}</h1>
         <p className="text-gedimmt">{text}</p>

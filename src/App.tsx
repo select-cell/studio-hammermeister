@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import NichtGefunden from './pages/NichtGefunden'
 import Start from './pages/Start'
 import Home from './pages/app/Home'
+import Info from './pages/app/Info'
 import Passwort from './pages/app/Passwort'
 import { BereichPlatzhalter } from './pages/app/Platzhalter'
 import UmfrageSeite from './pages/app/Umfrage'
@@ -43,6 +44,7 @@ export default function App() {
             <Route element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="passwort" element={<Passwort />} />
+              <Route path="info" element={<Info />} />
 
               {/* Teilnehmer der Teamumfrage (nimmt_an_teamumfrage) */}
               <Route element={<RequireZugriff bedingung="teilnehmer" />}>

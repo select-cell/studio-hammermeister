@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import Logo from '../components/Logo'
-import { SALON_NAME } from '../config'
+import BrandLogo from '../components/BrandLogo'
 import { anmelden, type AnmeldeErgebnis } from '../lib/api'
 
 const FEHLERTEXT: Record<Exclude<AnmeldeErgebnis, 'ok'>, string> = {
@@ -38,8 +37,7 @@ export default function Login() {
     <div className="seite-zentriert">
       <div className="karte karte-schmal">
         <div className="seite-logo">
-          <Logo />
-          <span className="brand-name">{SALON_NAME}</span>
+          <BrandLogo variant="login" />
         </div>
 
         <form onSubmit={(e) => void senden(e)}>

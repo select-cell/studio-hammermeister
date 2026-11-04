@@ -202,6 +202,13 @@ Entfernt werden die Abgaben der Person samt Bewertungen, alle Bewertungen, die a
 
 Neben „Passwort ändern“ im Kopf der Seite (am Handy im Menü) schaltet ein Symbol zwischen **Automatisch** (folgt dem Gerät), **Dunkel** und **Hell** um. Die Wahl gilt nur für diesen Browser. Technisch setzt `index.html` schon vor dem ersten Bild `data-theme` am `<html>` (kein Aufblitzen in Hell), `src/styles/tokens.css` enthält die dunkle Palette. **Farben stehen nur in `tokens.css`**, nicht fest in Komponenten, damit der Nachtmodus überall mitwechselt.
 
+## Logo, Marke und Schriften
+
+- **Logo tauschen:** Die Dateien liegen in `src/assets/brand/hammermeister/`: `logo.svg` (hell, Pflicht), `logo-dark.svg` (Nachtmodus, optional; fehlt sie, gilt das helle Logo) und `favicon.svg`. Dateien einfach ersetzen (auch `.png` oder `.webp` geht, dann die alte Datei löschen) und neu bauen: Kopfzeile, Anmeldeseite, Fehlerseiten und später das PDF zeigen das neue Logo, ohne Code-Änderung. Die Höhe ist fest (Kopfzeile 28 px, Anmeldeseite 40 px), die Breite folgt dem Seitenverhältnis; nichts springt. Das jetzige Logo ist ein Platzhalter (Textlogo im Design der Plattform, die Schrift ist darin in Linien umgewandelt).
+- **Zentrale Stelle:** `src/config/brand.ts` (Name, Logo-Dateien, Farben, feste Farbwerte fürs PDF) und die Komponente `BrandLogo`. Verstreute `<img>`-Logos gibt es nicht.
+- **Schriften:** DM Sans und DM Serif Display werden mit der Plattform ausgeliefert (Pakete `@fontsource/...`). Es gibt keine Anfragen an Google Fonts oder andere Fremdserver.
+- **Info und Datenschutz:** Unter `/app/info` (Link in der Fußzeile) stehen die Hinweise für das Team; weitere Hinweise kommen mit den jeweiligen Funktionen dazu.
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.

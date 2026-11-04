@@ -135,36 +135,52 @@ code {
   color: var(--text);
 }
 
-.brand-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--accent);
-  border-radius: 10px;
+/* Logo: feste Höhe, die Breite folgt dem Seitenverhältnis; nichts springt bei anderen Logos */
+.brand-logo {
+  --logo-h: 30px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  max-width: 100%;
 }
 
-.brand-icon.klein {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+.brand-logo img {
+  display: block;
+  height: var(--logo-h);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
 
-.brand-icon svg {
-  width: 18px;
-  height: 18px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.brand-logo-header {
+  --logo-h: 28px;
 }
 
-.brand-icon.klein svg {
-  width: 15px;
-  height: 15px;
+.brand-logo-login {
+  --logo-h: 40px;
+}
+
+.brand-logo-pdf {
+  --logo-h: 36px;
+}
+
+.brand-logo-text {
+  font-family: var(--font-kopf);
+  font-size: 18px;
+  color: var(--text);
+}
+
+/* Nachtmodus: logo-dark, falls es sie gibt, sonst bleibt das helle Logo */
+.brand-logo-dunkel {
+  display: none !important;
+}
+
+:root[data-theme='dark'] .brand-logo.hat-dunkel .brand-logo-hell {
+  display: none;
+}
+
+:root[data-theme='dark'] .brand-logo.hat-dunkel .brand-logo-dunkel {
+  display: block !important;
 }
 
 .seite-logo {
@@ -323,7 +339,7 @@ code {
   }
 
   .nav a {
-    padding: 6px 10px;
+    padding: 6px 8px;
   }
 
   .nav-nutzer {
@@ -763,4 +779,28 @@ code {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+}
+
+/* ── Fußzeile und Info-Seite ──────────────────────────────── */
+.app-fuss {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+  font-size: 12px;
+  text-align: center;
+}
+
+.app-fuss a {
+  color: var(--text2);
+}
+
+.app-fuss a:hover {
+  color: var(--link);
+}
+
+.info-abschnitt {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  font-size: 14px;
+  color: var(--text2);
 }

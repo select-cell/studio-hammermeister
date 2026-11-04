@@ -1,4 +1,4 @@
-import Logo from './Logo'
+import BrandLogo from './BrandLogo'
 
 /** Wird gezeigt, wenn die .env fehlt (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). */
 export default function KonfigFehlt() {
@@ -6,7 +6,7 @@ export default function KonfigFehlt() {
     <div className="seite-zentriert">
       <div className="karte karte-schmal">
         <div className="seite-logo">
-          <Logo />
+          <BrandLogo variant="login" />
         </div>
         <h1 className="karte-titel">Verbindung zu Supabase fehlt</h1>
         <p className="text-gedimmt">
