@@ -11,6 +11,7 @@ import Heatmap from './Heatmap'
 import KennzahlKacheln from './KennzahlKacheln'
 import LadeFehler from './LadeFehler'
 import MonatsAuswahl from './MonatsAuswahl'
+import PdfKnopf from './PdfKnopf'
 import PersonAnsicht from './PersonAnsicht'
 import Rangliste from './Rangliste'
 import { hatTeamRituale, RitualeTeam } from './Rituale'
@@ -95,7 +96,10 @@ export default function TeamDashboardAnsicht({ schwellen }: { schwellen: Schwell
   return (
     <>
       <Seitenkopf titel="Team-Dashboard" text={monat ? `Auswertung für ${monatName(monat)}` : 'Hier erscheint die Auswertung, sobald die erste Umfrage abgegeben ist.'}>
-        <MonatsAuswahl monate={d.monate} monat={monat} onWahl={setAuswahl} />
+        <div className="au-kopf-rechts">
+          <MonatsAuswahl monate={d.monate} monat={monat} onWahl={setAuswahl} />
+          <PdfKnopf art={gewaehlt ? 'person' : 'monat'} personId={gewaehlt ?? undefined} monat={monat} />
+        </div>
       </Seitenkopf>
 
       {dash.fehler && (

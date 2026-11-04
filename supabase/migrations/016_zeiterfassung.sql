@@ -31,7 +31,7 @@
 --    - Die Tabellen sind für Anmeldungen komplett gesperrt (wie alle umfrage_*-Tabellen); jeder sieht
 --      seine eigene Zeit nur über die Antwort seiner Abgabe, die Leitung über zeit_auswertung().
 --    - umfrage_einreichen_v2 bleibt vorerst aufrufbar, damit die bisher ausgelieferte Version der Plattform
---      weiter abgibt. Sobald die neue Version online ist, wird v2 für Anmeldungen gesperrt (Migration 017).
+--      weiter abgibt. Sobald die neue Version online ist, wird v2 für Anmeldungen gesperrt (eigene, spätere Migration).
 --
 --  Das alte Feld umfrage_abgaben.ausfuelldauer_sek (Auswertungen 006, 011, 012) wird mit der aktiven Zeit
 --  gefüllt, wenn sie gültig ist (60 bis 86400 s); gestartet_am mit dem Serverstart.

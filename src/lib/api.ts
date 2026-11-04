@@ -3,6 +3,7 @@ import { aktuellerZugriffstoken, supabase, supabaseSchluessel, supabaseUrl } fro
 import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
+import type { PdfMonatsdaten, PdfPersonendaten, ProtokollEintrag } from './pdf'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
 import type { ZeitAuswertung } from './zeit'
 import type { SchrittZeit, ZeitStand } from './zeitmesser'
@@ -203,4 +204,28 @@ export async function ladeAbgabeStatus(monat?: string, heute?: string): Promise<
   const { data, error } = await supabase.rpc('abgabe_status', { p_monat: monat ? `${monat}-01` : null, p_heute: heute ?? null })
   if (error) throw error
   return data as AbgabeStatus
+}
+
+// ── PDF-Export (Migration 017, nur Verantwortliche und Admin) ──────────────
+// Die Funktionen prüfen die Rolle selbst und protokollieren jeden Abruf; das PDF wird im Browser gebaut (src/pdf/).
+
+/** Daten für das Monats-PDF; ohne Monat der neueste mit Abgaben. */
+export async function ladePdfMonatsbericht(monat?: string): Promise<PdfMonatsdaten> {
+  const { data, error } = await supabase.rpc('pdf_monatsbericht', { p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as PdfMonatsdaten
+}
+
+/** Daten für das Personen-PDF (Kommentare ohne Absender). */
+export async function ladePdfPersonenbericht(personId: string, monat?: string): Promise<PdfPersonendaten> {
+  const { data, error } = await supabase.rpc('pdf_personenbericht', { p_person: personId, p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as PdfPersonendaten
+}
+
+/** Das Export-Protokoll (nur Admin). */
+export async function ladePdfProtokoll(limit = 100): Promise<ProtokollEintrag[]> {
+  const { data, error } = await supabase.rpc('pdf_export_protokoll', { p_limit: limit })
+  if (error) throw error
+  return (data as ProtokollEintrag[] | null) ?? []
 }

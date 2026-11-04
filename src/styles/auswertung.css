@@ -836,3 +836,28 @@ button.au-rang-knopf:hover {
   font-size: 13px;
   color: var(--link);
 }
+
+/* ── PDF-Knopf (Leitung) ──────────────────────────────────── */
+.au-pdf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+
+.au-pdf-status {
+  color: var(--text2);
+}
+
+.au-kopf-rechts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .5rem;
+}
+
+@media (max-width: 640px) {
+  .au-kopf-rechts {
+    align-items: flex-start;
+  }
+}

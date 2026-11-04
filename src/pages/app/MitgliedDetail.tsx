@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import LadeFehler from '../../components/auswertung/LadeFehler'
 import MonatsAuswahl from '../../components/auswertung/MonatsAuswahl'
+import PdfKnopf from '../../components/auswertung/PdfKnopf'
 import PersonAnsicht from '../../components/auswertung/PersonAnsicht'
 import Seitenkopf from '../../components/auswertung/Seitenkopf'
 import { ladePersonErgebnisse } from '../../lib/api'
@@ -21,7 +22,10 @@ function Inhalt({ id }: { id: string }) {
   return (
     <>
       <Seitenkopf titel={l.daten.person.name} text="Individuelle Auswertung" zurueck={{ pfad: '/app/mitglieder', label: 'Alle Mitglieder' }}>
-        <MonatsAuswahl monate={l.daten.monate} monat={monat} onWahl={setAuswahl} />
+        <div className="au-kopf-rechts">
+          <MonatsAuswahl monate={l.daten.monate} monat={monat} onWahl={setAuswahl} />
+          <PdfKnopf art="person" personId={id} monat={monat} />
+        </div>
       </Seitenkopf>
       <PersonAnsicht daten={l.daten} monat={monat} schwellen={schwellenVon(person.salon)} />
     </>

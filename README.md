@@ -60,6 +60,7 @@ Gut zu wissen:
    15. `supabase/migrations/013_texte_ohne_gendern.sql`
    16. `supabase/migrations/014_profile_fotos.sql` und `015_profil_fotos_stillgelegt.sql` (Profile und Fotos wurden nicht gebraucht und mit 015 stillgelegt; nur der Vollständigkeit halber)
    17. `supabase/migrations/016_zeiterfassung.sql` (Zeiterfassung der Umfrage, siehe [`docs/zeiterfassung.md`](docs/zeiterfassung.md))
+   18. `supabase/migrations/017_pdf_export.sql` (PDF-Export für die Leitung, siehe [`docs/pdf-export.md`](docs/pdf-export.md))
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -215,6 +216,10 @@ Neben „Passwort ändern“ im Kopf der Seite (am Handy im Menü) schaltet ein 
 
 Die Umfrage misst die **aktive Zeit** (Seite sichtbar und bedient, Pausen zählen nicht); Start und Abgabe stempelt der Server, ein Herzschlag meldet den Stand alle 30 Sekunden. Auffällige Zeiten werden gekennzeichnet, nie verworfen. Mitarbeiter sehen nur ihre eigene Zeit, die Leitung die Auswertung im Team-Dashboard („Ausfüllzeit“). Die Schwellen stehen in der Tabelle `salons` (`zeit_*`). Alles Weitere in [`docs/zeiterfassung.md`](docs/zeiterfassung.md).
 
+## PDF-Export
+
+Verantwortliche und Admin laden im Team-Dashboard den **Monatsbericht** und in der Personenansicht den **Personenbericht** als PDF herunter (Kommentare ohne Absender). Mitarbeiter haben weder Knopf noch Zugriff; die Datenbank lehnt sie ab, und jeder Abruf steht im Export-Protokoll (für den Admin unter „Info und Datenschutz“). Das PDF entsteht im Browser mit den selbst gehosteten Schriften und dem Logo aus `src/assets/brand/`. Alles Weitere in [`docs/pdf-export.md`](docs/pdf-export.md).
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -259,11 +264,12 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts, pdf.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status), DarstellungSchalter
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage
   components/auswertung/ Bausteine der Auswertungen (Kacheln, Diagramme, Rangliste, Heatmap, Tabellen)
+  pdf/                PDF-Berichte (react-pdf, wird erst beim Klick geladen): Monatsbericht, Personenbericht, Bausteine, Schriften, Logo
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
   styles/             tokens.css, base.css, umfrage.css, auswertung.css, abgabe.css
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
