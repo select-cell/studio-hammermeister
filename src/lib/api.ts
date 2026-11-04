@@ -1,9 +1,11 @@
 // Gebündelter Datenzugriff: dünne Wrapper um Supabase. Berechnungen gehören in SQL-Funktionen, nicht hierher.
-import { supabase } from './supabase'
+import { aktuellerZugriffstoken, supabase, supabaseSchluessel, supabaseUrl } from './supabase'
 import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
 import type { Nutzlast, OffenerMonat, UmfrageInhalt } from './umfrage'
+import type { ZeitAuswertung } from './zeit'
+import type { SchrittZeit, ZeitStand } from './zeitmesser'
 
 /** Eigene Zeile aus `personen` samt Salon. `null`, wenn der Login keiner Person zugeordnet ist. */
 export async function ladeIch(): Promise<Person | null> {
@@ -69,17 +71,90 @@ export async function ladeOffeneMonate(): Promise<OffenerMonat[]> {
   return (data as OffenerMonat[] | null) ?? []
 }
 
+/** Die Zeit der Sitzung, wie sie mit der Abgabe an den Server geht (Migration 016). */
+export interface ZeitAbschluss {
+  sitzungId: string | null
+  aktiveSek: number
+  schritte: SchrittZeit[]
+}
+
 export type EinreichErgebnis =
-  | { art: 'ok'; id: string }
+  | { art: 'ok'; id: string; aktiveSek: number | null }
   | { art: 'bereits'; meldung: string }
   | { art: 'fehler'; meldung: string }
 
-/** Speichert die Umfrage. „Bereits abgegeben“ (23505) ist kein Fehler, sondern ein eigener Ausgang. */
-export async function umfrageEinreichen(nutzlast: Nutzlast): Promise<EinreichErgebnis> {
-  const { data, error } = await supabase.rpc('umfrage_einreichen_v2', { payload: nutzlast })
-  if (!error) return { art: 'ok', id: String(data) }
+/**
+ * Speichert die Umfrage samt Zeit der Sitzung. „Bereits abgegeben“ (23505) ist kein Fehler, sondern ein eigener Ausgang.
+ * `aktiveSek` ist die eigene aktive Zeit für die Abschlussseite (null, wenn keine Sitzung bestand).
+ */
+export async function umfrageEinreichen(nutzlast: Nutzlast, zeit?: ZeitAbschluss): Promise<EinreichErgebnis> {
+  const { data, error } = await supabase.rpc('umfrage_einreichen_v3', {
+    payload: nutzlast,
+    p_sitzung: zeit?.sitzungId ?? null,
+    p_aktive_sek: zeit ? zeit.aktiveSek : null,
+    p_schritte: zeit ? zeit.schritte : null,
+  })
+  if (!error) {
+    const r = data as { id: string; aktive_sek: number | null } | null
+    return { art: 'ok', id: String(r?.id ?? ''), aktiveSek: r?.aktive_sek ?? null }
+  }
   if (error.code === '23505') return { art: 'bereits', meldung: error.message }
   return { art: 'fehler', meldung: error.message }
+}
+
+// ── Zeiterfassung (Migration 016) ──────────────────────────────────────────
+
+export interface ZeitStartAntwort {
+  sitzung_id: string
+  aktive_sek: number
+  wiederaufgenommen: boolean
+  schritte: { index: number; nr: number | null; sek: number }[]
+}
+
+/** Beginnt eine Sitzung für den Monat ('YYYY-MM') oder nimmt die offene wieder auf. `neu`: „Neu beginnen“. */
+export async function zeitStarten(monat: string, neu: boolean): Promise<ZeitStartAntwort> {
+  const { data, error } = await supabase.rpc('umfrage_starten', { p_monat: `${monat}-01`, p_neu: neu })
+  if (error) throw error
+  return data as ZeitStartAntwort
+}
+
+/** Meldet den Zählerstand. Der Server deckelt ihn auf die echte Zeit; ein Fehler ist nicht schlimm, der nächste Herzschlag trägt alles nach. */
+export async function zeitHerzschlag(sitzungId: string, stand: ZeitStand): Promise<void> {
+  const { error } = await supabase.rpc('umfrage_heartbeat', {
+    p_sitzung: sitzungId,
+    p_aktive_sek: stand.aktiveSek,
+    p_schritte: stand.schritte,
+  })
+  if (error) throw error
+}
+
+/**
+ * Letzter Herzschlag beim Schließen oder Verlassen der Seite. Ein normaler Aufruf würde abgebrochen; `keepalive` lässt die Anfrage
+ * die Seite überleben. (`sendBeacon` kann keine Anmeldung mitschicken.) Geht auch das schief, fehlen höchstens die letzten Sekunden.
+ */
+export function zeitHerzschlagBeimSchliessen(sitzungId: string, stand: ZeitStand): void {
+  const token = aktuellerZugriffstoken()
+  if (!token || !supabaseUrl) {
+    void zeitHerzschlag(sitzungId, stand).catch(() => undefined)
+    return
+  }
+  try {
+    void fetch(`${supabaseUrl}/rest/v1/rpc/umfrage_heartbeat`, {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json', apikey: supabaseSchluessel, Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ p_sitzung: sitzungId, p_aktive_sek: stand.aktiveSek, p_schritte: stand.schritte }),
+    }).catch(() => undefined)
+  } catch {
+    /* nichts zu tun: der nächste Besuch nimmt die Sitzung wieder auf */
+  }
+}
+
+/** Zeit-Auswertung eines Monats ('YYYY-MM'; ohne Angabe der neueste mit Abgaben), nur für Verantwortliche und Admin. */
+export async function ladeZeitAuswertung(monat?: string): Promise<ZeitAuswertung> {
+  const { data, error } = await supabase.rpc('zeit_auswertung', { p_monat: monat ? `${monat}-01` : null })
+  if (error) throw error
+  return data as ZeitAuswertung
 }
 
 // ── Auswertungen ──────────────────────────────────────────────────────────

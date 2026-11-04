@@ -12,6 +12,7 @@
 --
 --  Entfernt wird:
 --    - die eigenen Abgaben der Person samt aller Bewertungen und Rituale,
+--    - ihre Sitzungen der Zeiterfassung samt Schrittzeiten (Migration 016, sofern schon eingespielt),
 --    - alle Bewertungen, die andere über die Person abgegeben haben,
 --    - Nennungen der Person als „Entwicklung des Monats“ bei anderen,
 --    - bei Mitarbeitern (p_person_loeschen = true) die Zeile in „personen“.
@@ -34,6 +35,7 @@ declare
   v_abgaben  integer;
   v_ueber    integer;
   v_nennung  integer;
+  v_sitzungen integer := 0;
   v_geloescht boolean := false;
 begin
   select p.id, p.name, p.rolle into v_id, v_name, v_rolle
@@ -50,6 +52,12 @@ begin
   -- Eigene Abgaben (die Bewertungen und Rituale darin gehen per ON DELETE CASCADE mit)
   delete from public.umfrage_abgaben where feedbackgeber_id = v_id;
   get diagnostics v_abgaben = row_count;
+
+  -- Sitzungen der Zeiterfassung (Migration 016): Schrittzeiten gehen per ON DELETE CASCADE mit
+  if to_regclass('public.umfrage_sitzungen') is not null then
+    execute 'delete from public.umfrage_sitzungen where person_id = $1' using v_id;
+    get diagnostics v_sitzungen = row_count;
+  end if;
 
   -- Was andere über die Person abgegeben haben
   delete from public.umfrage_bewertungen where bewertete_person_id = v_id;
@@ -70,6 +78,7 @@ begin
     'person',                       v_name,
     'rolle',                        v_rolle,
     'abgaben_geloescht',            v_abgaben,
+    'sitzungen_geloescht',          v_sitzungen,
     'bewertungen_ueber_person_geloescht', v_ueber,
     'nennungen_entfernt',           v_nennung,
     'person_geloescht',             v_geloescht,

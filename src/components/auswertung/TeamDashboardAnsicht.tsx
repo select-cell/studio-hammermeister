@@ -19,6 +19,7 @@ import Seitenkopf from './Seitenkopf'
 import Tabs from './Tabs'
 import TopFlop from './TopFlop'
 import VerlaufDiagramm from './VerlaufDiagramm'
+import ZeitAbschnitt from './ZeitAbschnitt'
 
 const TEAM = 'team'
 
@@ -64,6 +65,7 @@ function TeamSicht({ d, schwellen, teamVerlauf, rangliste, rituale }: { d: TeamD
         <DetailtabelleMatrix verhalten={d.verhalten} personen={personen} schwellen={schwellen} rituale={rituale} />
       </Abschnitt>
       <Entwicklung eintraege={d.entwicklung} />
+      {d.monat && <ZeitAbschnitt monat={d.monat} />}
       {teamVerlauf}
     </>
   )

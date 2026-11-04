@@ -58,6 +58,8 @@ Gut zu wissen:
    13. `supabase/migrations/011_ergebnisse_nur_selbstbild.sql` (abgelöst durch 012)
    14. `supabase/migrations/012_ergebnisse_ohne_fremdkommentare.sql`
    15. `supabase/migrations/013_texte_ohne_gendern.sql`
+   16. `supabase/migrations/014_profile_fotos.sql` und `015_profil_fotos_stillgelegt.sql` (Profile und Fotos wurden nicht gebraucht und mit 015 stillgelegt; nur der Vollständigkeit halber)
+   17. `supabase/migrations/016_zeiterfassung.sql` (Zeiterfassung der Umfrage, siehe [`docs/zeiterfassung.md`](docs/zeiterfassung.md))
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -209,6 +211,10 @@ Neben „Passwort ändern“ im Kopf der Seite (am Handy im Menü) schaltet ein 
 - **Schriften:** DM Sans und DM Serif Display werden mit der Plattform ausgeliefert (Pakete `@fontsource/...`). Es gibt keine Anfragen an Google Fonts oder andere Fremdserver.
 - **Info und Datenschutz:** Unter `/app/info` (Link in der Fußzeile) stehen die Hinweise für das Team; weitere Hinweise kommen mit den jeweiligen Funktionen dazu.
 
+## Zeiterfassung der Umfrage
+
+Die Umfrage misst die **aktive Zeit** (Seite sichtbar und bedient, Pausen zählen nicht); Start und Abgabe stempelt der Server, ein Herzschlag meldet den Stand alle 30 Sekunden. Auffällige Zeiten werden gekennzeichnet, nie verworfen. Mitarbeiter sehen nur ihre eigene Zeit, die Leitung die Auswertung im Team-Dashboard („Ausfüllzeit“). Die Schwellen stehen in der Tabelle `salons` (`zeit_*`). Alles Weitere in [`docs/zeiterfassung.md`](docs/zeiterfassung.md).
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.
@@ -253,7 +259,7 @@ referenz/             Vorlagen: bestehende Umfrage, altes Board
 supabase/             SQL: Ausgangsstand, migrations/, Vorlagen
 public/_redirects     SPA-Routing für Netlify
 src/
-  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts
+  lib/                supabase.ts, api.ts, monat.ts, rechte.ts, bereiche.ts, auswertung.ts, abgabe.ts, passwort.ts, darstellung.ts, useLaden.ts, zeitmesser.ts, zeiterfassung.ts, zeit.ts
   auth/               AuthProvider, RequireRole (Schutz der Routen)
   components/         Layout, Kacheln, Karten, StatusKarte und ReminderPopup (Abgabe-Status), DarstellungSchalter
   components/umfrage/ Ablauf, Seiten und Bausteine der Monatsumfrage

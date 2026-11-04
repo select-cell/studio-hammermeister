@@ -16,6 +16,18 @@ export default function Info() {
           Plattformbetreiber an.
         </p>
       </section>
+
+      <section className="karte info-abschnitt">
+        <h2 className="karte-titel">Ausfüllzeit der Umfrage</h2>
+        <p>
+          Während du die Monatsumfrage ausfüllst, misst die Plattform, wie lange du aktiv dabei bist: Die Seite ist sichtbar und du bedienst
+          sie. Pausen zählen nicht. Am Ende siehst du deine eigene Zeit. Die Salonleitung sieht die Zeit je Person und je Verhalten.
+        </p>
+        <p>
+          Gespeichert werden nur Zeiten, nicht, was du dabei tippst oder ansiehst. Auffällig schnelle oder sehr lange Zeiten werden markiert,
+          aber nicht gelöscht.
+        </p>
+      </section>
     </>
   )
 }

@@ -3,6 +3,8 @@ import { umfrageEinreichen } from '../../lib/api'
 import { SALON_NAME } from '../../config'
 import { monatName } from '../../lib/monat'
 import type { Person } from '../../lib/types'
+import { Zeiterfassung } from '../../lib/zeiterfassung'
+import type { SchrittRef } from '../../lib/zeitmesser'
 import {
   baueNutzlast,
   bereinigeEntwurf,
@@ -39,7 +41,8 @@ import Zusammenfassung from './Zusammenfassung'
 /** Länge des Platzhalter-Videos, solange bei einem Verhalten keine Video-URL hinterlegt ist. */
 const PLATZHALTER_VIDEO_SEKUNDEN = 8
 
-type Ergebnis = { art: 'ok'; nutzlast: Nutzlast } | { art: 'bereits'; nutzlast: Nutzlast; meldung: string }
+/** `aktiveSek`: die eigene aktive Zeit laut Server (null, wenn keine geprüfte Zeit vorliegt). */
+type Ergebnis = { art: 'ok'; nutzlast: Nutzlast; aktiveSek: number | null } | { art: 'bereits'; nutzlast: Nutzlast; meldung: string }
 
 function fehlertext(meldung: string): string {
   if (/fetch|network|load failed|verbindung/i.test(meldung)) {
@@ -72,6 +75,12 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   const schrittJetzt = useRef(schritt)
   schrittJetzt.current = schritt
 
+  // Zeiterfassung (Migration 016): läuft vom Startklick (oder einem wiederhergestellten Zwischenstand) bis zum Absenden
+  const zeit = useRef<Zeiterfassung | null>(null)
+  const neuBegonnen = useRef(false) // „Neu beginnen“ wurde gedrückt: der nächste Start beendet die alte Sitzung
+  const laeuft = gestartetAm !== null && !ergebnis
+  const schrittRef = (s: Schritt): SchrittRef => ({ index: schrittNummer(s, inhalt), nr: s.art === 'verhalten' ? (inhalt.verhalten[s.index]?.nr ?? null) : null })
+
   const gesamt = gesamtSchritte(inhalt)
   const rituale = inhalt.rituale
   const verhalten = inhalt.verhalten
@@ -86,6 +95,24 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: scrollArt() })
   }, [schritt, ergebnis])
+
+  // Die Zeiterfassung beginnt und endet mit der Umfrage; beim Verlassen der Seite geht noch ein letzter Herzschlag raus
+  useEffect(() => {
+    if (!laeuft) return
+    const z = new Zeiterfassung()
+    zeit.current = z
+    z.beginne(monat, schrittRef(schrittJetzt.current), neuBegonnen.current)
+    neuBegonnen.current = false
+    return () => {
+      z.beende()
+      if (zeit.current === z) zeit.current = null
+    }
+  }, [laeuft, monat])
+
+  // Jeder Schrittwechsel: die Zeit wird dem Schritt zugerechnet, der gerade offen ist
+  useEffect(() => {
+    zeit.current?.wechsle(schrittRef(schritt))
+  }, [schritt])
 
   const geheZu = (s: Schritt) => {
     setVersucht(false)
@@ -183,12 +210,14 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
       setSendeFehler(`Es fehlen noch Antworten (${e instanceof Error ? e.message : 'unbekannt'}).`)
       return
     }
-    const r = await umfrageEinreichen(nutzlast)
+    const r = await umfrageEinreichen(nutzlast, zeit.current?.abschluss() ?? undefined)
     setSendet(false)
     if (r.art === 'ok') {
+      zeit.current?.beende(false) // die Sitzung ist mit der Abgabe geschlossen
       loescheEntwurf(schluessel)
-      setErgebnis({ art: 'ok', nutzlast })
+      setErgebnis({ art: 'ok', nutzlast, aktiveSek: r.aktiveSek })
     } else if (r.art === 'bereits') {
+      zeit.current?.beende(false)
       loescheEntwurf(schluessel)
       setErgebnis({ art: 'bereits', nutzlast, meldung: r.meldung })
     } else {
@@ -197,6 +226,7 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
   }
 
   function neuBeginnen() {
+    neuBegonnen.current = true // die Zeiterfassung endet mit dem Zurücksetzen unten; der nächste Start legt eine neue Sitzung an
     loescheEntwurf(schluessel)
     setAntworten(leereAntworten())
     setGestartetAm(null)
@@ -207,7 +237,8 @@ export default function UmfrageAblauf({ monat, inhalt, person }: { monat: string
 
   // ── Anzeige ─────────────────────────────────────────────────────────────
   if (ergebnis) {
-    const dauer = Math.round((new Date(ergebnis.nutzlast.zeitpunkt).getTime() - new Date(ergebnis.nutzlast.gestartet_am).getTime()) / 60000)
+    // Die eigene aktive Zeit laut Server (nicht die Uhrzeit-Differenz auf dem Gerät)
+    const dauer = ergebnis.art === 'ok' && ergebnis.aktiveSek !== null ? Math.round(ergebnis.aktiveSek / 60) : 0
     return (
       <div className="um">
         <Fortschritt schritt={gesamt} gesamt={gesamt} fertig />

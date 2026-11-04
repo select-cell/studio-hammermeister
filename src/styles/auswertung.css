@@ -749,3 +749,90 @@ button.au-rang-knopf:hover {
     gap: 16px;
   }
 }
+
+/* ── Ausfüllzeit (Leitung) ────────────────────────────────── */
+.au-zeit-fazit {
+  margin: 0 0 .9rem;
+  font-size: 14px;
+}
+
+.au-zeit-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.au-zeit-flag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  cursor: help;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--cream-mid);
+}
+
+.au-zeit-flag.warn {
+  color: var(--yel);
+  background: var(--ybg);
+  border-color: transparent;
+}
+
+.au-zeit-zeile.ungueltig .au-zahl {
+  color: var(--muted);
+}
+
+.au-zeit-balken {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) 1fr 3.2rem;
+  align-items: center;
+  gap: .6rem;
+  font-size: 13px;
+  padding: 3px 0;
+}
+
+@media (max-width: 640px) {
+  .au-zeit-balken {
+    grid-template-columns: minmax(0, 8rem) 1fr 3rem;
+  }
+}
+
+.au-zeit-balken-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.au-zeit-spur {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--cream-mid);
+  overflow: hidden;
+}
+
+.au-zeit-fuell {
+  height: 100%;
+  min-width: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.au-zeit-wert {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text2);
+}
+
+/* Heatmap der Sekunden: Farbstärke nach Anteil am größten Wert */
+.au-zeit-zelle {
+  background: color-mix(in srgb, var(--accent) calc(var(--anteil, 0) * 1%), transparent);
+}
+
+.au-zeit-details > summary {
+  cursor: pointer;
+  margin: 1rem 0 .6rem;
+  font-size: 13px;
+  color: var(--link);
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { videoQuelle, zeitText } from '../../lib/umfrage'
+import { meldeAktivitaet } from '../../lib/zeiterfassung'
 import { ladeVimeoApi, type VimeoPlayer } from '../../lib/vimeo'
 
 interface Props {
@@ -31,7 +32,10 @@ export default function VideoBox({ videoUrl, titel, gesehen, platzhalterSekunden
   // Platzhalter: Sekundentakt bis zum Ablauf
   useEffect(() => {
     if (quelle.typ !== 'keine' || !laeuft || gesehen) return
-    const takt = window.setInterval(() => setSekunden((s) => s + 1), 1000)
+    const takt = window.setInterval(() => {
+      setSekunden((s) => s + 1)
+      meldeAktivitaet() // ein laufendes Video gilt als aktive Zeit, auch ohne Eingabe
+    }, 1000)
     return () => window.clearInterval(takt)
   }, [quelle.typ, laeuft, gesehen])
 
@@ -57,6 +61,7 @@ export default function VideoBox({ videoUrl, titel, gesehen, platzhalterSekunden
         let korrigiert = false
         player.getDuration().then((d) => { dauer = d }).catch(() => undefined)
         const waechter = (daten: { seconds: number }) => {
+          meldeAktivitaet() // läuft das Video, ist der Nutzer dabei (Klicks im eingebetteten Player sieht die Seite nicht)
           if (korrigiert) return
           if (daten.seconds > maxGesehen + 2) {
             korrigiert = true
@@ -115,6 +120,7 @@ export default function VideoBox({ videoUrl, titel, gesehen, platzhalterSekunden
           controls={gesehen}
           onTimeUpdate={(e) => {
             const v = e.currentTarget
+            meldeAktivitaet()
             if (!v.duration || gesehen) return
             setFortschritt(Math.min((v.currentTime / v.duration) * 100, 100))
             setZeit(`${zeitText(v.currentTime)} / ${zeitText(v.duration)}`)

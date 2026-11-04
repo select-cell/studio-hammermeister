@@ -12,3 +12,14 @@ export const konfigurationVollstaendig = Boolean(url && anonKey)
 export const supabase = createClient(url || 'http://localhost:54321', anonKey || 'nicht-konfiguriert', {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
 })
+
+/** Adresse und öffentlicher Schlüssel für die wenigen Aufrufe, die ohne den Client auskommen müssen (siehe `herzschlagBeimSchliessen`). */
+export const supabaseUrl: string = url || ''
+export const supabaseSchluessel: string = anonKey || ''
+
+// Der Zugriffstoken der Anmeldung, immer griffbereit: Beim Schließen der Seite bleibt keine Zeit, ihn erst zu holen.
+let zugriffstoken: string | null = null
+supabase.auth.onAuthStateChange((_ereignis, sitzung) => {
+  zugriffstoken = sitzung?.access_token ?? null
+})
+export const aktuellerZugriffstoken = (): string | null => zugriffstoken
