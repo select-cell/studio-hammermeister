@@ -68,7 +68,7 @@ Die Summe liegt zwischen 15 und 20 Minuten (Vorlage: 18). Eine Agenda außerhalb
 Die Function ist veröffentlicht, **der Zeitplan ist bewusst nicht aktiv**, bis alles bereit ist (Resend-Schlüssel, bestätigte Domain, Meeting-Termine fehlten bei der Entwicklung).
 
 1. Bei **Resend** ein Konto anlegen, die Absender-Domain bestätigen, einen API-Schlüssel erzeugen.
-2. In Supabase unter **Edge Functions → Secrets** setzen: `RESEND_API_KEY`, `MAIL_ABSENDER` (z. B. `Salon Hammermeister <plattform@deine-domain.de>`), `CRON_SECRET` (langer Zufallswert), `PLATTFORM_URL` (z. B. `https://hammermeister.netlify.app`).
+2. In Supabase unter **Edge Functions → Secrets** setzen: `RESEND_API_KEY`, `MAIL_ABSENDER` (z. B. `Salon Muster <plattform@deine-domain.de>`), `CRON_SECRET` (langer Zufallswert), `PLATTFORM_URL` (z. B. `https://dein-salon.netlify.app`).
 3. Unter **Database → Extensions** `pg_cron` und `pg_net` einschalten.
 4. Unter **Leitung → Termine** die Teammeetings eintragen.
 5. `supabase/versand_einrichten.sql` im SQL-Editor ausführen (vorher das `CRON_SECRET` im Skript eintragen; es landet im Vault, nicht im Zeitplan). Zum Ausprobieren ohne Versand im Zeitplan `body := '{"trocken": true}'` setzen.

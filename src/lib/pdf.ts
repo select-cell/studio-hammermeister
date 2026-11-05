@@ -49,7 +49,7 @@ export interface ProtokollEintrag {
   monat: string
 }
 
-/** Kleinbuchstaben ohne Umlaute und Sonderzeichen, Wörter mit Bindestrich: „Jaroslaw Schatalov“ → „jaroslaw-schatalov“. */
+/** Kleinbuchstaben ohne Umlaute und Sonderzeichen, Wörter mit Bindestrich: „Max Mustermann“ → „max-mustermann“. */
 export function dateiteil(text: string): string {
   return text
     .toLowerCase()

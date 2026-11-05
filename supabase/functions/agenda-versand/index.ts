@@ -13,8 +13,8 @@
 // Secrets (Supabase → Edge Functions → Secrets):
 //   CRON_SECRET      langer Zufallswert, derselbe wie im Zeitplan
 //   RESEND_API_KEY   API-Schlüssel von Resend
-//   MAIL_ABSENDER    z. B. „Salon Hammermeister <plattform@deine-domain.de>“ (Domain bei Resend bestätigt)
-//   PLATTFORM_URL    Adresse der Plattform, z. B. https://hammermeister.netlify.app (für den Link in der Mail)
+//   MAIL_ABSENDER    z. B. „Salon Muster <plattform@deine-domain.de>“ (Domain bei Resend bestätigt)
+//   PLATTFORM_URL    Adresse der Plattform, z. B. https://dein-salon.netlify.app (für den Link in der Mail)
 // SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY stellt Supabase der Function selbst bereit; die Versand-Funktionen der Datenbank
 // sind ausschließlich für service_role aufrufbar. Der Schlüssel liegt nie im Frontend oder im Repo.
 import { createClient } from 'npm:@supabase/supabase-js@2'

@@ -237,6 +237,10 @@ Unter **Leitung → Fokus** markiert die Leitung die Verhalten, die gerade beson
 
 **Damit die Mails gesendet werden, muss der Admin den Versand einrichten:** Resend-Konto mit bestätigter Domain, die Secrets `RESEND_API_KEY`, `MAIL_ABSENDER`, `CRON_SECRET`, `PLATTFORM_URL` bei den Edge Functions, `pg_cron` und `pg_net` einschalten und `supabase/versand_einrichten.sql` einmal im SQL-Editor ausführen (Schritte in [`docs/agenda-termine.md`](docs/agenda-termine.md)). Die Function `agenda-versand` ist bereits eingespielt; ohne Einrichtung werden keine Mails gesendet.
 
+## Version 1.2 auf eine andere Salon-Plattform übertragen
+
+[`docs/version-1.2-aenderungen.md`](docs/version-1.2-aenderungen.md) beschreibt alle Erweiterungen A bis F so, dass sie auf jede Salon-Plattform übertragen werden können: Schritt-für-Schritt-Anleitung, alle Salon-Parameter, Abnahme und ein Auftragstext zum Einfügen. Dazu zwei Skripte: `supabase/vorpruefung_version_1_2.sql` (prüft vor dem Einspielen, ob die Grundplattform alles mitbringt) und `supabase/fingerabdruck_version_1_2.sql` (prüft danach, ob der Stand dem Referenzwert entspricht).
+
 ## Deploy (Netlify)
 
 - **Weg A:** lokal `npm run build`, dann den Ordner `dist/` per Drag & Drop auf Netlify hochladen. Die `.env` wird dabei beim Bauen eingebacken.

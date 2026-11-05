@@ -2,6 +2,8 @@
 // Fachlich wie referenz/umfrage-hammermeister.html, nur ohne Namensauswahl (der Feedbackgeber ist der Login)
 // und mit „Locked In“: Jede Bewertung zählt erst nach der Bestätigung im Popup und ist danach gesperrt.
 
+import { SALON_SLUG } from '../config/brand'
+
 export const PFLICHT_AB = 4 // ab dieser Bewertung ist ein Kommentar Pflicht
 export const UMFRAGE_VERSION = 'plattform-1'
 /** Namen der fünf Stufen: stehen unter den Zahlen und im Popup, wenn für ein Verhalten nichts anderes hinterlegt ist. */
@@ -314,7 +316,7 @@ export interface Entwurf {
   antworten: Antworten
 }
 
-export const entwurfSchluessel = (nutzerId: string, monat: string): string => `hammermeister-umfrage:${nutzerId}:${monat}`
+export const entwurfSchluessel = (nutzerId: string, monat: string): string => `${SALON_SLUG}-umfrage:${nutzerId}:${monat}`
 
 type EntwurfRoh = Omit<Entwurf, 'v'> & { v: number }
 

@@ -9,6 +9,7 @@ import {
   gesamtSchritte,
   istBestaetigt,
   kommentarPflicht,
+  entwurfSchluessel,
   ladeEntwurf,
   leereAntworten,
   naechstesOffenes,
@@ -408,5 +409,11 @@ describe('Zwischenstand bereinigen', () => {
   it('setzt einen ungültigen Schritt auf die Entwicklungsfrage zurück', () => {
     expect(bereinigeEntwurf(entwurf(vollstaendig(), { art: 'verhalten', index: 5 }), inhalt).schritt).toEqual({ art: 'entwicklung' })
     expect(bereinigeEntwurf(entwurf(vollstaendig(), { art: 'ritual', index: 3 }), inhalt).schritt).toEqual({ art: 'entwicklung' })
+  })
+})
+
+describe('entwurfSchluessel', () => {
+  it('kommt aus der Marke der Plattform und bleibt für Hammermeister unverändert (begonnene Umfragen im Browser gehen nicht verloren)', () => {
+    expect(entwurfSchluessel('nutzer-1', '2026-11')).toBe('hammermeister-umfrage:nutzer-1:2026-11')
   })
 })

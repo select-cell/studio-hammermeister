@@ -8,7 +8,7 @@ Berichte als PDF gibt es **nur für Verantwortliche und Admin**. Mitarbeiter seh
 
 **Personenbericht** (Knopf „Personenbericht als PDF“ in der Personenansicht des Dashboards und auf der Seite eines Mitglieds): Kennzahlen, Entwicklung zum Vormonat (Tabelle) und Verlauf (Diagramm), Selbst- und Fremdbild je Verhalten mit Fremdbild des Vormonats, **Kommentare der Kollegen ohne Absender**, eigene Kommentare, Entwicklung des Monats (Nennungen und Begründungen ohne Absender) sowie Platz für Entwicklungsfrage, Vereinbarungen und Unterschriften.
 
-Dateiname: `<salon>_<YYYY-MM>_<monatsbericht|person-name>.pdf`, z. B. `hammermeister_2026-11_jaroslaw-schatalov.pdf` (Umlaute werden zu ae, oe, ue, ss).
+Dateiname: `<salon>_<YYYY-MM>_<monatsbericht|person-name>.pdf`, z. B. `mein-salon_2026-11_max-mustermann.pdf` (Umlaute werden zu ae, oe, ue, ss).
 
 ## Datenbank
 

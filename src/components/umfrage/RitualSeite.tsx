@@ -1,6 +1,6 @@
 import { ritualKey, type Antworten, type Ritual, type RitualAntwort } from '../../lib/umfrage'
 
-/** Eine Ritual-Seite: Einleitungstext und Fragen (Skala, Auswahl, Text). Hammermeister hat aktuell keine Rituale. */
+/** Eine Ritual-Seite: Einleitungstext und Fragen (Skala, Auswahl, Text). Ein Salon ohne Rituale überspringt diesen Schritt. */
 export default function RitualSeite({
   ritual,
   antworten,

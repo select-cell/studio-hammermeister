@@ -3,7 +3,7 @@ import type { Person, Rolle } from './types'
 // Zwei unabhängige Merkmale steuern, was jemand sieht (siehe docs/plattform-architektur.md §2):
 //  - nimmt_an_teamumfrage → Teilnehmer-Bereiche
 //  - rolle verantwortlicher/admin → Leitungs-Bereiche
-// Michael Hammermeister hat beides. Der Schutz im Frontend ist nur Komfort;
+// Der Inhaber eines Salons hat oft beides. Der Schutz im Frontend ist nur Komfort;
 // die eigentliche Sicherheit liegt in RLS und den Datenbank-Funktionen.
 
 export type Bedingung = 'teilnehmer' | 'leitung' | 'teilnehmerOderLeitung' | 'admin'
