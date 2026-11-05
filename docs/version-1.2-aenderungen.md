@@ -77,6 +77,7 @@ Alles, was sich von Salon zu Salon unterscheidet. **Nichts davon steckt in den M
 | Rhythmus der Teammeetings | Termine (Admin), keine Code-Änderung | einzeln oder als Serie |
 | **Zeitzone** | `Europe/Berlin`, fest in den SQL-Funktionen (Bezugsmonat, Fälligkeit, Termine) und im Quelltext (`src/lib/monat.ts`, `src/lib/abgabe.ts` und die Seiten Info, Abschluss, Agenda, Termine) | für einen Salon in einer anderen Zeitzone: überall ersetzen (Suche nach „Europe/Berlin“); Österreich und die Schweiz haben dieselbe Ortszeit |
 | **Sprache** | Deutsch, fest in Oberfläche, Datenbank-Meldungen, Mails und dem Prompt der KI | |
+| **Branche im KI-Prompt** | `SYSTEM_PROMPT` in `supabase/functions/analyse-erstellen/analyse.ts` beginnt mit „… für die Salonleitung eines Friseursalons …“ | Für einen anderen Salontyp den Satz anpassen und `PROMPT_VERSION` erhöhen; danach die Function neu veröffentlichen (noch keine Analysen gespeichert = keine Folgen) |
 | Mehrere Salons in einer Instanz | die Funktionen sind mandantenfähig (Salon-Grenze); der Admin wertet den **ersten** Salon der Instanz aus | üblich ist ein Salon je Instanz |
 
 **Was nie angepasst werden muss:** die Migrationen 016 bis 020 und die beiden Edge Functions.
