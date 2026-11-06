@@ -1,0 +1,609 @@
+{
+  "name": "Hammermeister KI",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hammermeister",
+        "authentication": "none",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "7f30b67c-f33e-498b-a8bf-c9d8f882c55b",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "a742f85b-f7ea-496f-ab8b-8d6cb9fbba79"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://obsakxdjfpaoajwsteiv.supabase.co/auth/v1/user",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.headers.authorization || '' }}"
+            },
+            {
+              "name": "apikey",
+              "value": "sb_publishable_zf3ccu08gD-wSVLD_-81QA_jj3eOben"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "4b7d27f6-b30e-450c-a323-09353245ce85",
+      "name": "Anmeldung prüfen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2d412a3a-18b8-486f-ad32-d5b24f3ddacb",
+              "leftValue": "={{ $execution.mode === 'test' || $json.statusCode === 200 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d5e697a4-c696-4699-a324-1edf4d8a6544",
+      "name": "Angemeldet?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": false, \"fehler\": \"Bitte melde dich an.\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "4d719eae-155b-4e53-a9e8-6e150278789d",
+      "name": "Nicht angemeldet",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Einstellungen je Aufgabe (= je Strang). Eine neue Aufgabe: hier eintragen, im Knoten „Aufgabe wählen“ eine Regel\n// ergänzen und einen Strang (Agent + Claude-Modell) kopieren.\nconst AUFGABEN = {\n  einzelanalyse: {\n    strang: 'Einzelanalyse',\n    form: 'analyse',\n    hinweisSchluessel: 'kommentar_qualitaet_hinweis',\n    listen: { staerken: [2, 4], entwicklungsfelder: [2, 4], gespraechsfragen: [3, 4], vereinbarungen_vorschlaege: [2, 3] },\n    // Laut Prompt nicht erlaubt: Buchstaben-Bezeichnungen wie „Kollege A“\n    verbotenMuster: '\\\\bKollege\\\\s+[A-Z]\\\\b',\n    verbotenText: 'Enthält eine Buchstaben-Bezeichnung wie „Kollege A“ (laut Prompt nicht erlaubt)',\n    // Zusätzlicher Kontext für den Agenten (Salon, Begriffe). Keine Zahlen hineinschreiben: Der Faktencheck der Datenbank lehnt Zahlen ab, die nicht in den Daten stehen.\n    zusatzkontext: '',\n  },\n  gesamtauswertung: {\n    strang: 'Gesamtauswertung',\n    form: 'analyse',\n    hinweisSchluessel: 'datenlage_hinweis',\n    listen: { staerken: [2, 4], entwicklungsfelder: [2, 4], gespraechsfragen: [3, 4], vereinbarungen_vorschlaege: [2, 3] },\n    verbotenMuster: '',\n    verbotenText: '',\n    zusatzkontext: '',\n  },\n  agenda: {\n    strang: 'Agenda',\n    form: 'agenda',\n    // Reihenfolge, Minuten (von, bis) und Gesamtdauer der Agenda; die Datenbank prüft sie verbindlich\n    bloecke: [['einstieg', 2, 2], ['kennzahlen', 3, 3], ['fokus', 6, 8], ['entwicklung', 3, 4], ['vereinbarungen', 2, 3]],\n    gesamt: [15, 20],\n    punkteProBlock: [2, 4],\n    zusatzkontext: '',\n  },\n};\nconst MAX_AUFTRAEGE = 10;\n\n// Die Anfrage steckt im Body des Webhooks. Beim Testen im Editor darf auch der reine Inhalt einer Testanfrage\n// (n8n/testanfragen/*.json) eingefügt werden: Dann steht sie direkt im Datensatz.\nconst eingang = $('Webhook').first().json;\nconst b = eingang.body ?? eingang;\nconst fehler = [];\nconst aufgabe = AUFGABEN[b.aufgabe];\nif (!aufgabe) fehler.push('aufgabe ist unbekannt (erlaubt: ' + Object.keys(AUFGABEN).join(', ') + ')');\nif (!Array.isArray(b.auftraege) || b.auftraege.length === 0) fehler.push('auftraege fehlt oder ist leer');\nelse if (b.auftraege.length > MAX_AUFTRAEGE) fehler.push('auftraege: höchstens ' + MAX_AUFTRAEGE);\nelse {\n  const refs = new Set();\n  b.auftraege.forEach((a, i) => {\n    const wo = 'auftraege[' + i + ']';\n    if (!a || typeof a !== 'object') return fehler.push(wo + ' ist kein Objekt');\n    if (typeof a.ref !== 'string' || !a.ref) fehler.push(wo + ': ref fehlt');\n    else if (refs.has(a.ref)) fehler.push(wo + ': ref ist doppelt');\n    else refs.add(a.ref);\n    if (typeof a.nachricht !== 'string' || !a.nachricht.trim()) fehler.push(wo + ': nachricht fehlt');\n    else if (a.nachricht.length > 60000) fehler.push(wo + ': nachricht ist zu lang');\n    if (typeof a.system !== 'string' || !a.system.trim()) fehler.push(wo + ': system fehlt');\n    if (!a.eingabe || typeof a.eingabe !== 'object' || Array.isArray(a.eingabe)) fehler.push(wo + ': eingabe fehlt');\n  });\n}\n\nif (fehler.length > 0) return [{ json: { gueltig: false, fehler } }];\n\nreturn b.auftraege.map((a) => ({\n  json: {\n    gueltig: true,\n    fehler: [],\n    aufgabe: b.aufgabe,\n    strang: aufgabe.strang,\n    ref: a.ref,\n    prompt_version: b.prompt_version ?? null,\n    // Prompt aus der Plattform, danach der Kontext aus diesem Workflow\n    system: aufgabe.zusatzkontext ? a.system + '\\n\\nZusätzlicher Kontext:\\n' + aufgabe.zusatzkontext : a.system,\n    nachricht: a.nachricht,\n    eingabe: a.eingabe,\n    form: aufgabe.form,\n    hinweisSchluessel: aufgabe.hinweisSchluessel ?? null,\n    listen: aufgabe.listen ?? null,\n    verbotenMuster: aufgabe.verbotenMuster ?? '',\n    verbotenText: aufgabe.verbotenText ?? '',\n    bloecke: aufgabe.bloecke ?? null,\n    gesamt: aufgabe.gesamt ?? null,\n    punkteProBlock: aufgabe.punkteProBlock ?? null,\n  },\n}));\n"
+      },
+      "id": "0d331e55-c45d-4fdb-abb5-9f790fe5ae99",
+      "name": "Anfrage prüfen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "61bc34f1-b2d4-4644-a370-d16f2a300a6e",
+              "leftValue": "={{ $json.gueltig }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3cac4d99-7d6a-4980-a180-feb921a49ad2",
+      "name": "Gültig?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": false, \"fehler\": \"Die Anfrage ist ungültig.\", \"details\": $json.fehler } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "85a9a8c5-1fdf-4373-a05f-787c322895b7",
+      "name": "Anfrage ungültig",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0bede87f-1729-4aea-a61a-659ac26799a2",
+                    "leftValue": "={{ $json.aufgabe }}",
+                    "rightValue": "einzelanalyse",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Einzelanalyse"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d51c0922-e24a-4b64-ae88-995801760c3b",
+                    "leftValue": "={{ $json.aufgabe }}",
+                    "rightValue": "gesamtauswertung",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Gesamtauswertung"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e1b71297-ae63-4b98-ad2a-57e695d275db",
+                    "leftValue": "={{ $json.aufgabe }}",
+                    "rightValue": "agenda",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Agenda"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b7e1cb59-f0cf-4591-abd8-c5d7476427e0",
+      "name": "Aufgabe wählen",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, temperature: 0.3, system: $json.system, messages: [{ role: 'user', content: $json.nachricht }] }) }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 0
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "2b520787-b10f-41eb-adcb-fc9542f05a08",
+      "name": "Claude Einzelanalyse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, temperature: 0.3, system: $json.system, messages: [{ role: 'user', content: $json.nachricht }] }) }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 0
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "378c2135-7305-45cc-aa91-ce60efe07880",
+      "name": "Claude Gesamtauswertung",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, temperature: 0.3, system: $json.system, messages: [{ role: 'user', content: $json.nachricht }] }) }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 0
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a1646c5c-c6d0-4ee6-a9d6-af9aea8382aa",
+      "name": "Claude Agenda",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Liest die Antwort des Agenten und macht daraus das Ergebnis für diesen Auftrag.\nlet k;\ntry {\n  k = $('Anfrage prüfen').item.json;\n} catch (e) {\n  k = $('Anfrage prüfen').all()[$itemIndex].json;\n}\nconst r = $input.item.json;\nconst fertig = (code, rest) => ({ json: { ref: k.ref, aufgabe: k.aufgabe, code, ...rest } });\n\n// Die Antwort der Anthropic-API: { content: [{ type: 'text', text }], stop_reason, usage }. Ein Fehler kommt als { error: { type, message } }\n// (oder als Text bei einer Zeitüberschreitung). Auch die Form { output: '…' } wird gelesen.\nconst teile = Array.isArray(r.content) ? r.content.filter((x) => x && x.type === 'text' && typeof x.text === 'string').map((x) => x.text) : null;\nconst text = teile ? teile.join('') : (typeof r.output === 'string' ? r.output : undefined);\nconst api = teile\n  ? { stop_reason: r.stop_reason ?? null, ausgabe_token: r.usage?.output_tokens ?? null }\n  : {};\nif (r.error || typeof text !== 'string') {\n  const meldung = typeof r.error === 'string' ? r.error : ([r.error?.type, r.error?.message].filter(Boolean).join(': ') || 'Die KI hat keine Antwort geliefert.');\n  if (/429|rate.?limit|overloaded/i.test(meldung)) return fertig(429, { fehler: 'Die KI ist gerade ausgelastet.', detail: meldung });\n  return fertig(502, { fehler: 'Die KI ist nicht erreichbar oder hat nicht geantwortet.', detail: meldung });\n}\nif (!text.trim()) return fertig(502, { fehler: 'Die KI hat keinen Text geliefert.', detail: api.stop_reason ? 'stop_reason: ' + api.stop_reason : null });\n\n// Wie die Edge Function: Code-Zaun entfernen, Umbrüche mitten in Wörtern entfernen (Streaming liefert Text in Stücken mit einem\n// Umbruch dazwischen), sonst das erste vollständige {...} suchen\nfunction reparieren(t) {\n  let aus = '';\n  let inText = false;\n  let escape = false;\n  for (const c of t) {\n    if (c === '\\n' || c === '\\r') continue;\n    if (!inText) {\n      if (c === '\"') inText = true;\n      aus += c;\n    } else if (escape) {\n      escape = false;\n      aus += c;\n    } else if (c === '\\\\') {\n      escape = true;\n      aus += c;\n    } else if (c === '\"') {\n      inText = false;\n      aus += c;\n    } else {\n      aus += c === '\\t' ? ' ' : c;\n    }\n  }\n  return aus;\n}\nfunction ersteJsonStelle(t) {\n  const ohneZaun = t.replace(/```(?:json)?/gi, '');\n  try {\n    return JSON.parse(ohneZaun.trim());\n  } catch (e) {\n    // weiter\n  }\n  const von = ohneZaun.indexOf('{');\n  if (von < 0) throw new Error('kein JSON');\n  const r = reparieren(ohneZaun.slice(von));\n  let tiefe = 0;\n  let inText = false;\n  let escape = false;\n  for (let i = 0; i < r.length; i++) {\n    const c = r[i];\n    if (inText) {\n      if (escape) escape = false;\n      else if (c === '\\\\') escape = true;\n      else if (c === '\"') inText = false;\n    } else if (c === '\"') inText = true;\n    else if (c === '{') tiefe++;\n    else if (c === '}' && --tiefe === 0) return JSON.parse(r.slice(0, i + 1));\n  }\n  throw new Error('JSON unvollständig');\n}\n\nconst hinweise = [];\nif (api.stop_reason === 'max_tokens') hinweise.push('Die Antwort wurde wegen des Token-Limits abgeschnitten (stop_reason max_tokens). Im Knoten „Claude …“ max_tokens im Body erhöhen.');\nlet ausgabe;\ntry {\n  ausgabe = ersteJsonStelle(text);\n} catch (e) {\n  // Die Plattform fragt dann selbst noch einmal nach (höchstens dreimal)\n  hinweise.push('Die Antwort ist kein gültiges JSON: ' + e.message + (e.message === 'JSON unvollständig' ? ' (abgeschnitten? Dann am Knoten „Claude …“ die Option „Maximum Number of Tokens“ erhöhen)' : ''));\n  ausgabe = text;\n}\n\n// Form prüfen (nur zur Orientierung; die Plattform prüft die Form beim Lesen selbst)\nfunction pruefeAnalyse(a) {\n  if (typeof a.zusammenfassung !== 'string' || !a.zusammenfassung.trim()) hinweise.push('zusammenfassung fehlt');\n  for (const [name, [min, max]] of Object.entries(k.listen)) {\n    const liste = a[name];\n    if (!Array.isArray(liste) || liste.length === 0) hinweise.push(name + ' fehlt oder ist leer');\n    else if (liste.length < min || liste.length > max) hinweise.push(name + ': ' + liste.length + ' Punkte (erwartet ' + min + ' bis ' + max + ')');\n  }\n  if (!(k.hinweisSchluessel in a)) hinweise.push(k.hinweisSchluessel + ' fehlt (wird als leer gewertet)');\n  if (k.verbotenMuster && new RegExp(k.verbotenMuster).test(JSON.stringify(a))) hinweise.push(k.verbotenText);\n}\n\nfunction pruefeAgenda(a) {\n  const bloecke = a.bloecke;\n  if (!Array.isArray(bloecke) || bloecke.length !== k.bloecke.length) {\n    hinweise.push('bloecke: ' + k.bloecke.length + ' Blöcke erwartet');\n    return;\n  }\n  let summe = 0;\n  k.bloecke.forEach(([id, min, max], i) => {\n    const b = bloecke[i];\n    if (!b || typeof b !== 'object') return hinweise.push('Block ' + (i + 1) + ': id „' + id + '“ erwartet');\n    const ganz = typeof b.minuten === 'number' && Number.isInteger(b.minuten);\n    if (ganz) summe += b.minuten;\n    if (b.id !== id) return hinweise.push('Block ' + (i + 1) + ': id „' + id + '“ erwartet');\n    if (!ganz) hinweise.push(id + ': minuten ist keine ganze Zahl');\n    else if (b.minuten < min || b.minuten > max) hinweise.push(id + ': ' + b.minuten + ' Minuten (erlaubt ' + min + ' bis ' + max + ')');\n    const anzahl = Array.isArray(b.punkte) ? b.punkte.length : 0;\n    if (anzahl === 0) hinweise.push(id + ': punkte fehlt oder ist leer');\n    else if (anzahl < k.punkteProBlock[0] || anzahl > k.punkteProBlock[1]) hinweise.push(id + ': ' + anzahl + ' Punkte (erwartet ' + k.punkteProBlock[0] + ' bis ' + k.punkteProBlock[1] + ')');\n  });\n  if (summe < k.gesamt[0] || summe > k.gesamt[1]) hinweise.push('Summe ' + summe + ' Minuten (erlaubt ' + k.gesamt[0] + ' bis ' + k.gesamt[1] + ')');\n}\n\nif (typeof ausgabe === 'object' && ausgabe !== null && !Array.isArray(ausgabe)) {\n  if (k.form === 'agenda') pruefeAgenda(ausgabe);\n  else pruefeAnalyse(ausgabe);\n} else if (typeof ausgabe === 'object') {\n  hinweise.push('Die Antwort ist kein JSON-Objekt');\n}\n\nreturn fertig(200, { ausgabe, meta: { strang: k.strang, prompt_version: k.prompt_version, hinweise, ...api } });\n"
+      },
+      "id": "dea5188e-78a9-4409-a95f-9fdbfb3ec35f",
+      "name": "Antwort lesen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fasst die Ergebnisse aller Aufträge zur Antwort des Webhooks zusammen (geht direkt an die Plattform zurück).\nconst ergebnisse = $input.all().map((i) => ({\n  ref: i.json.ref,\n  code: i.json.code,\n  ...(i.json.code === 200\n    ? { ausgabe: i.json.ausgabe, meta: i.json.meta }\n    : { fehler: i.json.fehler, detail: i.json.detail ?? null }),\n}));\n\n// Hat für keinen Auftrag etwas geklappt, steht der Fehler auch im Status der Antwort\nconst alleFehler = ergebnisse.every((e) => e.code >= 400);\nconst code = alleFehler ? (ergebnisse.some((e) => e.code === 429) ? 429 : 502) : 200;\n\nreturn [{ json: { code, body: { aufgabe: $input.first().json.aufgabe, ergebnisse } } }];\n"
+      },
+      "id": "dc521a11-e1b4-4a7c-a5b2-40930f271034",
+      "name": "Antwort bündeln",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1940,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.code }}"
+        }
+      },
+      "id": "23fb4b67-1158-441f-a3f4-4c9ccdd2796d",
+      "name": "Antwort senden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2180,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Hammermeister KI\nKI-Funktionen der Plattform: Einzelanalyse, Gesamtauswertung, Agenda.\n\n**Vor dem Veröffentlichen:** In den drei Knoten „Claude …“ die Anthropic-Zugangsdaten auswählen. Danach den Workflow veröffentlichen (Publish). Unter Einstellungen „Erfolgreiche Ausführungen speichern“ auf „Nein“ lassen.\n\nAdresse für die Plattform (Secret AI_WEBHOOK_URL): …/webhook/hammermeister\n\nAnleitung: n8n/README.md im Repository der Plattform.",
+        "height": 240,
+        "width": 420,
+        "color": 4
+      },
+      "id": "0316532a-febb-4fc1-a8e5-d8c0d757f88e",
+      "name": "Hinweis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Anmeldung prüfen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anmeldung prüfen": {
+      "main": [
+        [
+          {
+            "node": "Angemeldet?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Angemeldet?": {
+      "main": [
+        [
+          {
+            "node": "Anfrage prüfen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nicht angemeldet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anfrage prüfen": {
+      "main": [
+        [
+          {
+            "node": "Gültig?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gültig?": {
+      "main": [
+        [
+          {
+            "node": "Aufgabe wählen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Anfrage ungültig",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aufgabe wählen": {
+      "main": [
+        [
+          {
+            "node": "Claude Einzelanalyse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Claude Gesamtauswertung",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Claude Agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Einzelanalyse": {
+      "main": [
+        [
+          {
+            "node": "Antwort lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Gesamtauswertung": {
+      "main": [
+        [
+          {
+            "node": "Antwort lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Agenda": {
+      "main": [
+        [
+          {
+            "node": "Antwort lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Antwort lesen": {
+      "main": [
+        [
+          {
+            "node": "Antwort bündeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Antwort bündeln": {
+      "main": [
+        [
+          {
+            "node": "Antwort senden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "pinData": {}
+}
