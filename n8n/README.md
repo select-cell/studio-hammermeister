@@ -72,14 +72,18 @@ Claude wird bewusst über den gewöhnlichen **HTTP-Request-Knoten** aufgerufen u
 
 ## 3. Für diese Plattform einrichten
 
-Ausgangspunkt ist ein vorhandener Workflow einer anderen Salon-Plattform (in n8n **duplizieren** und umbenennen) oder ein neu gebauter nach Abschnitt 2.
+**Der fertige Workflow zum Importieren:** [`hammermeister-ki.workflow.json`](hammermeister-ki.workflow.json) (15 Knoten, Webhook-Pfad `hammermeister`, „Anmeldung prüfen“ gegen diese Plattform mit deren öffentlichem Schlüssel, `saveDataSuccessExecution: none`). Er enthält **keine Zugangsdaten**. Erzeugt wird er aus den Code-Knoten in [`knoten/`](knoten/) mit `node n8n/erzeuge-workflow.mjs` (für eine andere Plattform: `--pfad`, `--url`, `--key`, `--aus`).
 
-1. **Webhook:** neuer Pfad (z. B. `hammermeister-ki`).
-2. **Anmeldung prüfen:** URL `https://obsakxdjfpaoajwsteiv.supabase.co/auth/v1/user` und `apikey` = der **anon**-Schlüssel dieser Plattform (Supabase → Project Settings → API Keys; nie der `service_role`-Schlüssel). Wer das vergisst, lässt den Workflow die Anmeldungen der **anderen** Plattform prüfen: Dann antwortet er `401`.
-3. **Claude-Knoten:** die Anthropic-Zugangsdaten auswählen (der Schlüssel steht nur hier, nie in der Plattform).
-4. **Workflow veröffentlichen** (Production-Adresse, nicht die Test-Adresse) und unter **Einstellungen** „Erfolgreiche Ausführungen speichern“ auf **Nein** (`saveDataSuccessExecution: none`), damit keine Daten in n8n liegen bleiben.
-5. In Supabase das Secret **`AI_WEBHOOK_URL`** auf die Production-Adresse setzen: `https://<dein-n8n>/webhook/<pfad>`.
-6. **Prüfen:** In der Plattform als Admin unter Leitung → Monatsabschluss eine Einzelanalyse erstellen. Kommt „Der KI-Dienst hat die Anmeldung nicht angenommen“, stimmt Schritt 2 nicht; kommt „… wurde nicht gefunden“, ist der Workflow nicht veröffentlicht oder die Adresse falsch.
+1. In n8n: **Workflows → Import from File** (oder im Editor „Import from file“) und `hammermeister-ki.workflow.json` wählen.
+2. In den **drei Knoten „Claude Einzelanalyse“, „Claude Gesamtauswertung“ und „Claude Agenda“** die Anthropic-Zugangsdaten auswählen (Credential vom Typ „Anthropic“ mit dem API-Schlüssel; der Schlüssel steht nur hier, nie in der Plattform).
+3. Workflow **veröffentlichen** (Publish). Die Production-Adresse lautet dann `https://<dein-n8n>/webhook/hammermeister`; für `tobitest2008.app.n8n.cloud` also `https://tobitest2008.app.n8n.cloud/webhook/hammermeister`. Nicht die Test-Adresse (`/webhook-test/…`) verwenden.
+4. In den Einstellungen des Workflows bleibt „Erfolgreiche Ausführungen speichern“ auf **Nein**, damit keine Daten in n8n liegen bleiben.
+5. **Adresse in der Plattform:** Sie steht als Standard in der Edge Function (`STANDARD_WEBHOOK_URL` in `supabase/functions/analyse-erstellen/index.ts`). Ein Secret `AI_WEBHOOK_URL` in Supabase hat Vorrang und ändert die Adresse ohne neue Veröffentlichung.
+6. **Prüfen:** In der Plattform als Admin unter Leitung → Monatsabschluss eine Einzelanalyse erstellen. Kommt „Der KI-Dienst hat die Anmeldung nicht angenommen“, zeigt „Anmeldung prüfen“ auf die falsche Plattform oder hat den falschen Schlüssel; kommt „… wurde nicht gefunden“, ist der Workflow nicht veröffentlicht oder die Adresse falsch.
+
+**Für eine andere Plattform:** `node n8n/erzeuge-workflow.mjs --pfad <pfad> --url https://<projekt>.supabase.co --key <anon-oder-publishable-Schlüssel> --aus <datei>.json` und dann wie oben. Der Schlüssel ist der **öffentliche** (derselbe wie in der `.env` des Frontends), nie der `service_role`-Schlüssel.
+
+**Geprüft ist der Workflow in einer echten n8n-Instanz** (n8n 2.35.7, lokal, mit nachgebauter Anthropic-API und nachgebauter „Wer bin ich?“-Antwort der Plattform): Import, Veröffentlichung und 28 Prüfungen, darunter 401 ohne und mit falscher Anmeldung (Anthropic wird nie gefragt), 400 bei ungültiger Anfrage, alle drei Aufgaben mit unverändertem Prompt, zwei Aufträge in einer Anfrage, ein überlasteter und ein guter Auftrag, 429 bei jedem überlasteten Auftrag, zerstückelte Wörter, Code-Zaun und abgeschnittene Antwort. Dazu läuft die Orchestrierung der Edge Function (`analyse.ts`, unverändert) gegen diesen Workflow durch. **Nicht geprüft:** die Anmeldung der Anthropic-Zugangsdaten am Knoten (in der Testfassung steht dort stattdessen ein Header), die echte Antwort von Anthropic und die Prüfung der Anmeldung gegen die echte Plattform. Das zeigt der erste Lauf mit echter Anmeldung.
 
 **Prüfen ohne Plattform (Editor-Test):** Im Ordner [`testanfragen/`](testanfragen/) liegen vier fertige Anfragen: `einzelanalyse.json`, `gesamtauswertung.json`, `agenda.json` (mit den echten Prompts der Plattform, aber erfundenen Daten ohne echte Namen oder Zahlen) und `ungueltig.json` (muss mit `400` beantwortet werden). So geht es:
 

@@ -55,7 +55,7 @@ n8n (Webhook)  →  Anmeldung bei der Plattform bestätigen lassen  →  Anthrop
 Browser zeigt den Entwurf.
 ```
 
-Der Browser ruft **nie** den Webhook auf. Die Function ruft ihn vom Server aus auf, deshalb braucht der Webhook kein CORS. Die Function liest die Adresse aus dem Secret `AI_WEBHOOK_URL`; ohne Secret meldet die Seite „Die KI ist noch nicht eingerichtet.“
+Der Browser ruft **nie** den Webhook auf. Die Function ruft ihn vom Server aus auf, deshalb braucht der Webhook kein CORS. Die Function nimmt die Adresse aus dem Secret `AI_WEBHOOK_URL`, wenn es gesetzt ist, sonst die Standardadresse `STANDARD_WEBHOOK_URL` in `index.ts` (für diese Plattform: `https://tobitest2008.app.n8n.cloud/webhook/hammermeister`). Ist beides nicht brauchbar (keine https-Adresse), meldet die Seite „Die KI ist noch nicht eingerichtet.“
 
 ## 4. Die Eingabe für die KI
 
@@ -136,7 +136,7 @@ Antwort Einzelanalyse, Gesamtauswertung, Agenda: `{ "analyse": {…Zeile…}, "n
 1. **Migration 021** einspielen (idempotent, ohne `DROP`/`DELETE`), danach `supabase/fingerabdruck_version_1_3.sql` ausführen und mit dem Referenzwert (Abschnitt 10) vergleichen.
 2. **Edge Function** `analyse-erstellen` veröffentlichen: Dateien `index.ts` und `analyse.ts` vollständig, **JWT-Prüfung an**. (Ein Platzhalter als Dateiinhalt wird beim Veröffentlichen nicht bemerkt: danach `get_edge_function` oder einen Testaufruf prüfen.)
 3. **n8n:** Workflow für diese Plattform bereitstellen (Anleitung in [`n8n/README.md`](../n8n/README.md)): eigener Webhook-Pfad, „Anmeldung prüfen“ auf die Adresse dieser Plattform, Anthropic-Zugangsdaten, **Workflow veröffentlichen**.
-4. **Secret setzen** (Supabase → Edge Functions → Secrets): `AI_WEBHOOK_URL` = Production-Adresse des Webhooks, z. B. `https://<dein-n8n>/webhook/<pfad>`. Die früheren Secrets `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `AI_WEBHOOK_SECRET` werden nicht mehr gelesen und können entfernt werden. **Der Anthropic-Schlüssel gehört nur in n8n**, nie in die Plattform.
+4. **Adresse des Webhooks:** Für diese Plattform steht die Production-Adresse als Standard in `index.ts` (`STANDARD_WEBHOOK_URL`). Ein **Secret** `AI_WEBHOOK_URL` (Supabase → Edge Functions → Secrets) hat Vorrang und ist der Weg, die Adresse zu ändern, ohne die Function neu zu veröffentlichen. Auf einer anderen Salon-Plattform entweder die Konstante ersetzen oder das Secret setzen (Production-Adresse, z. B. `https://<dein-n8n>/webhook/<pfad>`; nicht die Test-Adresse `/webhook-test/`). Die früheren Secrets `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `AI_WEBHOOK_SECRET` werden nicht mehr gelesen und können entfernt werden. **Der Anthropic-Schlüssel gehört nur in n8n**, nie in die Plattform.
 5. **Kontext eintragen:** als Admin unter Monatsabschluss „Kontext für die KI“ (Leitbild, Ton, Besonderheiten; ohne Namen).
 6. **Prüfen:** als Admin eine Einzelanalyse erstellen; dann Gesamtauswertung und Agenda mit KI. Als Verantwortliche/r (Schalter an) darf kein KI-Bereich sichtbar sein.
 
@@ -144,7 +144,7 @@ Antwort Einzelanalyse, Gesamtauswertung, Agenda: `{ "analyse": {…Zeile…}, "n
 
 | Parameter | Wo |
 |---|---|
-| Adresse des Webhooks | Secret `AI_WEBHOOK_URL` |
+| Adresse des Webhooks | Konstante `STANDARD_WEBHOOK_URL` in `index.ts` oder Secret `AI_WEBHOOK_URL` (hat Vorrang) |
 | Webhook-Pfad, „Anmeldung prüfen“ (Projekt-Adresse, anon-Schlüssel), Anthropic-Zugang, Modell | n8n |
 | Kontext des Salons | `salons.ki_kontext` (Oberfläche) |
 | Wer darf KI | `salons.ki_nur_admin` (Standard an), Rolle `admin` |
@@ -194,7 +194,7 @@ fingerabdruck = 9d184733f4ac9726d34c3c1b26839663
 
 | Meldung / Beobachtung | Ursache | Was tun |
 |---|---|---|
-| „Die KI ist noch nicht eingerichtet.“ | Secret `AI_WEBHOOK_URL` fehlt oder beginnt nicht mit `https://` | Secret setzen (Abschnitt 9); die Function liest es beim nächsten Aufruf |
+| „Die KI ist noch nicht eingerichtet.“ | die wirksame Adresse (Secret oder Standard in `index.ts`) beginnt nicht mit `https://` | Adresse korrigieren (Abschnitt 9); ein Secret wird beim nächsten Aufruf gelesen |
 | „Der KI-Dienst wurde nicht gefunden.“ | Workflow in n8n nicht veröffentlicht, falsche Adresse, Test-Adresse statt Production-Adresse | Workflow veröffentlichen, Production-URL eintragen |
 | „… hat die Anmeldung nicht angenommen.“ | „Anmeldung prüfen“ in n8n zeigt auf eine andere Plattform oder hat den falschen anon-Schlüssel | Adresse `https://<Projekt>.supabase.co/auth/v1/user` und `apikey` prüfen |
 | „Die KI ist gerade ausgelastet.“ | Anthropic `429`/`529` | in einer Minute wiederholen; beim Sammellauf bleiben die erledigten Analysen erhalten |

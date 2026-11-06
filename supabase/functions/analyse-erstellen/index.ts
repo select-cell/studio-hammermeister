@@ -7,11 +7,15 @@
 // Es gibt keinen direkten Aufruf der Anthropic-API. Alle Datenbank-Aufrufe laufen mit der Anmeldung der aufrufenden Person;
 // ein service_role-Schlüssel wird nicht gebraucht. Die Anmeldung geht an den Webhook weiter, der sie bei der Plattform bestätigen lässt.
 //
-// Secret (Supabase → Edge Functions → Secrets):
+// Adresse des Webhooks: Das Secret AI_WEBHOOK_URL (Supabase → Edge Functions → Secrets) hat Vorrang; ohne Secret gilt die Standardadresse unten.
 //   AI_WEBHOOK_URL   Production-Adresse des n8n-Webhooks, z. B. https://<dein-n8n>/webhook/<pfad>
 // Die Logik steht in analyse.ts (mit Tests), das Protokoll in docs/ki-funktionen.md.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bearbeite, erzeugeWebhook, KiFehler, leseAnfrage, leseWebhookUrl, ZEITBUDGET_MS, type AnalyseZeile, type Aufgabe, type Datenbank, type Kontext, type Pruefung } from './analyse.ts'
+
+// Standardadresse des n8n-Webhooks dieser Plattform (Production-Adresse). Kein Geheimnis: Der Webhook verlangt eine gültige Anmeldung.
+// Bei der Übertragung auf eine andere Salon-Plattform diese Adresse ersetzen oder das Secret AI_WEBHOOK_URL setzen.
+const STANDARD_WEBHOOK_URL = 'https://tobitest2008.app.n8n.cloud/webhook/hammermeister'
 
 const KOPF = {
   'access-control-allow-origin': '*',
@@ -108,7 +112,7 @@ Deno.serve(async (req: Request) => {
   })
 
   try {
-    const url = leseWebhookUrl(Deno.env.toObject())
+    const url = leseWebhookUrl({ AI_WEBHOOK_URL: Deno.env.get('AI_WEBHOOK_URL')?.trim() || STANDARD_WEBHOOK_URL })
     const ergebnis = await bearbeite(anfrage, datenbank(sb as unknown as Client), erzeugeWebhook(url, auth), { jetzt: () => Date.now(), budgetMs: ZEITBUDGET_MS })
     return antwort(200, ergebnis)
   } catch (err) {
