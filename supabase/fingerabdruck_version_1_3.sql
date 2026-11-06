@@ -3,8 +3,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 --  Fasst alle Datenbank-Objekte der Version 1.3 (Migrationen 016 bis 021) zu einem Fingerabdruck zusammen: Funktionen (Quelltext und Rechte),
 --  Tabellen und Ansichten (Spalten, Constraints, Indizes, Rechte) und die neuen Spalten in „salons“.
---  Im SQL-Editor der Ziel-Plattform ausführen und mit dem Referenzwert in docs/version-1.2-aenderungen.md (Abschnitt „Referenz-Fingerabdruck“) und docs/ki-funktionen.md vergleichen:
---  Gleicher Fingerabdruck = dieselbe Version 1.2. Weicht er ab, zeigt „objekte“ je Objekt einen Kurz-Hash; mit dem Referenz-Lauf zeilenweise
+--  Im SQL-Editor der Ziel-Plattform ausführen und mit dem Referenzwert in docs/ki-funktionen.md (Abschnitt 10: 267 Objekte, 9d184733f4ac9726d34c3c1b26839663) vergleichen:
+--  Gleicher Fingerabdruck = dieselbe Version 1.3. Weicht er ab, zeigt „objekte“ je Objekt einen Kurz-Hash; mit dem Referenz-Lauf zeilenweise
 --  vergleichen (diff), dann ist das abweichende Objekt schnell gefunden.
 --  Bekannte Ursache für Abweichungen: Kommentare IM Funktionsrumpf, die beim Einspielen fehlten, oder eine andere Postgres-Hauptversion.
 -- ═══════════════════════════════════════════════════════════════════════════

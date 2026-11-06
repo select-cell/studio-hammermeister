@@ -5,7 +5,7 @@ Seiten unter **Leitung**: *Fokus* (`/app/leitung/fokus`), *Agenda* (`/app/leitun
 ## Ablauf
 
 1. Die Leitung markiert unter **Fokus**, welche Verhalten gerade besonders wichtig sind (mit Begründung, optional befristet).
-2. Unter **Agenda** erzeugt sie die Agenda für einen Monat. Sie entsteht **aus den Daten, ohne KI**: alle Zahlen aus SQL, der Text aus einer festen Vorlage (`agenda-vorlage-v1`).
+2. Unter **Agenda** erzeugt sie die Agenda für einen Monat. Sie entsteht **aus den Daten, ohne KI**: alle Zahlen aus SQL, der Text aus einer festen Vorlage (`agenda-vorlage-v1`). Der Admin kann sie stattdessen **von der KI formulieren** lassen (Version 1.3, siehe unten und [`ki-funktionen.md`](ki-funktionen.md)).
 3. Die Leitung liest, **bearbeitet** (der Text, wer und wann wird gespeichert) und **gibt frei**. Jede Bearbeitung macht die Agenda wieder zum Entwurf. „Neu aus den Daten erzeugen“ fragt nach, wenn Text bearbeitet oder freigegeben war.
 4. Der Admin trägt unter **Termine** die Teammeetings ein (einzeln oder als Serie). Zu jedem Termin gehen **zwei Mails an die Verantwortlichen**: die Agenda einige Tage vorher („vorab“) und eine Erinnerung mit den drei wichtigsten Punkten kurz davor („kurz“).
 5. Eine **freigegebene** Agenda steht am Ende des **Monatsberichts als PDF**. Entwürfe nie.
@@ -96,6 +96,6 @@ Die Tabellen `fokus_verhalten`, `meeting_termine` und `mail_log` sind für alle 
 
 ## Grenzen
 
-- Die Agenda ist eine **Vorlage aus den Daten**, keine KI-Formulierung. Das ist bewusst: Jede Zahl ist nachprüfbar, und es geht nichts an einen externen Anbieter.
+- Die Agenda aus der **Vorlage** (`agenda_erzeugen`) ist keine KI-Formulierung: Jede Zahl ist nachprüfbar, und es geht nichts an einen externen Anbieter. Seit Version 1.3 kann der Admin die Agenda zusätzlich **von der KI formulieren** lassen („Mit KI formulieren“, Beschreibung in [`ki-funktionen.md`](ki-funktionen.md)): Die Blöcke, ihre Reihenfolge und Minuten stehen fest, die KI schreibt nur die Punkte; Titel, Hinweise und Summe setzt die Datenbank, und derselbe Faktencheck prüft jede Zahl. Die Vorlage bleibt daneben bestehen und funktioniert auch, wenn die KI ausfällt. Freigabe, Mail und PDF sind für beide Fassungen gleich.
 - Der Hinweis „Stand unvollständig“ ist ein Stand vom Zeitpunkt des Erzeugens.
 - Die Mail geht als **eine** Mail an alle Empfänger (sie sehen sich gegenseitig; es sind nur Leitung und Admin).

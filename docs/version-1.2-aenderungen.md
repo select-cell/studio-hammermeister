@@ -4,9 +4,11 @@ Diese Datei beschreibt Version 1.2 der Salon-Plattform so, dass sie auf **jede**
 
 Die Datei ist ein **Bauauftrag rückwärts**: Ziel, Regeln, Daten, Rechte, Oberfläche und Abnahme jeder Erweiterung. Abschnitt 2 ist die Schritt-für-Schritt-Anleitung für die Übernahme, Abschnitt 17 ein Auftragstext zum Einfügen.
 
+> **Version 1.3 (KI-Funktionen) baut darauf auf:** Einzelanalyse und Sammellauf, Gesamtauswertung (Monatsauswertung), Agenda mit KI, Salon-Kontext und Schalter „nur Admin“ (Migration 021, Edge Function `analyse-erstellen` neu, Weg ausschließlich über n8n) stehen in [`ki-funktionen.md`](ki-funktionen.md). Wo dieses Dokument den früheren KI-Weg beschreibt (Secrets `AI_PROVIDER` und Schlüssel, Agenda ohne KI, Referenz-Fingerabdruck 240), gilt dort die Beschreibung der Version 1.3. Das Fingerabdruck-Skript heißt jetzt `supabase/fingerabdruck_version_1_3.sql` und deckt die Migrationen 016 bis 021 ab.
+
 **Geltungsbereich:** Version 1.2 sind die Erweiterungen **A bis F** (Migrationen 016 bis 020). Die Teamvorstellung mit Profilen und Fotos gehört **nicht** dazu und wurde nicht gebaut; die Migrationen 014 und 015 (Profile, stillgelegt) werden **nicht** übernommen.
 
-Ausführliche Einzeldokumente (liegen im Repo und werden mitkopiert): [`zeiterfassung.md`](zeiterfassung.md), [`pdf-export.md`](pdf-export.md), [`kommentar-auswertung.md`](kommentar-auswertung.md), [`einzelanalyse.md`](einzelanalyse.md), [`agenda-termine.md`](agenda-termine.md). Zwei Skripte helfen bei der Übernahme: [`supabase/vorpruefung_version_1_2.sql`](../supabase/vorpruefung_version_1_2.sql) und [`supabase/fingerabdruck_version_1_2.sql`](../supabase/fingerabdruck_version_1_2.sql).
+Ausführliche Einzeldokumente (liegen im Repo und werden mitkopiert): [`zeiterfassung.md`](zeiterfassung.md), [`pdf-export.md`](pdf-export.md), [`kommentar-auswertung.md`](kommentar-auswertung.md), [`einzelanalyse.md`](einzelanalyse.md), [`agenda-termine.md`](agenda-termine.md). Zwei Skripte helfen bei der Übernahme: [`supabase/vorpruefung_version_1_2.sql`](../supabase/vorpruefung_version_1_2.sql) und [`supabase/fingerabdruck_version_1_3.sql`](../supabase/fingerabdruck_version_1_3.sql) (seit Version 1.3; früher `fingerabdruck_version_1_2.sql`).
 
 ---
 
@@ -44,13 +46,13 @@ Zehn Schritte. Jeder lässt sich einzeln prüfen; ändere nichts an einer **ande
 1. **Vorprüfung.** `supabase/vorpruefung_version_1_2.sql` im SQL-Editor der Ziel-Plattform ausführen (nur Lesen). „Alle Voraussetzungen sind da.“ heißt: weiter. Sonst zuerst die Grundplattform nachziehen (Migrationen 001 bis 013 und die Ausgangsdateien `umfrage_schema.sql`, `ausfuelldauer.sql`). Die zweite Abfrage zeigt, ob Teile von 1.2 schon eingespielt sind.
 2. **Dateien übernehmen** (Liste in Abschnitt 16): Migrationen 016 bis 020, Edge Functions, Quelltext, Skripte, Dokumente. Beim Übernehmen **nicht** kopieren: die Logo-Dateien des alten Salons (`src/assets/brand/<alter-slug>/`), `.env`, Testdaten und Fixtures mit echten Namen.
 3. **Marke und Parameter** setzen (Abschnitt 3): `src/config/brand.ts` (Slug, Name), Logo-Dateien, Farben, `index.html` (Seitentitel), `.env` mit der Adresse und dem **anon**-Schlüssel der neuen Instanz (nie der `service_role`-Schlüssel).
-4. **Migrationen einspielen:** 016, 017, 018, 019, 020 in dieser Reihenfolge, jede für sich (Supabase-Werkzeug oder SQL-Editor). Alle sind idempotent und ohne `DROP` und `DELETE`; ein Zeitlimit heißt nicht „kaputt“, erst den Zustand prüfen und dann in kleineren Teilen wiederholen. Danach `supabase/fingerabdruck_version_1_2.sql` ausführen und mit dem **Referenzwert** vergleichen (Abschnitt 13): **240 Objekte, Fingerabdruck `5f4e4158a303c943ce0740ad1b2efee2`**.
+4. **Migrationen einspielen:** 016, 017, 018, 019, 020 in dieser Reihenfolge, jede für sich (Supabase-Werkzeug oder SQL-Editor). Alle sind idempotent und ohne `DROP` und `DELETE`; ein Zeitlimit heißt nicht „kaputt“, erst den Zustand prüfen und dann in kleineren Teilen wiederholen. Danach `supabase/fingerabdruck_version_1_3.sql` ausführen und mit dem **Referenzwert** vergleichen (Abschnitt 13). Wer nur 1.2 einspielt (016 bis 020), hatte den Wert **240 Objekte, `5f4e4158a303c943ce0740ad1b2efee2`**; mit Migration 021 (Version 1.3) gilt **267 Objekte, `9d184733f4ac9726d34c3c1b26839663`**.
 5. **Personen und Rollen prüfen.** Wer Leitung sein soll, braucht `rolle = 'verantwortlicher'` (sonst sieht die Person keine Leitungsfunktionen). Die Verantwortlichen brauchen eine **E-Mail-Adresse** (sie sind die Mail-Empfänger), der Admin eine Zeile mit `rolle = 'admin'`. Testdaten vor dem Start mit `010_testdaten_entfernen.sql` im SQL-Editor entfernen (das Supabase-Werkzeug führt `delete` nicht aus).
 6. **Edge Functions veröffentlichen:** `analyse-erstellen` (JWT-Prüfung **an**) und `agenda-versand` (JWT-Prüfung **aus**, die Function prüft das Cron-Secret selbst). Alle Dateien vollständig übergeben (`index.ts` und die Logik-Datei).
-7. **Secrets setzen** (Supabase → Edge Functions → Secrets): KI (`AI_PROVIDER` und Schlüssel oder Webhook) und Versand (`RESEND_API_KEY`, `MAIL_ABSENDER`, `CRON_SECRET`, `PLATTFORM_URL`); bei Resend die Absender-Domain bestätigen. Ohne diese Secrets laufen die Plattform und alles Übrige trotzdem; nur KI-Analysen und Mails melden „noch nicht eingerichtet“.
+7. **Secrets setzen** (Supabase → Edge Functions → Secrets): KI (seit Version 1.3 nur `AI_WEBHOOK_URL`, Adresse des n8n-Webhooks; Einrichtung in [`../n8n/README.md`](../n8n/README.md)) und Versand (`RESEND_API_KEY`, `MAIL_ABSENDER`, `CRON_SECRET`, `PLATTFORM_URL`); bei Resend die Absender-Domain bestätigen. Ohne diese Secrets laufen die Plattform und alles Übrige trotzdem; nur KI-Analysen und Mails melden „noch nicht eingerichtet“.
 8. **Bauen und veröffentlichen:** `npm run build` mit der echten `.env`, `dist` auf Netlify hochladen. Sobald die neue Version online ist: `umfrage_einreichen_v2` für Anmeldungen sperren (eigene Migration), sonst lässt sich die Zeiterfassung umgehen.
 9. **Versand einrichten** (erst wenn Resend, Secrets und Termine bereit sind): `pg_cron` und `pg_net` einschalten, Termine unter Leitung → Termine eintragen, dann `supabase/versand_einrichten.sql` ausführen (CRON_SECRET und Projekt-Referenz im Skript eintragen; beides ist abgesichert, mit Platzhalter bricht das Skript ab).
-10. **Abnahme** (Abschnitt 12), danach die Info-Seite gegen die tatsächliche Nutzung prüfen (welcher Mail-Dienst, welcher KI-Anbieter).
+10. **Abnahme** (Abschnitt 12), danach die Info-Seite gegen die tatsächliche Nutzung prüfen (welcher Mail-Dienst, Station n8n bei der KI).
 
 ---
 
@@ -68,7 +70,7 @@ Alles, was sich von Salon zu Salon unterscheidet. **Nichts davon steckt in den M
 | Projekt-Referenz der Instanz | in `supabase/versand_einrichten.sql` einzutragen | Project Settings → General → Reference ID |
 | Plattform-Adresse (für den Link in Mails) | Secret `PLATTFORM_URL` | |
 | Absender der Mails | Secret `MAIL_ABSENDER`, Domain bei Resend bestätigt | |
-| KI-Anbieter | Secrets `AI_PROVIDER` (`claude` oder `webhook`), `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `AI_WEBHOOK_URL`, `AI_WEBHOOK_SECRET` | ohne: „Die KI ist noch nicht eingerichtet“ |
+| KI (Version 1.3) | Secret `AI_WEBHOOK_URL` (n8n-Webhook); der Anthropic-Schlüssel steht nur in n8n. Dazu `salons.ki_nur_admin` (Standard an) und `salons.ki_kontext` | ohne Secret: „Die KI ist noch nicht eingerichtet“; `AI_PROVIDER` und `ANTHROPIC_*` werden nicht mehr gelesen |
 | Stufen und Fristen | Tabelle `salons`: `schwelle_hoch`, `schwelle_niedrig`, `schwelle_ausgewogen`, `start_monat`, `reminder_tage_nach_frist` | die Auswertungen und die Agenda lesen sie von dort |
 | Schwellen der Zeiterfassung | `salons.zeit_*` (z. B. `zeit_min_sek_pro_verhalten` 5, `zeit_sehr_lang_sek` 4 Stunden, `zeit_pausen_quote` 0,30, `zeit_heartbeat_luecke_sek` 3 min, `zeit_toleranz_sek` 10) | im Supabase-Dashboard änderbar |
 | Datenschutz-Schalter | `salons.eigene_analyse_nur_admin` (Standard aus) | an: Verantwortliche sehen ihre eigenen Werte und Analysen nicht |
@@ -216,9 +218,9 @@ Die Erweiterungen setzen das Grundgerüst der Salon-Plattform voraus (getestet w
 
 **Datenbank:** Tabellen `monatsabschluesse`, `analysen` (Typ `person`, später `team_agenda`; je Salon, Monat, Typ und Person eine Zeile über einen Index mit `coalesce`), Funktionen `monat_abschliessen`, `abschluss_uebersicht`, `analyse_eingabe`, `analyse_pruefen`, `analyse_speichern`, `analyse_lesen`, `analyse_bearbeiten`, `analyse_freigeben`, interne Hilfen `analyse_zugriff`, `analyse_anonymisieren`, `analyse_zahlen`, `analyse_erlaubte_zahlen`, `analyse_faktencheck`, `analyse_zeile`.
 
-**Edge Function `analyse-erstellen`** (Anmeldung der Leitung, `verify_jwt` an, **kein `service_role`-Schlüssel**): Eingabe holen → gleiche Eingabe und Prompt-Version wie gespeichert = kein neuer KI-Aufruf → Anbieter formuliert (JSON) → Faktencheck über `analyse_pruefen` → bei Abweichung bis zu zwei Wiederholungen (**höchstens 3 Aufrufe** insgesamt) → Entwurf speichern. Fehler erscheinen als verständliche deutsche Meldung. Der Prompt liegt versioniert im Repo (`PROMPT_VERSION`); wer ihn ändert, erhöht die Version, dann gilt die Eingabe als neu.
+**Edge Function `analyse-erstellen`** (Anmeldung der Person, `verify_jwt` an, **kein `service_role`-Schlüssel**): Eingabe holen → gleiche Eingabe und Prompt-Version wie gespeichert = kein neuer KI-Aufruf → der **n8n-Webhook** fragt Anthropic (JSON) → Faktencheck über die Datenbank → bei Abweichung bis zu zwei Wiederholungen (**höchstens 3 Aufrufe** insgesamt) → Entwurf speichern. Seit Version 1.3 mit Sammellauf, Gesamtauswertung und Agenda; Beschreibung in [`ki-funktionen.md`](ki-funktionen.md). Der Prompt liegt versioniert im Repo (`PROMPT_VERSIONEN`); wer ihn ändert, erhöht die Version, dann gilt die Eingabe als neu.
 
-**Datenschutz:** Feedbacktexte gehen **ohne Namen und ohne Absender** an den KI-Anbieter. Der Hinweis steht auf „Monatsabschluss“ und auf „Info und Datenschutz“. Mitarbeiter bekommen keine Analysen.
+**Datenschutz:** Feedbacktexte gehen **ohne Namen und ohne Absender** über n8n an Anthropic. Der Hinweis steht auf „Monatsabschluss“ und auf „Info und Datenschutz“. Mitarbeiter bekommen keine Analysen.
 
 **Abnahme:** keine Namen in der Eingabe (Test über alle Namensteile), erfundene Zahl wird erkannt, von Hand eingetragene falsche Zahl auch, Idempotenz (kein zweiter KI-Aufruf), Mitarbeiter `42501`, Salon-Grenze.
 
@@ -334,7 +336,7 @@ Mit je einem Login pro Rolle. Alles hier lässt sich ohne Resend und ohne KI pr�
   Erwartet: `200` mit `{"trocken":true,"faellig":[...]}`; ohne oder mit falschem Secret `401`; solange Secrets fehlen `503` mit der Liste der fehlenden.
 
 **Datenbank**
-- `supabase/fingerabdruck_version_1_2.sql` zeigt den Referenzwert aus Abschnitt 13.
+- `supabase/fingerabdruck_version_1_3.sql` zeigt den Referenzwert aus Abschnitt 13.
 
 ---
 
@@ -347,14 +349,14 @@ anzahl        = 240
 fingerabdruck = 5f4e4158a303c943ce0740ad1b2efee2
 ```
 
-Gleicher Wert nach dem Einspielen = dieselbe Version 1.2. Bei Abweichung die Spalte `objekte` mit einem Referenz-Lauf zeilenweise vergleichen. Bekannte Ursachen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion; Änderungen am Grundgerüst, die `v_ausfuelldauer` betreffen.
+Gleicher Wert nach dem Einspielen von 016 bis 020 = dieselbe Version 1.2. **Seit Version 1.3 (mit Migration 021) gilt: 267 Objekte, Fingerabdruck `9d184733f4ac9726d34c3c1b26839663`** (Skript `fingerabdruck_version_1_3.sql`); der Wert 240 lässt sich mit diesem Skript nicht mehr erzeugen, weil 021 einige Funktionen der Version 1.2 neu fasst. Bei Abweichung die Spalte `objekte` mit einem Referenz-Lauf zeilenweise vergleichen. Bekannte Ursachen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion; Änderungen am Grundgerüst, die `v_ausfuelldauer` betreffen.
 
 **Wie getestet wurde** (Vorgehen zum Wiederverwenden)
 
 - **Datenbank lokal mit PGlite** (Postgres im Speicher, Stub für `auth` und Rollen): alle Migrationen **zweimal** laufen lassen (Idempotenz), Rechte je Rolle und für `anon`, Handrechnung gegen jede Kennzahl, Salon-Grenze mit einem zweiten Salon, Zeitumstellung mit festgesetztem „jetzt“ (`p_jetzt`-Parameter). Für Version 1.2: 516 Datenbankprüfungen (B 109, C 55, D 41, E 93, F 218), dazu 191 Unit-Tests (Vitest, alle Projektteile) und die Browser-Suiten je Erweiterung.
-- **Fingerabdruck gegen die echte Datenbank:** `md5(pg_get_functiondef(...))` je Funktion plus Rechte, Spalten, Constraints und Indizes; lokal und in Supabase vergleichen (jetzt als Skript `fingerabdruck_version_1_2.sql`).
+- **Fingerabdruck gegen die echte Datenbank:** `md5(pg_get_functiondef(...))` je Funktion plus Rechte, Spalten, Constraints und Indizes; lokal und in Supabase vergleichen (als Skript `fingerabdruck_version_1_3.sql`).
 - **Test in der echten Datenbank mit Rollback:** ein `do $$ ... raise exception ... $$`-Block legt Testdaten an, prüft Rechte und Abläufe unter `set local role authenticated` und `service_role` und wirft am Ende absichtlich einen Fehler mit dem Ergebnis: alles wird zurückgerollt. Danach zählen, dass nichts übrig ist.
-- **Logik der Edge Functions mit Vitest:** reines TypeScript ohne Deno-Bezug, Netz und Anbieter nachgebaut.
+- **Logik der Edge Functions mit Vitest:** reines TypeScript ohne Deno-Bezug, Netz und Webhook nachgebaut.
 - **Browser mit Playwright (Chromium):** Supabase-Antworten per `route` simuliert, Zeit mit `page.clock` gesteuert (ersetzt auch `performance.now()`); PDFs wirklich erzeugt und mit `poppler` geprüft; Handy-Breite (375 px), Hell und Dunkel, keine Konsolenfehler, kein waagerechter Überlauf.
 - **Nicht testbar in der Sandbox:** die echte KI, der echte Versand über Resend und der Zeitplan. Diese laufen erstmals nach der Einrichtung.
 
@@ -381,7 +383,7 @@ Gleicher Wert nach dem Einspielen = dieselbe Version 1.2. Bei Abweichung die Spa
 
 ## 15. Bekannte Grenzen
 
-- Die **Agenda ist eine Vorlage**, keine KI-Formulierung (bewusst: jede Zahl nachprüfbar, nichts an externe Anbieter). Eine KI-Fassung wäre eine spätere Erweiterung (dann mit demselben Faktencheck wie in E).
+- Die **Agenda** entsteht in Version 1.2 aus einer Vorlage ohne KI. Die KI-Fassung gibt es seit Version 1.3 (Admin, derselbe Faktencheck, siehe `ki-funktionen.md`); die Vorlage bleibt daneben bestehen.
 - Der Hinweis „Stand unvollständig“ gilt zum Zeitpunkt des Erzeugens.
 - Die Mail geht als **eine** Mail an alle Empfänger (sie sehen sich gegenseitig; es sind nur Leitung und Admin).
 - Der Hinweis zur Qualität einzelner Kommentare (Feld `kommentar_qualitaet_hinweis` in der Analyse-Ausgabe) ist nicht als eigene Oberfläche gebaut.
@@ -403,16 +405,18 @@ src/pdf/ (erzeuge, Monatsbericht, Personenbericht, bausteine, schriften, logo,
 src/lib/kommentare.ts, src/pages/app/leitung/Kommentare.tsx                        D
 src/lib/abschluss.ts, src/pages/app/leitung/Abschluss.tsx,
 src/components/leitung/Markdown.tsx                                                E
-supabase/functions/analyse-erstellen/ (index.ts, analyse.ts, analyse.test.ts)      E
+supabase/functions/analyse-erstellen/ (index.ts, analyse.ts, analyse.test.ts)      E, neu gefasst in 1.3 (nur n8n)
 src/lib/agenda.ts, agenda.test.ts, src/pages/app/leitung/{Fokus,Agenda,Termine}.tsx F
 supabase/functions/agenda-versand/ (index.ts, versand.ts, versand.test.ts)         F
 supabase/versand_einrichten.sql                                                    F
-supabase/vorpruefung_version_1_2.sql, supabase/fingerabdruck_version_1_2.sql       Übernahme
+supabase/vorpruefung_version_1_2.sql, supabase/fingerabdruck_version_1_3.sql       Übernahme
 src/pages/app/leitung/Leitung.tsx, src/styles/leitung.css                          D bis F
 src/lib/api.ts, src/lib/rechte.ts, src/App.tsx, src/lib/umfrage.ts                 geändert (Wrapper, Bedingung „admin“, Routen, Entwurfsschlüssel aus der Marke)
 supabase/migrations/016 bis 020                                                    B bis F
 docs/zeiterfassung.md, pdf-export.md, kommentar-auswertung.md,
-     einzelanalyse.md, agenda-termine.md, version-1.2-aenderungen.md (diese Datei)
+     einzelanalyse.md, agenda-termine.md, ki-funktionen.md, version-1.2-aenderungen.md (diese Datei)
+n8n/README.md, n8n/knoten/*.js                                                     1.3 (Workflow-Anleitung und Code-Knoten)
+supabase/migrations/021_ki_funktionen.sql                                          1.3
 ```
 
 Die geänderten Dateien (`api.ts`, `rechte.ts`, `App.tsx`, `umfrage.ts`, `Info.tsx`, `pdf/*`) enthalten kleine Ergänzungen an bestehendem Code; beim Übernehmen in eine Plattform mit abweichendem Stand die Änderungen mit einem Vergleich (`diff`) einfügen, statt die Dateien zu überschreiben.

@@ -64,6 +64,7 @@ Gut zu wissen:
    19. `supabase/migrations/018_kommentar_auswertung.sql` (Kommentar-Auswertung für die Leitung, siehe [`docs/kommentar-auswertung.md`](docs/kommentar-auswertung.md))
    20. `supabase/migrations/019_monatsabschluss_analysen.sql` (Monatsabschluss und Einzelanalyse, siehe [`docs/einzelanalyse.md`](docs/einzelanalyse.md))
    21. `supabase/migrations/020_fokus_agenda_termine.sql` (Fokus-Verhalten, Agenda, Termine, Versandfunktionen, siehe [`docs/agenda-termine.md`](docs/agenda-termine.md))
+   22. `supabase/migrations/021_ki_funktionen.sql` (KI-Funktionen: Schalter „nur Admin“, Salon-Kontext, Gesamtauswertung, Agenda mit KI, siehe [`docs/ki-funktionen.md`](docs/ki-funktionen.md))
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -229,17 +230,23 @@ Unter **Leitung → Kommentare** sehen Verantwortliche und Admin, wer Kommentare
 
 ## Monatsabschluss und Einzelanalyse
 
-Unter **Leitung → Monatsabschluss** schließt die Leitung einen Monat ab (auch unvollständig) und lässt für jede Person eine Einzelanalyse erstellen: **Alle Zahlen kommen aus der Datenbank, die KI formuliert nur den Text**, und die Datenbank prüft selbst, ob jede Zahl im Text aus den Daten stammt (Faktencheck). Die Leitung liest, bearbeitet und gibt frei; erst eine freigegebene Analyse kommt in den Personenbericht als PDF. Die KI sieht keine Namen und keine Absender. **Damit es funktioniert, müssen in Supabase unter Edge Functions → Secrets `AI_PROVIDER` (`claude` oder `webhook`) und der Schlüssel bzw. die Webhook-Adresse hinterlegt werden** (siehe [`docs/einzelanalyse.md`](docs/einzelanalyse.md)); die Funktion `analyse-erstellen` ist bereits eingespielt.
+Unter **Leitung → Monatsabschluss** schließt die Leitung einen Monat ab (auch unvollständig). Die Datenbank liefert alle Zahlen, die Leitung liest, bearbeitet und gibt frei; erst eine freigegebene Analyse kommt in den Personenbericht als PDF. Alles Weitere in [`docs/einzelanalyse.md`](docs/einzelanalyse.md).
+
+## KI-Funktionen (nur Admin)
+
+Der **Admin** lässt eine KI drei Dinge formulieren: **Einzelanalysen** (je Person oder als Sammellauf für alle fehlenden), die **Gesamtauswertung** des Teams und die **Agenda** für das Teammeeting. **Alle Zahlen kommen aus der Datenbank, die KI formuliert nur den Text**; die Datenbank prüft den Aufbau und jede Zahl im Text (Faktencheck), und ein Mensch gibt jeden Entwurf frei. Jeder Text ist als „Von der KI formuliert“ gekennzeichnet. Der Schalter `salons.ki_nur_admin` (Standard an) beschränkt die Funktionen auf den Admin. Den **Kontext des Salons** (Leitbild, Ton) trägt der Admin unter Monatsabschluss ein.
+
+**Es gibt genau einen Weg zur KI:** Plattform → Webhook (n8n) → Anthropic → Antwort des Webhooks → Plattform. **Damit es funktioniert, muss in Supabase unter Edge Functions → Secrets `AI_WEBHOOK_URL` gesetzt sein** (Production-Adresse des n8n-Webhooks); der n8n-Workflow braucht für diese Plattform einen eigenen Webhook-Pfad und die Anmeldeprüfung gegen diese Plattform (Anleitung in [`n8n/README.md`](n8n/README.md)). Der Anthropic-Schlüssel steht nur in n8n. Die Function `analyse-erstellen` ist eingespielt. Ausführlich: [`docs/ki-funktionen.md`](docs/ki-funktionen.md).
 
 ## Fokus, Agenda, Termine und Mails
 
-Unter **Leitung → Fokus** markiert die Leitung die Verhalten, die gerade besonders wichtig sind. Unter **Leitung → Agenda** entsteht daraus mit den Ergebnissen des Monats die **Agenda für das Teammeeting** (15 bis 20 Minuten, nur Teamebene, ohne KI, jede Zahl aus der Datenbank); die Leitung bearbeitet und gibt sie frei, und die freigegebene Agenda steht im Monatsbericht als PDF. Unter **Leitung → Termine** (nur Admin) trägt der Admin die Teammeetings ein; zu jedem Termin gehen die Agenda und eine Erinnerung per Mail an die Verantwortlichen (Berliner Zeit, Zeitumstellung-fest, nie doppelt, höchstens drei Versuche).
+Unter **Leitung → Fokus** markiert die Leitung die Verhalten, die gerade besonders wichtig sind. Unter **Leitung → Agenda** entsteht daraus mit den Ergebnissen des Monats die **Agenda für das Teammeeting** (15 bis 20 Minuten, nur Teamebene, jede Zahl aus der Datenbank; aus einer Vorlage ohne KI, oder vom Admin von der KI formuliert); die Leitung bearbeitet und gibt sie frei, und die freigegebene Agenda steht im Monatsbericht als PDF. Unter **Leitung → Termine** (nur Admin) trägt der Admin die Teammeetings ein; zu jedem Termin gehen die Agenda und eine Erinnerung per Mail an die Verantwortlichen (Berliner Zeit, Zeitumstellung-fest, nie doppelt, höchstens drei Versuche).
 
 **Damit die Mails gesendet werden, muss der Admin den Versand einrichten:** Resend-Konto mit bestätigter Domain, die Secrets `RESEND_API_KEY`, `MAIL_ABSENDER`, `CRON_SECRET`, `PLATTFORM_URL` bei den Edge Functions, `pg_cron` und `pg_net` einschalten und `supabase/versand_einrichten.sql` einmal im SQL-Editor ausführen (Schritte in [`docs/agenda-termine.md`](docs/agenda-termine.md)). Die Function `agenda-versand` ist bereits eingespielt; ohne Einrichtung werden keine Mails gesendet.
 
-## Version 1.2 auf eine andere Salon-Plattform übertragen
+## Version 1.2 und 1.3 auf eine andere Salon-Plattform übertragen
 
-[`docs/version-1.2-aenderungen.md`](docs/version-1.2-aenderungen.md) beschreibt alle Erweiterungen A bis F so, dass sie auf jede Salon-Plattform übertragen werden können: Schritt-für-Schritt-Anleitung, alle Salon-Parameter, Abnahme und ein Auftragstext zum Einfügen. Dazu zwei Skripte: `supabase/vorpruefung_version_1_2.sql` (prüft vor dem Einspielen, ob die Grundplattform alles mitbringt) und `supabase/fingerabdruck_version_1_2.sql` (prüft danach, ob der Stand dem Referenzwert entspricht).
+[`docs/version-1.2-aenderungen.md`](docs/version-1.2-aenderungen.md) beschreibt alle Erweiterungen A bis F so, dass sie auf jede Salon-Plattform übertragen werden können: Schritt-für-Schritt-Anleitung, alle Salon-Parameter, Abnahme und ein Auftragstext zum Einfügen. Dazu zwei Skripte: `supabase/vorpruefung_version_1_2.sql` (prüft vor dem Einspielen, ob die Grundplattform alles mitbringt) und `supabase/fingerabdruck_version_1_3.sql` (prüft danach, ob der Stand dem Referenzwert entspricht; seit Version 1.3 mit Migration 021). **Version 1.3** (KI-Funktionen) setzt darauf auf und steht in [`docs/ki-funktionen.md`](docs/ki-funktionen.md) (Abschnitt 10: Übertragen) und [`n8n/README.md`](n8n/README.md).
 
 ## Deploy (Netlify)
 
@@ -294,7 +301,8 @@ src/
   pdf/                PDF-Berichte (react-pdf, wird erst beim Klick geladen): Monatsbericht, Personenbericht, Bausteine, Schriften, Logo
   pages/              Start, Login, app/… (Passwort ändern, Umfrage, Auswertungen)
   styles/             tokens.css, base.css, umfrage.css, auswertung.css, abgabe.css
-supabase/functions/   Edge Functions (analyse-erstellen: KI-Einzelanalyse; agenda-versand: Agenda-Mails; beide mit Tests)
+supabase/functions/   Edge Functions (analyse-erstellen: KI-Funktionen über den n8n-Webhook; agenda-versand: Agenda-Mails; beide mit Tests)
+n8n/                  Anleitung und Code-Knoten für den n8n-Workflow der KI-Funktionen
 supabase/versand_einrichten.sql   Zeitplan für den Mailversand (von Hand, nach der Einrichtung)
 scripts/              erzeuge-seed-inhalte.mjs (Seed aus der Umfrage-Datei)
 ```
