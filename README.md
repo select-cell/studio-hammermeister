@@ -65,6 +65,7 @@ Gut zu wissen:
    20. `supabase/migrations/019_monatsabschluss_analysen.sql` (Monatsabschluss und Einzelanalyse, siehe [`docs/einzelanalyse.md`](docs/einzelanalyse.md))
    21. `supabase/migrations/020_fokus_agenda_termine.sql` (Fokus-Verhalten, Agenda, Termine, Versandfunktionen, siehe [`docs/agenda-termine.md`](docs/agenda-termine.md))
    22. `supabase/migrations/021_ki_funktionen.sql` (KI-Funktionen: Schalter „nur Admin“, Salon-Kontext, Gesamtauswertung, Agenda mit KI, siehe [`docs/ki-funktionen.md`](docs/ki-funktionen.md))
+   23. `supabase/migrations/022_ki_agenda_nur_admin.sql` (die von der KI formulierte Agenda ist nur für den Admin sichtbar, solange der Schalter an ist)
    
    Weitere Migrationen folgen nummeriert in `supabase/migrations/`.
 2. **Authentication → Providers → Email:** aktiv, **„Allow new users to sign up“ aus**. Nur der Admin legt Logins an.
@@ -234,7 +235,7 @@ Unter **Leitung → Monatsabschluss** schließt die Leitung einen Monat ab (auch
 
 ## KI-Funktionen (nur Admin)
 
-Der **Admin** lässt eine KI drei Dinge formulieren: **Einzelanalysen** (je Person oder als Sammellauf für alle fehlenden), die **Gesamtauswertung** des Teams und die **Agenda** für das Teammeeting. **Alle Zahlen kommen aus der Datenbank, die KI formuliert nur den Text**; die Datenbank prüft den Aufbau und jede Zahl im Text (Faktencheck), und ein Mensch gibt jeden Entwurf frei. Jeder Text ist als „Von der KI formuliert“ gekennzeichnet. Der Schalter `salons.ki_nur_admin` (Standard an) beschränkt die Funktionen auf den Admin. Den **Kontext des Salons** (Leitbild, Ton) trägt der Admin unter Monatsabschluss ein.
+Der **Admin** lässt eine KI drei Dinge formulieren: **Einzelanalysen** (je Person oder als Sammellauf für alle fehlenden), die **Gesamtauswertung** des Teams und die **Agenda** für das Teammeeting. **Alle Zahlen kommen aus der Datenbank, die KI formuliert nur den Text**; die Datenbank prüft den Aufbau und jede Zahl im Text (Faktencheck), und ein Mensch gibt jeden Entwurf frei. Jeder Text ist als „Von der KI formuliert“ gekennzeichnet. Der Schalter `salons.ki_nur_admin` (Standard an) beschränkt die Funktionen auf den Admin. **Was die KI formuliert hat, sieht nur der Admin**, auch die KI-Agenda (Verantwortliche und Mitarbeiter sehen sie nicht, bekommen sie nicht per Mail und finden sie nicht im Monatsbericht; sie arbeiten mit der Agenda aus der Vorlage). Den **Kontext des Salons** (Leitbild, Ton) trägt der Admin unter Monatsabschluss ein.
 
 **Es gibt genau einen Weg zur KI:** Plattform → Webhook (n8n) → Anthropic → Antwort des Webhooks → Plattform. **Damit es funktioniert, muss in Supabase unter Edge Functions → Secrets `AI_WEBHOOK_URL` gesetzt sein** (Production-Adresse des n8n-Webhooks); der n8n-Workflow braucht für diese Plattform einen eigenen Webhook-Pfad und die Anmeldeprüfung gegen diese Plattform (Anleitung in [`n8n/README.md`](n8n/README.md)). Der Anthropic-Schlüssel steht nur in n8n. Die Function `analyse-erstellen` ist eingespielt. Ausführlich: [`docs/ki-funktionen.md`](docs/ki-funktionen.md).
 

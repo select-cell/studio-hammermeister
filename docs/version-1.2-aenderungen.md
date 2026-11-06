@@ -349,7 +349,7 @@ anzahl        = 240
 fingerabdruck = 5f4e4158a303c943ce0740ad1b2efee2
 ```
 
-Gleicher Wert nach dem Einspielen von 016 bis 020 = dieselbe Version 1.2. **Seit Version 1.3 (mit Migration 021) gilt: 267 Objekte, Fingerabdruck `9d184733f4ac9726d34c3c1b26839663`** (Skript `fingerabdruck_version_1_3.sql`); der Wert 240 lässt sich mit diesem Skript nicht mehr erzeugen, weil 021 einige Funktionen der Version 1.2 neu fasst. Bei Abweichung die Spalte `objekte` mit einem Referenz-Lauf zeilenweise vergleichen. Bekannte Ursachen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion; Änderungen am Grundgerüst, die `v_ausfuelldauer` betreffen.
+Gleicher Wert nach dem Einspielen von 016 bis 020 = dieselbe Version 1.2. **Seit Version 1.3 (mit den Migrationen 021 und 022) gilt: 268 Objekte, Fingerabdruck `fa98e5a7992d020f501c3de08fb214a8`** (Skript `fingerabdruck_version_1_3.sql`); der Wert 240 lässt sich mit diesem Skript nicht mehr erzeugen, weil 021 einige Funktionen der Version 1.2 neu fasst. Bei Abweichung die Spalte `objekte` mit einem Referenz-Lauf zeilenweise vergleichen. Bekannte Ursachen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion; Änderungen am Grundgerüst, die `v_ausfuelldauer` betreffen.
 
 **Wie getestet wurde** (Vorgehen zum Wiederverwenden)
 
@@ -416,7 +416,7 @@ supabase/migrations/016 bis 020                                                 
 docs/zeiterfassung.md, pdf-export.md, kommentar-auswertung.md,
      einzelanalyse.md, agenda-termine.md, ki-funktionen.md, version-1.2-aenderungen.md (diese Datei)
 n8n/README.md, n8n/knoten/*.js                                                     1.3 (Workflow-Anleitung und Code-Knoten)
-supabase/migrations/021_ki_funktionen.sql                                          1.3
+supabase/migrations/021_ki_funktionen.sql, 022_ki_agenda_nur_admin.sql           1.3
 ```
 
 Die geänderten Dateien (`api.ts`, `rechte.ts`, `App.tsx`, `umfrage.ts`, `Info.tsx`, `pdf/*`) enthalten kleine Ergänzungen an bestehendem Code; beim Übernehmen in eine Plattform mit abweichendem Stand die Änderungen mit einem Vergleich (`diff`) einfügen, statt die Dateien zu überschreiben.

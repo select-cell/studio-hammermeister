@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 --  Fingerabdruck von Version 1.3 (nur Lesen, ändert nichts)
 -- ═══════════════════════════════════════════════════════════════════════════
---  Fasst alle Datenbank-Objekte der Version 1.3 (Migrationen 016 bis 021) zu einem Fingerabdruck zusammen: Funktionen (Quelltext und Rechte),
+--  Fasst alle Datenbank-Objekte der Version 1.3 (Migrationen 016 bis 022) zu einem Fingerabdruck zusammen: Funktionen (Quelltext und Rechte),
 --  Tabellen und Ansichten (Spalten, Constraints, Indizes, Rechte) und die neuen Spalten in „salons“.
 --  Im SQL-Editor der Ziel-Plattform ausführen und mit dem Referenzwert in docs/ki-funktionen.md (Abschnitt 10: 267 Objekte, 9d184733f4ac9726d34c3c1b26839663) vergleichen:
 --  Gleicher Fingerabdruck = dieselbe Version 1.3. Weicht er ab, zeigt „objekte“ je Objekt einen Kurz-Hash; mit dem Referenz-Lauf zeilenweise
@@ -31,10 +31,10 @@ with t as (
        'agenda_lesen', 'agenda_bearbeiten', 'agenda_freigeben', 'termin_admin_salon', 'termin_empfaenger', 'termine_liste', 'termin_speichern',
        'termine_serie', 'termin_entfernen', 'versand_faellig', 'versand_beanspruchen', 'versand_abschliessen', 'agenda_fuer_versand',
        'agenda_zahl', 'agenda_diff', 'agenda_monatsname', 'agenda_bezugsmonat',
-       -- 021 KI-Funktionen
+       -- 021 KI-Funktionen und 022 (KI-Agenda nur für den Admin)
        'ki_zugriff', 'ki_monat', 'ki_kriterien', 'ki_anreichern', 'ki_kontext_lesen', 'ki_kontext_speichern', 'analyse_eingabe_ki', 'analyse_ki_speichern',
        'team_basis', 'gesamt_basis', 'gesamt_eingabe', 'gesamt_pruefen', 'gesamt_speichern', 'gesamt_lesen', 'gesamt_bearbeiten', 'gesamt_freigeben',
-       'agenda_ki_basis', 'agenda_ki_eingabe', 'agenda_ki_validieren', 'agenda_ki_punkte', 'agenda_pruef_text', 'agenda_ki_pruefen', 'agenda_ki_speichern')
+       'agenda_ki_basis', 'agenda_ki_eingabe', 'agenda_ki_validieren', 'agenda_ki_punkte', 'agenda_pruef_text', 'agenda_ki_pruefen', 'agenda_ki_speichern', 'agenda_ki_gesperrt')
   union all
   select 'view:' || c.relname, md5(pg_get_viewdef(c.oid)) || ' opts=' || coalesce(array_to_string(c.reloptions, ','), '')
     from pg_class c where c.relnamespace = 'public'::regnamespace and c.relname in ('v_ausfuelldauer', 'v_kommentar_metriken')

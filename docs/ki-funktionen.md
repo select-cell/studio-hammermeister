@@ -23,14 +23,14 @@ Dieses Dokument gilt für **jede** Salon-Plattform (eigene Instanz mit eigenem S
 
 ## 2. Wer darf was
 
-Eine Stelle entscheidet: `analyse_zugriff()` und `ki_zugriff()` in der Datenbank (Migration 021).
+**Alles, was die KI formuliert, sieht nur der Admin** (der Plattformbetreiber). Eine Stelle entscheidet: `analyse_zugriff()` und `ki_zugriff()` in der Datenbank (Migration 021), für die Agenda zusätzlich `agenda_ki_gesperrt()` (Migration 022).
 
 | Schalter | Standard | Wirkung |
 |---|---|---|
 | `salons.ki_nur_admin` | **an** | Nur der **Admin** darf Einzelanalysen und die Gesamtauswertung erstellen, lesen, bearbeiten und freigeben und die Agenda von der KI formulieren lassen. |
 
 - Mit ausgeschaltetem Schalter (`update public.salons set ki_nur_admin = false;`) dürfen auch Verantwortliche. Den Kontext für die KI (Abschnitt 4) pflegt **immer nur der Admin**.
-- Die **Agenda** bleibt für Verantwortliche wie bisher les-, bearbeit- und freigebbar (Vorlage und KI-Fassung); nur das **KI-Formulieren** ist Sache des Admins.
+- Die **Agenda aus der Vorlage** (ohne KI) bleibt für Verantwortliche wie bisher les-, bearbeit- und freigebbar. Eine **von der KI formulierte Agenda** (`modell` ist nicht `vorlage`) liest, bearbeitet und gibt nur der Admin frei, solange der Schalter an ist (Migration 022): Für Verantwortliche und Mitarbeiter ist sie nicht vorhanden (`agenda_lesen()` liefert `null`, also auch kein Monatsbericht mit ihr), sie lässt sich nicht durch eine Vorlage überschreiben (`agenda_erzeugen()` meldet „Die Agenda dieses Monats kann nur der Admin ändern.“), und die **Mail** an die Verantwortlichen enthält nie den KI-Text, sondern die Agenda aus der Vorlage (nur gebaut, nicht gespeichert; die KI-Agenda bleibt unberührt). Auch eine vom Admin **freigegebene** KI-Agenda bleibt so für alle anderen unsichtbar. Mit ausgeschaltetem Schalter gilt wieder das Verhalten der Version 1.3 ohne 022 (Verantwortliche lesen, bearbeiten und geben frei, die Mail enthält die KI-Agenda).
 - **Verhaltensänderung gegenüber Version 1.2:** Dort durften Verantwortliche Einzelanalysen erstellen. Mit dem neuen Standard sehen sie diese nicht mehr, bis `ki_nur_admin` ausgeschaltet wird. `abschluss_uebersicht()` liefert dann `ki_erlaubt: false`, und die Seite zeigt statt der KI-Bereiche einen Hinweis.
 - Mitarbeiter haben keinen Zugang. Die Rolle wird bei jedem Aufruf neu geprüft; das Frontend filtert nichts.
 - **Kein `service_role`-Schlüssel im Frontend:** Die App prüft beim Start den Schlüssel aus der `.env`. Ein geheimer Schlüssel (`service_role`, `sb_secret_…`) oder jede andere Rolle als `anon` verhindert den Start mit einer klaren Meldung.
@@ -133,14 +133,14 @@ Antwort Einzelanalyse, Gesamtauswertung, Agenda: `{ "analyse": {…Zeile…}, "n
 
 ## 9. Einrichten
 
-1. **Migration 021** einspielen (idempotent, ohne `DROP`/`DELETE`), danach `supabase/fingerabdruck_version_1_3.sql` ausführen und mit dem Referenzwert (Abschnitt 10) vergleichen.
+1. **Migrationen 021 und 022** einspielen (idempotent, ohne `DROP`/`DELETE`), danach `supabase/fingerabdruck_version_1_3.sql` ausführen und mit dem Referenzwert (Abschnitt 10) vergleichen.
 2. **Edge Function** `analyse-erstellen` veröffentlichen: Dateien `index.ts` und `analyse.ts` vollständig, **JWT-Prüfung an**. (Ein Platzhalter als Dateiinhalt wird beim Veröffentlichen nicht bemerkt: danach `get_edge_function` oder einen Testaufruf prüfen.)
 3. **n8n:** Workflow für diese Plattform bereitstellen (Anleitung in [`n8n/README.md`](../n8n/README.md)): eigener Webhook-Pfad, „Anmeldung prüfen“ auf die Adresse dieser Plattform, Anthropic-Zugangsdaten, **Workflow veröffentlichen**.
 4. **Adresse des Webhooks:** Für diese Plattform steht die Production-Adresse als Standard in `index.ts` (`STANDARD_WEBHOOK_URL`). Ein **Secret** `AI_WEBHOOK_URL` (Supabase → Edge Functions → Secrets) hat Vorrang und ist der Weg, die Adresse zu ändern, ohne die Function neu zu veröffentlichen. Auf einer anderen Salon-Plattform entweder die Konstante ersetzen oder das Secret setzen (Production-Adresse, z. B. `https://<dein-n8n>/webhook/<pfad>`; nicht die Test-Adresse `/webhook-test/`). Die früheren Secrets `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `AI_WEBHOOK_SECRET` werden nicht mehr gelesen und können entfernt werden. **Der Anthropic-Schlüssel gehört nur in n8n**, nie in die Plattform.
 5. **Kontext eintragen:** als Admin unter Monatsabschluss „Kontext für die KI“ (Leitbild, Ton, Besonderheiten; ohne Namen).
 6. **Prüfen:** als Admin eine Einzelanalyse erstellen; dann Gesamtauswertung und Agenda mit KI. Als Verantwortliche/r (Schalter an) darf kein KI-Bereich sichtbar sein.
 
-**Salon-Parameter** (alles, was von Salon zu Salon verschieden ist; nichts davon steht in Migration 021):
+**Salon-Parameter** (alles, was von Salon zu Salon verschieden ist; nichts davon steht in den Migrationen 021 und 022):
 
 | Parameter | Wo |
 |---|---|
@@ -155,16 +155,16 @@ Antwort Einzelanalyse, Gesamtauswertung, Agenda: `{ "analyse": {…Zeile…}, "n
 
 Voraussetzung ist Version 1.2 (Migrationen 016 bis 020, siehe [`version-1.2-aenderungen.md`](version-1.2-aenderungen.md)). Dann:
 
-1. Dateien übernehmen: `supabase/migrations/021_ki_funktionen.sql`, `supabase/functions/analyse-erstellen/` (alle drei Dateien), `supabase/fingerabdruck_version_1_3.sql`, `n8n/README.md`, dieses Dokument; im Frontend `src/lib/abschluss.ts`, `src/lib/api.ts` (KI-Wrapper), `src/components/leitung/AnalyseText.tsx`, `src/pages/app/leitung/Abschluss.tsx`, `Agenda.tsx`, Textabschnitt „Auswertung mit KI“ in `src/pages/app/Info.tsx`, Stile `.lt-chip.ki`, `.lt-chips`, `.lt-sammel-fehler`, `.lt-zaehler` in `src/styles/leitung.css`.
-2. Migration 021 einspielen (am besten in zwei Teilen; ein Zeitlimit des Werkzeugs heißt nicht „kaputt“: erst den Zustand prüfen).
+1. Dateien übernehmen: `supabase/migrations/021_ki_funktionen.sql`, `supabase/migrations/022_ki_agenda_nur_admin.sql`, `supabase/functions/analyse-erstellen/` (alle drei Dateien), `supabase/fingerabdruck_version_1_3.sql`, `n8n/README.md`, dieses Dokument; im Frontend `src/lib/abschluss.ts`, `src/lib/api.ts` (KI-Wrapper), `src/components/leitung/AnalyseText.tsx`, `src/pages/app/leitung/Abschluss.tsx`, `Agenda.tsx`, Textabschnitt „Auswertung mit KI“ in `src/pages/app/Info.tsx`, Stile `.lt-chip.ki`, `.lt-chips`, `.lt-sammel-fehler`, `.lt-zaehler` in `src/styles/leitung.css`.
+2. Migrationen 021 und 022 einspielen (021 am besten in zwei Teilen; ein Zeitlimit des Werkzeugs heißt nicht „kaputt“: erst den Zustand prüfen).
 3. Fingerabdruck prüfen. **Referenzwert Version 1.3** (Referenz-Plattform; PostgreSQL von Supabase):
 
 ```
-anzahl        = 267
-fingerabdruck = 9d184733f4ac9726d34c3c1b26839663
+anzahl        = 268
+fingerabdruck = fa98e5a7992d020f501c3de08fb214a8
 ```
 
-   Dieser Wert löst den von Version 1.2 ab (240 Objekte), weil Migration 021 einige Funktionen der Version 1.2 neu fasst (u. a. `abschluss_uebersicht`, `analyse_zeile`, `analyse_bearbeiten`, `agenda_bearbeiten`). Bekannte Ursachen für Abweichungen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion.
+   Dieser Wert löst den von Version 1.2 ab (240 Objekte), weil die Migrationen 021 und 022 einige Funktionen der Version 1.2 neu fassen (u. a. `abschluss_uebersicht`, `analyse_zeile`, `analyse_bearbeiten`, `agenda_lesen`, `agenda_erzeugen`, `agenda_bearbeiten`, `agenda_freigeben`, `agenda_fuer_versand`); ohne 022 (nur 021) lautete er 267 Objekte, `9d184733f4ac9726d34c3c1b26839663`. Bekannte Ursachen für Abweichungen: Kommentare im Funktionsrumpf, die beim Einspielen fehlten; eine andere Postgres-Hauptversion.
 4. Edge Function veröffentlichen, n8n und Secret einrichten (Abschnitt 9).
 5. Branche, Kontext und Kriterien der neuen Plattform eintragen.
 
@@ -181,8 +181,8 @@ fingerabdruck = 9d184733f4ac9726d34c3c1b26839663
 
 | Bereich | Umfang |
 |---|---|
-| Datenbank (lokal, PGlite, Migrationen zweimal) | 129 Prüfungen in `ki-test`: Rechte je Rolle und Salon, Eingabe ohne Namen, Kriterien und Kontext (nur in der Eingabe, nicht in den erlaubten Zahlen), Hash, Faktencheck, Gesamtauswertung, Agenda mit KI (Aufbau, Titel/Hinweise von der Datenbank), Bearbeiten und Freigeben, Übersicht |
-| Datenbank in Produktion | Rollback-Test mit `raise exception` am Ende (nichts bleibt zurück), Fingerabdruck 267 / `9d184733…` gleich wie lokal |
+| Datenbank (lokal, PGlite, Migrationen zweimal) | 152 Prüfungen in `ki-test` (davon 23 für Migration 022: KI-Agenda für Verantwortliche, Mitarbeiter und nicht Angemeldete unsichtbar und nicht änderbar, Mail ohne KI-Text, Admin liest, bearbeitet und gibt frei, Schalter aus wie zuvor): Rechte je Rolle und Salon, Eingabe ohne Namen, Kriterien und Kontext (nur in der Eingabe, nicht in den erlaubten Zahlen), Hash, Faktencheck, Gesamtauswertung, Agenda mit KI (Aufbau, Titel/Hinweise von der Datenbank), Bearbeiten und Freigeben, Übersicht |
+| Datenbank in Produktion | Rollback-Test mit `raise exception` am Ende (nichts bleibt zurück), Fingerabdruck 268 / `fa98e5a7…` gleich wie lokal; dazu ein Lesetest mit den echten Rollen an echten Daten (Verantwortlicher: Einzelanalyse, Gesamtauswertung, Kontext und KI-Agenda gesperrt, Mitarbeiter alles gesperrt, Admin alles erlaubt), mit Rollback |
 | Edge-Function-Logik (Vitest, 52 Prüfungen) | Prompts (Regeln gegen Anweisungen in Texten, Branche), Parser (Zäune, Zeilenumbrüche mitten in Wörtern, abgeschnittenes JSON), Webhook (Fehlerarten, Zeitüberschreitung), Runden und Zeitbudget, Sammellauf, Anfrage-Prüfung |
 | n8n-Code-Knoten | die drei Knoten aus `n8n/knoten/` gegen die Testanfragen aus `n8n/testanfragen/` mit nachgebauter n8n-Umgebung: gültige und ungültige Anfrage, Antwort lesen ohne Hinweise, `429`, abgeschnittene Antwort, Bündeln im Protokoll |
 | Schlüssel im Frontend (Vitest und Playwright) | `src/lib/schluessel.ts`: die App startet nicht mit einem `service_role`-, `sb_secret_`- oder anderen Nicht-`anon`-Schlüssel und sendet dann keine Anfrage |

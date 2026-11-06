@@ -88,6 +88,10 @@ export default function Info() {
           hinaus, keine Namen und keine Kommentare. Als Absender gilt die Anmeldung des Admins; n8n lässt sie bei der Plattform bestätigen, bevor es
           arbeitet. Mitarbeiter bekommen die Analysen nicht zum Download.
         </p>
+        <p>
+          Was die KI formuliert hat, sieht nur der Admin: die Einzelanalysen, die Gesamtauswertung und die von der KI formulierte Agenda. Verantwortliche und Mitarbeiter
+          sehen sie nicht, bekommen sie nicht per Mail und finden sie nicht im Monatsbericht. Die Agenda aus der Vorlage (ohne KI) bleibt Sache der Leitung.
+        </p>
       </section>
 
       <section className="karte info-abschnitt">

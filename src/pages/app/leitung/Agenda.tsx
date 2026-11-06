@@ -7,14 +7,21 @@ import Seitenkopf from '../../../components/auswertung/Seitenkopf'
 import Markdown from '../../../components/leitung/Markdown'
 import { AnalyseFuss, FaktenHinweis, KiAbzeichen } from '../../../components/leitung/AnalyseText'
 import { bearbeiteAgenda, erstelleAgendaMitKi, erzeugeAgenda, gebeAgendaFrei, ladeAbschluss, ladeAgenda } from '../../../lib/api'
-import { AnalyseFehler } from '../../../lib/abschluss'
+import { AnalyseFehler, vonKi } from '../../../lib/abschluss'
+import { useAuth } from '../../../auth/AuthContext'
+import { istAdmin } from '../../../lib/rechte'
 import type { Agenda as AgendaDaten } from '../../../lib/agenda'
 import { istMonat, monatName } from '../../../lib/monat'
 import { useLaden } from '../../../lib/useLaden'
 
 type Meldung = { art: 'ok' | 'fehler'; text: string } | null
 
-const fehlerText = (e: unknown) => (e instanceof AnalyseFehler ? e.message : 'Das hat nicht geklappt. Bitte versuche es noch einmal.')
+/** Meldungen der KI-Function und der Datenbank (42501: z. B. „Die Agenda dieses Monats kann nur der Admin ändern.“) zeigen, sonst ein allgemeiner Text. */
+const fehlerText = (e: unknown, standard = 'Das hat nicht geklappt. Bitte versuche es noch einmal.') => {
+  if (e instanceof AnalyseFehler) return e.message
+  const f = e as { code?: string; message?: string } | null
+  return f?.code === '42501' && f.message ? f.message : standard
+}
 
 function AgendaAnsicht({
   a, monat, kiErlaubt, neuLaden, meldung, setMeldung,
@@ -26,6 +33,7 @@ function AgendaAnsicht({
   meldung: Meldung
   setMeldung: (m: Meldung) => void
 }) {
+  const { person } = useAuth()
   const [bearbeiten, setBearbeiten] = useState(false)
   const [text, setText] = useState(a.text_md ?? '')
   const [arbeitet, setArbeitet] = useState<'ki' | 'vorlage' | 'sonst' | null>(null)
@@ -82,6 +90,11 @@ function AgendaAnsicht({
           </p>
         )}
         <FaktenHinweis a={a} />
+        {vonKi(a) && person && istAdmin(person) && (
+          <p className="hinweis" role="note">
+            Nur für dich sichtbar: Solange der Schalter „nur Admin“ an ist (Standard), sehen Verantwortliche diese KI-Agenda nicht, bekommen sie nicht per Mail und sehen sie nicht im Monatsbericht. In der Mail steht dann die Agenda aus der Vorlage.
+          </p>
+        )}
         {bearbeiten ? (
           <>
             <label className="lt-label" htmlFor="agenda-text">
@@ -151,7 +164,8 @@ function AgendaAnsicht({
       <Abschnitt titel="Was in der Mail steht">
         <p className="text-gedimmt text-klein">
           Verantwortliche bekommen die Agenda vor dem Termin per Mail (Termine verwaltet der Admin). In der Mail stehen die Blöcke und Punkte der Agenda, aber nie die Kommentar-Beispiele aus dem Fokus-Block. Die freigegebene Agenda
-          erscheint außerdem am Ende des Monatsberichts als PDF, ebenfalls ohne Kommentar-Beispiele.
+          erscheint außerdem am Ende des Monatsberichts als PDF, ebenfalls ohne Kommentar-Beispiele. Eine von der KI formulierte Agenda gehört dazu nur, wenn der Schalter „nur Admin“ aus ist; sonst gehen Mail und Monatsbericht der Verantwortlichen
+          mit der Agenda aus der Vorlage hinaus.
         </p>
       </Abschnitt>
     </>
@@ -178,7 +192,7 @@ function Inhalt({ monat, kiErlaubt }: { monat: string; kiErlaubt: boolean }) {
       }
       l.neuLaden()
     } catch (e) {
-      setFehler(e instanceof AnalyseFehler ? e.message : 'Die Agenda konnte nicht erzeugt werden. Bitte versuche es noch einmal.')
+      setFehler(fehlerText(e, 'Die Agenda konnte nicht erzeugt werden. Bitte versuche es noch einmal.'))
     } finally {
       setArbeitet(null)
     }
