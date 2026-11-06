@@ -1,12 +1,14 @@
 // Monatsabschluss und Einzelanalyse (Erweiterung E, Migration 019): Typen der Antworten und kleine Hilfen.
 // Alle Zahlen kommen aus SQL; die KI formuliert nur den Text. Ob jede Zahl im Text aus den Daten stammt, prüft die Datenbank.
+// KI-Funktionen (Migration 021): Einzelanalyse, Gesamtauswertung und Agenda mit KI laufen über die Edge Function „analyse-erstellen“
+// und den n8n-Webhook; wer sie nutzen darf (Standard: nur der Admin), entscheidet die Datenbank.
 
 export type AnalyseStatus = 'entwurf' | 'freigegeben'
 
 export interface Analyse {
   id: string
   monat: string
-  typ: 'person' | 'team_agenda' | 'kommentar_qualitaet'
+  typ: 'person' | 'team_agenda' | 'team_gesamt' | 'kommentar_qualitaet'
   person_id: string | null
   /** strukturierte Ausgabe der KI; in der Übersicht weggelassen */
   inhalt?: Record<string, unknown>
@@ -14,6 +16,8 @@ export interface Analyse {
   modell: string | null
   prompt_version: string | null
   input_hash: string | null
+  /** Zahl der KI-Aufrufe, die für diesen Text nötig waren (leer: nicht von der KI) */
+  versuche?: number | null
   status: AnalyseStatus
   /** Faktencheck bestanden: Jede Zahl im Text steht in den Daten. */
   geprueft: boolean
@@ -45,6 +49,8 @@ export interface AbschlussInfo {
 /** Antwort von abschluss_uebersicht(). */
 export interface AbschlussUebersicht {
   monat: string | null
+  /** Die Person darf die KI-Funktionen nutzen (Admin; Verantwortliche nur mit ausgeschaltetem Schalter ki_nur_admin). */
+  ki_erlaubt: boolean
   monate: string[]
   abschluss: AbschlussInfo | null
   personen: AbschlussPerson[]
@@ -53,7 +59,7 @@ export interface AbschlussUebersicht {
   freigegeben: number
 }
 
-/** Antwort der Edge Function „analyse-erstellen“. */
+/** Antwort der Edge Function „analyse-erstellen“ für Einzelanalyse, Gesamtauswertung und Agenda. */
 export interface AnalyseErgebnis {
   analyse: Analyse
   /** false: gleiche Eingabe wie zuvor, es gab keinen neuen KI-Aufruf */
@@ -61,13 +67,29 @@ export interface AnalyseErgebnis {
   ki_aufrufe: number
 }
 
+/** Antwort der Edge Function für einen Durchgang des Sammellaufs (je Durchgang höchstens zwei Personen). */
+export interface SammellaufErgebnis {
+  erstellt: { person_id: string; name: string }[]
+  fehlgeschlagen: { person_id: string; name: string; meldung: string }[]
+  /** Personen ohne Analyse, die noch nicht dran waren (ohne die ausgenommenen) */
+  verbleibend: number
+}
+
+/** Was die Edge Function als Fehlerart melden kann, dazu zwei, die nur im Browser entstehen. */
 export type AnalyseFehlerArt =
   | 'ki_nicht_eingerichtet'
+  | 'ki_nicht_erreichbar'
+  | 'ki_abgelehnt'
+  | 'ki_ueberlastet'
   | 'ki_fehler'
   | 'zeitueberschreitung'
   | 'ungueltige_ausgabe'
+  | 'monat_offen'
   | 'keine_berechtigung'
+  | 'keine_anmeldung'
   | 'keine_daten'
+  | 'ungueltige_anfrage'
+  | 'datenbank'
   | 'nicht_erreichbar'
   | 'unbekannt'
 
@@ -79,6 +101,24 @@ export class AnalyseFehler extends Error {
     super(meldung)
     this.name = 'AnalyseFehler'
   }
+}
+
+/** Von der KI formuliert (über den Webhook) oder aus der Vorlage der Plattform? Ältere Zeilen nennen das Modell direkt. */
+export const vonKi = (a: Pick<Analyse, 'modell'>): boolean => !!a.modell && a.modell !== 'vorlage'
+
+/** „über n8n“ statt des internen Wortes „webhook“; die Vorlage der Agenda heißt „aus der Vorlage der Plattform“. */
+export function herkunftText(a: Pick<Analyse, 'modell' | 'versuche'>): string {
+  const aufrufe = a.versuche && a.versuche > 1 ? ` (${a.versuche} Versuche)` : ''
+  if (!a.modell) return 'unbekannte Herkunft'
+  if (a.modell === 'vorlage') return 'aus der Vorlage der Plattform'
+  if (a.modell === 'webhook') return `von der KI formuliert, über n8n${aufrufe}`
+  return `von der KI formuliert, ${a.modell}${aufrufe}`
+}
+
+/** Die Meldung für den Sammellauf: „3 Analysen erstellt, 1 fehlgeschlagen.“ */
+export function sammellaufText(erstellt: number, fehlgeschlagen: number): string {
+  const e = `${erstellt} ${erstellt === 1 ? 'Analyse' : 'Analysen'} erstellt`
+  return fehlgeschlagen ? `${e}, ${fehlgeschlagen} fehlgeschlagen.` : `${e}.`
 }
 
 /** Zahlen aus dem Faktencheck so zeigen, wie man sie schreibt: „4.71“ → „4,71“. */

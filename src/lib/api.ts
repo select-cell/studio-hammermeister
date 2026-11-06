@@ -3,7 +3,7 @@ import { aktuellerZugriffstoken, supabase, supabaseSchluessel, supabaseUrl } fro
 import type { AbgabeStatus, Ueberfaellige } from './abgabe'
 import type { PersonErgebnisse, TeamDashboard, TeamErgebnisse } from './auswertung'
 import type { Person } from './types'
-import type { Analyse, AnalyseErgebnis, AbschlussInfo, AbschlussUebersicht } from './abschluss'
+import type { Analyse, AnalyseErgebnis, AbschlussInfo, AbschlussUebersicht, SammellaufErgebnis } from './abschluss'
 import type { Agenda, FokusListe, Rhythmus, Termin } from './agenda'
 import { AnalyseFehler, type AnalyseFehlerArt } from './abschluss'
 import type { KommentarAuswertung } from './kommentare'
@@ -277,25 +277,84 @@ export async function gebeAnalyseFrei(id: string, frei: boolean): Promise<Analys
   return data as Analyse
 }
 
-/**
- * Lässt die KI die Einzelanalyse erstellen (Edge Function „analyse-erstellen“). Gleiche Eingabe wie zuvor: kein neuer KI-Aufruf,
- * außer mit `neu`. Fehler kommen als AnalyseFehler mit einer Meldung, die die Oberfläche zeigen darf.
- */
-export async function erstelleAnalyse(personId: string, monat: string, neu = false): Promise<AnalyseErgebnis> {
-  const { data, error } = await supabase.functions.invoke('analyse-erstellen', { body: { person_id: personId, monat, neu } })
-  if (!error) return data as AnalyseErgebnis
+/** Der Weg zur KI: Browser → Edge Function „analyse-erstellen“ → n8n-Webhook → Anthropic und zurück. Es gibt keinen anderen. */
+type KiAnfrage =
+  | { aufgabe: 'einzelanalyse'; monat: string; person_id: string; neu?: boolean }
+  | { aufgabe: 'gesamtauswertung' | 'agenda'; monat: string; neu?: boolean }
+  | { aufgabe: 'sammellauf'; monat: string; ausgenommen?: string[] }
+
+/** Ruft die Edge Function auf. Fehler kommen als AnalyseFehler mit einer Meldung, die die Oberfläche zeigen darf. */
+async function rufeKi<T>(anfrage: KiAnfrage): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('analyse-erstellen', { body: anfrage })
+  if (!error) return data as T
   const kontext = (error as { context?: unknown }).context
   if (kontext instanceof Response) {
-    if (kontext.status === 404) throw new AnalyseFehler('ki_nicht_eingerichtet', 'Die Analyse-Funktion ist noch nicht eingerichtet.')
+    if (kontext.status === 404) throw new AnalyseFehler('ki_nicht_eingerichtet', 'Die KI-Funktion ist noch nicht eingerichtet.')
     try {
       const b = (await kontext.json()) as { fehler?: string; meldung?: string }
-      throw new AnalyseFehler((b.fehler as AnalyseFehlerArt) ?? 'unbekannt', b.meldung ?? 'Die Analyse konnte nicht erstellt werden.')
+      throw new AnalyseFehler((b.fehler as AnalyseFehlerArt) ?? 'unbekannt', b.meldung ?? 'Die KI-Funktion hat nicht geklappt.')
     } catch (e) {
       if (e instanceof AnalyseFehler) throw e
     }
-    throw new AnalyseFehler('unbekannt', 'Die Analyse konnte nicht erstellt werden.')
+    throw new AnalyseFehler('unbekannt', 'Die KI-Funktion hat nicht geklappt.')
   }
-  throw new AnalyseFehler('nicht_erreichbar', 'Die Analyse konnte nicht gestartet werden. Bitte prüfe die Internetverbindung.')
+  throw new AnalyseFehler('nicht_erreichbar', 'Die KI-Funktion konnte nicht gestartet werden. Bitte prüfe die Internetverbindung.')
+}
+
+/**
+ * Lässt die KI die Einzelanalyse erstellen. Gleiche Eingabe wie zuvor: kein neuer KI-Aufruf, außer mit `neu`.
+ * Nur der Admin (Schalter salons.ki_nur_admin); die Datenbank entscheidet.
+ */
+export const erstelleAnalyse = (personId: string, monat: string, neu = false): Promise<AnalyseErgebnis> =>
+  rufeKi({ aufgabe: 'einzelanalyse', monat, person_id: personId, neu })
+
+/** Die KI formuliert die Gesamtauswertung des Monats (nur Teamwerte). */
+export const erstelleGesamt = (monat: string, neu = false): Promise<AnalyseErgebnis> => rufeKi({ aufgabe: 'gesamtauswertung', monat, neu })
+
+/** Die KI formuliert die Agenda des Monats (Blöcke und Zeiten stehen fest, die KI schreibt die Punkte). */
+export const erstelleAgendaMitKi = (monat: string, neu = false): Promise<AnalyseErgebnis> => rufeKi({ aufgabe: 'agenda', monat, neu })
+
+/** Ein Durchgang des Sammellaufs (höchstens zwei Personen). `ausgenommen`: Personen, die nicht noch einmal versucht werden sollen. */
+export const starteSammellauf = (monat: string, ausgenommen: string[] = []): Promise<SammellaufErgebnis> => rufeKi({ aufgabe: 'sammellauf', monat, ausgenommen })
+
+// ── Gesamtauswertung des Monats und Kontext für die KI (Migration 021) ──────────
+
+export async function ladeGesamt(monat: string): Promise<Analyse | null> {
+  const { data, error } = await supabase.rpc('gesamt_lesen', { p_monat: `${monat}-01` })
+  if (error) throw error
+  return (data as Analyse | null) ?? null
+}
+
+export async function bearbeiteGesamt(id: string, text: string): Promise<Analyse> {
+  const { data, error } = await supabase.rpc('gesamt_bearbeiten', { p_id: id, p_text_md: text })
+  if (error) throw error
+  return data as Analyse
+}
+
+export async function gebeGesamtFrei(id: string, frei: boolean): Promise<Analyse> {
+  const { data, error } = await supabase.rpc('gesamt_freigeben', { p_id: id, p_freigabe: frei })
+  if (error) throw error
+  return data as Analyse
+}
+
+export interface KiKontext {
+  /** Leitbild, Ton und Besonderheiten des Salons; leer, wenn noch nichts eingetragen ist */
+  kontext: string | null
+  ki_nur_admin: boolean
+}
+
+/** Nur der Admin. */
+export async function ladeKiKontext(): Promise<KiKontext> {
+  const { data, error } = await supabase.rpc('ki_kontext_lesen')
+  if (error) throw error
+  return data as KiKontext
+}
+
+/** Speichert den Kontext (höchstens 2000 Zeichen, ohne Namen von Personen); leer löscht ihn. Fehler der Datenbank tragen die Meldung in `message`. */
+export async function speichereKiKontext(text: string): Promise<KiKontext> {
+  const { data, error } = await supabase.rpc('ki_kontext_speichern', { p_text: text })
+  if (error) throw error
+  return data as KiKontext
 }
 
 // ── Fokus-Verhalten, Agenda und Termine (Migration 020) ────────────────────

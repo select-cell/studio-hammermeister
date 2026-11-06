@@ -74,6 +74,33 @@
   border-color: transparent;
 }
 
+.lt-chip.ki {
+  color: var(--fb);
+  background: var(--fbbg);
+  border-color: transparent;
+}
+
+.lt-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  justify-content: flex-end;
+}
+
+.lt-sammel-fehler {
+  margin: .6rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.lt-sammel-fehler li {
+  margin-bottom: .25rem;
+}
+
+.lt-zaehler {
+  text-align: right;
+  margin: .25rem 0 0;
+}
+
 .lt-fortschritt {
   display: flex;
   flex-wrap: wrap;

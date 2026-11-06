@@ -5,56 +5,83 @@ import LadeFehler from '../../../components/auswertung/LadeFehler'
 import MonatsAuswahl from '../../../components/auswertung/MonatsAuswahl'
 import Seitenkopf from '../../../components/auswertung/Seitenkopf'
 import Markdown from '../../../components/leitung/Markdown'
-import { bearbeiteAgenda, erzeugeAgenda, gebeAgendaFrei, ladeAbschluss, ladeAgenda } from '../../../lib/api'
+import { AnalyseFuss, FaktenHinweis, KiAbzeichen } from '../../../components/leitung/AnalyseText'
+import { bearbeiteAgenda, erstelleAgendaMitKi, erzeugeAgenda, gebeAgendaFrei, ladeAbschluss, ladeAgenda } from '../../../lib/api'
+import { AnalyseFehler } from '../../../lib/abschluss'
 import type { Agenda as AgendaDaten } from '../../../lib/agenda'
 import { istMonat, monatName } from '../../../lib/monat'
 import { useLaden } from '../../../lib/useLaden'
 
-const datumZeit = (iso: string) => new Date(iso).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', dateStyle: 'short', timeStyle: 'short' })
-
 type Meldung = { art: 'ok' | 'fehler'; text: string } | null
 
-function AgendaAnsicht({ a, monat, neuLaden, meldung, setMeldung }: { a: AgendaDaten; monat: string; neuLaden: () => void; meldung: Meldung; setMeldung: (m: Meldung) => void }) {
+const fehlerText = (e: unknown) => (e instanceof AnalyseFehler ? e.message : 'Das hat nicht geklappt. Bitte versuche es noch einmal.')
+
+function AgendaAnsicht({
+  a, monat, kiErlaubt, neuLaden, meldung, setMeldung,
+}: {
+  a: AgendaDaten
+  monat: string
+  kiErlaubt: boolean
+  neuLaden: () => void
+  meldung: Meldung
+  setMeldung: (m: Meldung) => void
+}) {
   const [bearbeiten, setBearbeiten] = useState(false)
   const [text, setText] = useState(a.text_md ?? '')
-  const [arbeitet, setArbeitet] = useState(false)
+  const [arbeitet, setArbeitet] = useState<'ki' | 'vorlage' | 'sonst' | null>(null)
 
-  async function tu(aktion: () => Promise<string | void>) {
-    setArbeitet(true)
+  async function tu(wie: 'ki' | 'vorlage' | 'sonst', aktion: () => Promise<string | void>) {
+    setArbeitet(wie)
     setMeldung(null)
     try {
       const t = await aktion()
       if (t) setMeldung({ art: 'ok', text: t })
-    } catch {
-      setMeldung({ art: 'fehler', text: 'Das hat nicht geklappt. Bitte versuche es noch einmal.' })
+    } catch (e) {
+      setMeldung({ art: 'fehler', text: fehlerText(e) })
     } finally {
-      setArbeitet(false)
+      setArbeitet(null)
       neuLaden()
     }
   }
 
+  const ersetzt = !!(a.bearbeitet_am || a.status === 'freigegeben')
   const neuErzeugen = () => {
-    if ((a.bearbeitet_am || a.status === 'freigegeben') && !window.confirm('Der bearbeitete oder freigegebene Text geht verloren und wird durch eine neue Agenda aus den aktuellen Daten ersetzt. Fortfahren?')) return
-    void tu(async () => {
+    if (ersetzt && !window.confirm('Der bearbeitete oder freigegebene Text geht verloren und wird durch eine neue Agenda aus den aktuellen Daten ersetzt. Fortfahren?')) return
+    void tu('vorlage', async () => {
       await erzeugeAgenda(monat)
       setBearbeiten(false)
       return 'Die Agenda wurde neu erzeugt.'
     })
   }
+  const neuMitKi = () => {
+    if (ersetzt && !window.confirm('Der bearbeitete oder freigegebene Text geht verloren und wird durch eine neue, von der KI formulierte Agenda ersetzt. Fortfahren?')) return
+    void tu('ki', async () => {
+      const r = await erstelleAgendaMitKi(monat, true)
+      setBearbeiten(false)
+      return r.analyse.geprueft ? 'Die Agenda wurde von der KI formuliert.' : 'Die Agenda wurde von der KI formuliert, aber der Faktencheck hat etwas gefunden. Bitte den Text prüfen.'
+    })
+  }
 
   const inhalt = a.inhalt
+  const beschaeftigt = arbeitet !== null
   return (
     <>
       <Abschnitt
         titel={`Agenda ${monatName(monat)}`}
         hinweis="Alle Zahlen kommen aus der Datenbank. Die Agenda enthält nur Themen und Zahlen des Teams, keine Rangliste einzelner Personen und keine Kommentare mit Namen."
-        aktion={a.status === 'freigegeben' ? <span className="lt-chip ok">Freigegeben</span> : <span className="lt-chip">Entwurf</span>}
+        aktion={
+          <span className="lt-chips">
+            {a.status === 'freigegeben' ? <span className="lt-chip ok">Freigegeben</span> : <span className="lt-chip">Entwurf</span>}
+            <KiAbzeichen a={a} />
+          </span>
+        }
       >
         {inhalt && (
           <p className="text-gedimmt text-klein">
             {inhalt.bloecke.map((b) => `${b.titel.split(' ')[0]} ${b.minuten} Min.`).join(' · ')} · zusammen {inhalt.summe_minuten} Minuten
           </p>
         )}
+        <FaktenHinweis a={a} />
         {bearbeiten ? (
           <>
             <label className="lt-label" htmlFor="agenda-text">
@@ -65,9 +92,9 @@ function AgendaAnsicht({ a, monat, neuLaden, meldung, setMeldung }: { a: AgendaD
               <button
                 type="button"
                 className="btn btn-primaer btn-klein"
-                disabled={arbeitet || !text.trim()}
+                disabled={beschaeftigt || !text.trim()}
                 onClick={() =>
-                  void tu(async () => {
+                  void tu('sonst', async () => {
                     await bearbeiteAgenda(a.id, text)
                     setBearbeiten(false)
                     return 'Text gespeichert. Die Agenda ist wieder ein Entwurf.'
@@ -90,30 +117,36 @@ function AgendaAnsicht({ a, monat, neuLaden, meldung, setMeldung }: { a: AgendaD
                 Text bearbeiten
               </button>
               {a.status === 'freigegeben' ? (
-                <button type="button" className="btn btn-sekundaer btn-klein" disabled={arbeitet} onClick={() => void tu(async () => { await gebeAgendaFrei(a.id, false) })}>
+                <button type="button" className="btn btn-sekundaer btn-klein" disabled={beschaeftigt} onClick={() => void tu('sonst', async () => { await gebeAgendaFrei(a.id, false) })}>
                   Freigabe zurücknehmen
                 </button>
               ) : (
-                <button type="button" className="btn btn-primaer btn-klein" disabled={arbeitet} onClick={() => void tu(async () => { await gebeAgendaFrei(a.id, true); return 'Die Agenda ist freigegeben und steht im Monatsbericht als PDF.' })}>
+                <button type="button" className="btn btn-primaer btn-klein" disabled={beschaeftigt} onClick={() => void tu('sonst', async () => { await gebeAgendaFrei(a.id, true); return 'Die Agenda ist freigegeben und steht im Monatsbericht als PDF.' })}>
                   Freigeben
                 </button>
               )}
-              <button type="button" className="btn btn-sekundaer btn-klein" disabled={arbeitet} onClick={neuErzeugen}>
+              {kiErlaubt && (
+                <button type="button" className="btn btn-sekundaer btn-klein" disabled={beschaeftigt} onClick={neuMitKi}>
+                  {arbeitet === 'ki' ? 'Wird formuliert …' : 'Neu mit KI formulieren'}
+                </button>
+              )}
+              <button type="button" className="btn btn-sekundaer btn-klein" disabled={beschaeftigt} onClick={neuErzeugen}>
                 Neu aus den Daten erzeugen
               </button>
             </div>
           </>
+        )}
+        {arbeitet === 'ki' && (
+          <p className="text-gedimmt" role="status">
+            Die Agenda wird formuliert. Das dauert etwa eine halbe Minute.
+          </p>
         )}
         {meldung && (
           <p className={meldung.art === 'ok' ? 'hinweis' : 'hinweis hinweis-fehler'} role={meldung.art === 'ok' ? 'status' : 'alert'}>
             {meldung.text}
           </p>
         )}
-        <p className="text-gedimmt text-klein lt-fuss">
-          Erstellt {datumZeit(a.erstellt_am)} · {a.modell === 'vorlage' ? 'aus der Vorlage der Plattform' : (a.modell ?? '')}
-          {a.bearbeitet_am && a.bearbeitet_von ? ` · bearbeitet von ${a.bearbeitet_von} am ${datumZeit(a.bearbeitet_am)}` : ''}
-          {a.freigegeben_am && a.freigegeben_von ? ` · freigegeben von ${a.freigegeben_von} am ${datumZeit(a.freigegeben_am)}` : ''}
-        </p>
+        <AnalyseFuss a={a} />
       </Abschnitt>
       <Abschnitt titel="Was in der Mail steht">
         <p className="text-gedimmt text-klein">
@@ -125,42 +158,57 @@ function AgendaAnsicht({ a, monat, neuLaden, meldung, setMeldung }: { a: AgendaD
   )
 }
 
-function Inhalt({ monat }: { monat: string }) {
+function Inhalt({ monat, kiErlaubt }: { monat: string; kiErlaubt: boolean }) {
   const l = useLaden(() => ladeAgenda(monat), monat)
-  const [arbeitet, setArbeitet] = useState(false)
+  const [arbeitet, setArbeitet] = useState<'ki' | 'vorlage' | null>(null)
   const [fehler, setFehler] = useState<string | null>(null)
   const [meldung, setMeldung] = useState<Meldung>(null)
   if (l.laedt && l.daten === null && !l.fehler) return <p className="text-gedimmt">Agenda wird geladen …</p>
   if (l.fehler && l.daten === null) return <LadeFehler laedt={false} fehler neuLaden={l.neuLaden} text="Agenda wird geladen …" />
 
+  async function erzeugen(wie: 'ki' | 'vorlage') {
+    setArbeitet(wie)
+    setFehler(null)
+    try {
+      if (wie === 'ki') {
+        const r = await erstelleAgendaMitKi(monat)
+        if (!r.analyse.geprueft) setMeldung({ art: 'fehler', text: 'Die Agenda wurde von der KI formuliert, aber der Faktencheck hat etwas gefunden. Bitte den Text prüfen.' })
+      } else {
+        await erzeugeAgenda(monat)
+      }
+      l.neuLaden()
+    } catch (e) {
+      setFehler(e instanceof AnalyseFehler ? e.message : 'Die Agenda konnte nicht erzeugt werden. Bitte versuche es noch einmal.')
+    } finally {
+      setArbeitet(null)
+    }
+  }
+
   if (!l.daten) {
     return (
       <Abschnitt titel={`Agenda ${monatName(monat)}`}>
-        <p className="text-gedimmt">Für {monatName(monat)} gibt es noch keine Agenda. Sie entsteht aus den Ergebnissen des Monats und deinen Fokus-Verhalten.</p>
+        <p className="text-gedimmt">
+          Für {monatName(monat)} gibt es noch keine Agenda. Sie entsteht aus den Ergebnissen des Monats und deinen Fokus-Verhalten.
+          {kiErlaubt ? ' Die KI formuliert die Punkte der Blöcke; Blöcke, Zeiten und alle Zahlen stehen fest.' : ''}
+        </p>
         <div className="knopfreihe">
-          <button
-            type="button"
-            className="btn btn-primaer btn-klein"
-            disabled={arbeitet}
-            onClick={async () => {
-              setArbeitet(true)
-              setFehler(null)
-              try {
-                await erzeugeAgenda(monat)
-                l.neuLaden()
-              } catch {
-                setFehler('Die Agenda konnte nicht erzeugt werden. Bitte versuche es noch einmal.')
-              } finally {
-                setArbeitet(false)
-              }
-            }}
-          >
-            {arbeitet ? 'Agenda wird erzeugt …' : 'Agenda erzeugen'}
+          {kiErlaubt && (
+            <button type="button" className="btn btn-primaer btn-klein" disabled={arbeitet !== null} onClick={() => void erzeugen('ki')}>
+              {arbeitet === 'ki' ? 'Agenda wird formuliert …' : 'Mit KI formulieren'}
+            </button>
+          )}
+          <button type="button" className={kiErlaubt ? 'btn btn-sekundaer btn-klein' : 'btn btn-primaer btn-klein'} disabled={arbeitet !== null} onClick={() => void erzeugen('vorlage')}>
+            {arbeitet === 'vorlage' ? 'Agenda wird erzeugt …' : kiErlaubt ? 'Aus der Vorlage erzeugen' : 'Agenda erzeugen'}
           </button>
           <Link to="../fokus" className="btn btn-sekundaer btn-klein">
             Fokus-Verhalten festlegen
           </Link>
         </div>
+        {arbeitet === 'ki' && (
+          <p className="text-gedimmt" role="status">
+            Die Agenda wird formuliert. Das dauert etwa eine halbe Minute.
+          </p>
+        )}
         {fehler && (
           <p className="hinweis hinweis-fehler" role="alert">
             {fehler}
@@ -171,12 +219,20 @@ function Inhalt({ monat }: { monat: string }) {
   }
   return (
     <div className={l.laedt ? 'au-laedt' : undefined} aria-busy={l.laedt}>
-      <AgendaAnsicht key={`${l.daten.id}-${l.daten.erstellt_am}-${l.daten.bearbeitet_am ?? ''}-${l.daten.status}`} a={l.daten} monat={monat} neuLaden={l.neuLaden} meldung={meldung} setMeldung={setMeldung} />
+      <AgendaAnsicht
+        key={`${l.daten.id}-${l.daten.erstellt_am}-${l.daten.bearbeitet_am ?? ''}-${l.daten.status}`}
+        a={l.daten}
+        monat={monat}
+        kiErlaubt={kiErlaubt}
+        neuLaden={l.neuLaden}
+        meldung={meldung}
+        setMeldung={setMeldung}
+      />
     </div>
   )
 }
 
-/** /app/leitung/agenda/:monat – die Agenda für das Teammeeting: erzeugen, bearbeiten, freigeben. Der Link aus der Mail nutzt ?monat=YYYY-MM. */
+/** /app/leitung/agenda/:monat – die Agenda für das Teammeeting: erzeugen (aus der Vorlage oder mit KI), bearbeiten, freigeben. Der Link aus der Mail nutzt ?monat=YYYY-MM. */
 export default function AgendaSeite() {
   const { monat: pfadMonat } = useParams()
   const [suche] = useSearchParams()
@@ -196,7 +252,7 @@ export default function AgendaSeite() {
           <p className="text-gedimmt">Sobald die ersten Umfragen abgegeben sind, kannst du hier die Agenda für das Teammeeting erzeugen.</p>
         </Abschnitt>
       ) : (
-        <Inhalt key={d.monat} monat={d.monat} />
+        <Inhalt key={d.monat} monat={d.monat} kiErlaubt={d.ki_erlaubt} />
       )}
     </>
   )
