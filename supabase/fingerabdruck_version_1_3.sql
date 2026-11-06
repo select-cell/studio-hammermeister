@@ -1,9 +1,9 @@
 -- ═══════════════════════════════════════════════════════════════════════════
---  Fingerabdruck von Version 1.2 (nur Lesen, ändert nichts)
+--  Fingerabdruck von Version 1.3 (nur Lesen, ändert nichts)
 -- ═══════════════════════════════════════════════════════════════════════════
---  Fasst alle Datenbank-Objekte der Version 1.2 (Migrationen 016 bis 020) zu einem Fingerabdruck zusammen: Funktionen (Quelltext und Rechte),
+--  Fasst alle Datenbank-Objekte der Version 1.3 (Migrationen 016 bis 021) zu einem Fingerabdruck zusammen: Funktionen (Quelltext und Rechte),
 --  Tabellen und Ansichten (Spalten, Constraints, Indizes, Rechte) und die neuen Spalten in „salons“.
---  Im SQL-Editor der Ziel-Plattform ausführen und mit dem Referenzwert in docs/version-1.2-aenderungen.md vergleichen:
+--  Im SQL-Editor der Ziel-Plattform ausführen und mit dem Referenzwert in docs/version-1.2-aenderungen.md (Abschnitt „Referenz-Fingerabdruck“) und docs/ki-funktionen.md vergleichen:
 --  Gleicher Fingerabdruck = dieselbe Version 1.2. Weicht er ab, zeigt „objekte“ je Objekt einen Kurz-Hash; mit dem Referenz-Lauf zeilenweise
 --  vergleichen (diff), dann ist das abweichende Objekt schnell gefunden.
 --  Bekannte Ursache für Abweichungen: Kommentare IM Funktionsrumpf, die beim Einspielen fehlten, oder eine andere Postgres-Hauptversion.
@@ -30,7 +30,11 @@ with t as (
        'fokus_am', 'fokus_liste', 'fokus_umschalten', 'agenda_validieren', 'agenda_daten', 'agenda_bauen', 'agenda_speichern_intern', 'agenda_erzeugen',
        'agenda_lesen', 'agenda_bearbeiten', 'agenda_freigeben', 'termin_admin_salon', 'termin_empfaenger', 'termine_liste', 'termin_speichern',
        'termine_serie', 'termin_entfernen', 'versand_faellig', 'versand_beanspruchen', 'versand_abschliessen', 'agenda_fuer_versand',
-       'agenda_zahl', 'agenda_diff', 'agenda_monatsname', 'agenda_bezugsmonat')
+       'agenda_zahl', 'agenda_diff', 'agenda_monatsname', 'agenda_bezugsmonat',
+       -- 021 KI-Funktionen
+       'ki_zugriff', 'ki_monat', 'ki_kriterien', 'ki_anreichern', 'ki_kontext_lesen', 'ki_kontext_speichern', 'analyse_eingabe_ki', 'analyse_ki_speichern',
+       'team_basis', 'gesamt_basis', 'gesamt_eingabe', 'gesamt_pruefen', 'gesamt_speichern', 'gesamt_lesen', 'gesamt_bearbeiten', 'gesamt_freigeben',
+       'agenda_ki_basis', 'agenda_ki_eingabe', 'agenda_ki_validieren', 'agenda_ki_punkte', 'agenda_pruef_text', 'agenda_ki_pruefen', 'agenda_ki_speichern')
   union all
   select 'view:' || c.relname, md5(pg_get_viewdef(c.oid)) || ' opts=' || coalesce(array_to_string(c.reloptions, ','), '')
     from pg_class c where c.relnamespace = 'public'::regnamespace and c.relname in ('v_ausfuelldauer', 'v_kommentar_metriken')
@@ -39,13 +43,13 @@ with t as (
     from information_schema.columns
    where table_schema = 'public'
      and (table_name in ('umfrage_sitzungen', 'umfrage_schrittzeiten', 'pdf_export_log', 'monatsabschluesse', 'analysen', 'fokus_verhalten', 'meeting_termine', 'mail_log', 'v_ausfuelldauer', 'v_kommentar_metriken')
-          or (table_name = 'salons' and (column_name like 'zeit\_%' or column_name = 'eigene_analyse_nur_admin')))
+          or (table_name = 'salons' and (column_name like 'zeit\_%' or column_name like 'ki\_%' or column_name = 'eigene_analyse_nur_admin')))
   union all
   select 'con:' || conrelid::regclass::text || '.' || conname, md5(pg_get_constraintdef(oid))
     from pg_constraint
    where contype <> 'n'
      and (conrelid::regclass::text in ('umfrage_sitzungen', 'umfrage_schrittzeiten', 'pdf_export_log', 'monatsabschluesse', 'analysen', 'fokus_verhalten', 'meeting_termine', 'mail_log')
-          or (conrelid::regclass::text = 'salons' and conname like 'salons\_zeit%'))
+          or (conrelid::regclass::text = 'salons' and (conname like 'salons\_zeit%' or conname like 'salons\_ki%')))
   union all
   select 'idx:' || indexname, md5(indexdef)
     from pg_indexes
