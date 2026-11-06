@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
+import { pruefeSchluessel } from './schluessel'
 
 const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const eingetragen = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+/**
+ * Ein geheimer Schlüssel (service_role) im Frontend ist der schlimmste Fehler: Die App startet dann nicht und benutzt den Schlüssel nie.
+ * `null`: Der Schlüssel ist unauffällig oder fehlt.
+ */
+export const schluesselProblem = pruefeSchluessel(eingetragen)
+const anonKey = schluesselProblem ? undefined : eingetragen
 
 export const konfigurationVollstaendig = Boolean(url && anonKey)
 

@@ -33,6 +33,7 @@ Eine Stelle entscheidet: `analyse_zugriff()` und `ki_zugriff()` in der Datenbank
 - Die **Agenda** bleibt für Verantwortliche wie bisher les-, bearbeit- und freigebbar (Vorlage und KI-Fassung); nur das **KI-Formulieren** ist Sache des Admins.
 - **Verhaltensänderung gegenüber Version 1.2:** Dort durften Verantwortliche Einzelanalysen erstellen. Mit dem neuen Standard sehen sie diese nicht mehr, bis `ki_nur_admin` ausgeschaltet wird. `abschluss_uebersicht()` liefert dann `ki_erlaubt: false`, und die Seite zeigt statt der KI-Bereiche einen Hinweis.
 - Mitarbeiter haben keinen Zugang. Die Rolle wird bei jedem Aufruf neu geprüft; das Frontend filtert nichts.
+- **Kein `service_role`-Schlüssel im Frontend:** Die App prüft beim Start den Schlüssel aus der `.env`. Ein geheimer Schlüssel (`service_role`, `sb_secret_…`) oder jede andere Rolle als `anon` verhindert den Start mit einer klaren Meldung.
 
 ## 3. Der Weg der Daten
 
@@ -183,6 +184,8 @@ fingerabdruck = 9d184733f4ac9726d34c3c1b26839663
 | Datenbank (lokal, PGlite, Migrationen zweimal) | 129 Prüfungen in `ki-test`: Rechte je Rolle und Salon, Eingabe ohne Namen, Kriterien und Kontext (nur in der Eingabe, nicht in den erlaubten Zahlen), Hash, Faktencheck, Gesamtauswertung, Agenda mit KI (Aufbau, Titel/Hinweise von der Datenbank), Bearbeiten und Freigeben, Übersicht |
 | Datenbank in Produktion | Rollback-Test mit `raise exception` am Ende (nichts bleibt zurück), Fingerabdruck 267 / `9d184733…` gleich wie lokal |
 | Edge-Function-Logik (Vitest, 52 Prüfungen) | Prompts (Regeln gegen Anweisungen in Texten, Branche), Parser (Zäune, Zeilenumbrüche mitten in Wörtern, abgeschnittenes JSON), Webhook (Fehlerarten, Zeitüberschreitung), Runden und Zeitbudget, Sammellauf, Anfrage-Prüfung |
+| n8n-Code-Knoten | die drei Knoten aus `n8n/knoten/` gegen die Testanfragen aus `n8n/testanfragen/` mit nachgebauter n8n-Umgebung: gültige und ungültige Anfrage, Antwort lesen ohne Hinweise, `429`, abgeschnittene Antwort, Bündeln im Protokoll |
+| Schlüssel im Frontend (Vitest und Playwright) | `src/lib/schluessel.ts`: die App startet nicht mit einem `service_role`-, `sb_secret_`- oder anderen Nicht-`anon`-Schlüssel und sendet dann keine Anfrage |
 | Oberfläche (Vitest und Playwright mit nachgebautem Datenbank-Dienst und Webhook) | Admin-Ablauf: erstellen, Faktencheck-Warnung, bearbeiten, freigeben, neu generieren mit Rückfrage; Sammellauf in Paketen und mit Fehlschlag; Gesamtauswertung; Agenda mit KI (inkl. Faktencheck und Ausfall der KI); Kontext (Name abgelehnt, löschen); Verantwortliche ohne KI-Recht sehen nichts und lösen keinen Aufruf aus; PDF nur mit freigegebener Analyse |
 
 **Nicht getestet:** der **echte Lauf durch n8n mit echter Anthropic-Antwort**. Die Sandbox erreicht weder n8n noch Anthropic. Beim ersten echten Lauf bitte als Admin eine Einzelanalyse erstellen und prüfen (siehe Abschnitt 13).

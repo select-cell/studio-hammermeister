@@ -81,12 +81,14 @@ Ausgangspunkt ist ein vorhandener Workflow einer anderen Salon-Plattform (in n8n
 5. In Supabase das Secret **`AI_WEBHOOK_URL`** auf die Production-Adresse setzen: `https://<dein-n8n>/webhook/<pfad>`.
 6. **Prüfen:** In der Plattform als Admin unter Leitung → Monatsabschluss eine Einzelanalyse erstellen. Kommt „Der KI-Dienst hat die Anmeldung nicht angenommen“, stimmt Schritt 2 nicht; kommt „… wurde nicht gefunden“, ist der Workflow nicht veröffentlicht oder die Adresse falsch.
 
-**Prüfen ohne Plattform** (im Editor, „Execute workflow“ mit der Test-Adresse): Im Editor-Test entfällt die Anmeldeprüfung. Eine kleine Testanfrage:
+**Prüfen ohne Plattform (Editor-Test):** Im Ordner [`testanfragen/`](testanfragen/) liegen vier fertige Anfragen: `einzelanalyse.json`, `gesamtauswertung.json`, `agenda.json` (mit den echten Prompts der Plattform, aber erfundenen Daten ohne echte Namen oder Zahlen) und `ungueltig.json` (muss mit `400` beantwortet werden). So geht es:
 
-```json
-{ "aufgabe": "agenda", "prompt_version": "test",
-  "auftraege": [ { "ref": "1", "system": "Antworte nur mit {\"bloecke\": []}.", "nachricht": "Daten (JSON):\n{}", "eingabe": {} } ] }
-```
+1. Im Editor den Webhook-Knoten öffnen, „Listen for test event“ wählen und die **Test-Adresse** kopieren.
+2. Eine Anfrage senden, z. B. `curl -X POST -H 'content-type: application/json' --data @n8n/testanfragen/agenda.json '<Test-Adresse>'`. Im Editor-Test entfällt die Anmeldeprüfung (`$execution.mode === 'test'`).
+3. Erwartet: Antwort mit `ergebnisse[0].code` `200`, `ausgabe` mit dem JSON der KI und `meta.hinweise` leer. Ist `meta.stop_reason` `max_tokens`, am Claude-Knoten `max_tokens` erhöhen.
+4. Danach **mit echter Anmeldung** über die Production-Adresse prüfen: in der Plattform als Admin eine Einzelanalyse erstellen (Schritt 6 oben). Die Prüfung der Anmeldung gegen die Plattform lässt sich nur so testen.
+
+Die Code-Knoten in [`knoten/`](knoten/) sind gegen diese Testanfragen mit einer nachgebauten n8n-Umgebung geprüft (Anfrage prüfen, Antwort lesen, Antwort bündeln, 429 und abgeschnittene Antworten); das ersetzt den Test in der echten Instanz nicht.
 
 ## 4. Eine neue Aufgabe oder Plattform anbinden
 
